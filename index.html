@@ -735,6 +735,35 @@
   .hs-head { margin: 0 0 2px; font-size: 12.5px; font-weight: 700; color: var(--wood); }
   #houseView .field-row { width: 100%; }
   #houseView input.num { width: 118px; }
+
+  /* タブ: アイコン + 名前 */
+  .tab-bar { flex-wrap: wrap; justify-content: center; gap: 4px; padding: 6px; }
+  .tab-btn { width: auto; height: auto; flex: 0 0 auto; border-radius: 999px;
+    padding: 6px 10px; gap: 5px; font-family: inherit; font-size: 11.5px; }
+  .tab-btn svg { width: 14px; height: 14px; flex: 0 0 auto; }
+  .tab-name { white-space: nowrap; }
+  .tab-sep { display: none; }
+
+  /* 燃料種別 */
+  .fuel-types { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  .fuel-types .chip { padding: 6px 12px; font-size: 12px; }
+
+  /* 為替 3層 */
+  .fx-primary-label { margin: -6px 0 0; font-size: 11.5px; color: var(--text-muted); }
+  .fx-compare-line { margin: 0; font-size: 12.5px; text-align: center; line-height: 1.6; min-height: 18px; }
+  .fx-toggle { width: 100%; }
+  .fx-detail { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+  .fx-detail[hidden] { display: none; }
+  .fx-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .fx-table th, .fx-table td { padding: 6px 4px; border-bottom: 1px solid var(--surface-border); text-align: right; }
+  .fx-table th:first-child, .fx-table td:first-child { text-align: left; color: var(--text-muted); font-weight: 400; }
+  .fx-table td { font-variant-numeric: tabular-nums; }
+  .fx-table tr.is-best td { color: var(--sage); font-weight: 700; }
+
+  #investView { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+  #investView[hidden] { display: none; }
+  #investView .field-row { width: 100%; }
+  #investView input.num { width: 118px; }
 </style>
 
 <div class="shell">
@@ -746,30 +775,43 @@
 
 <div class="card" id="card" data-mode="focus">
   <div class="tab-bar">
-    <button class="tab-btn" id="tabTimer" data-active="true" aria-label="タイマー" title="タイマー">
+    <button class="tab-btn" id="tabTimer" data-active="true" data-tabkey="timer" title="タイマー">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l3 2"></path><path d="M9 2h6"></path></svg>
+      <span class="tab-name" data-i18n="tab.timer">タイマー</span>
     </button>
-    <button class="tab-btn" id="tabStopwatch" data-active="false" aria-label="ストップウォッチ" title="ストップウォッチ">
+    <button class="tab-btn" id="tabStopwatch" data-active="false" data-tabkey="stopwatch" title="ストップ">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 13l4-2"></path><path d="M9 2h6"></path><path d="M18.5 6.5l1.5-1.5"></path></svg>
+      <span class="tab-name" data-i18n="tab.stopwatch">ストップ</span>
     </button>
-    <button class="tab-btn" id="tabCounter" data-active="false" aria-label="カウンター" title="カウンター">
+    <button class="tab-btn" id="tabCounter" data-active="false" data-tabkey="counter" title="カウンター">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+      <span class="tab-name" data-i18n="tab.counter">カウンター</span>
     </button>
     <span class="tab-sep" aria-hidden="true"></span>
-    <button class="tab-btn" id="tabFuel" data-active="false" aria-label="給油所くらべ" title="給油所くらべ">
+    <button class="tab-btn" id="tabFuel" data-active="false" data-tabkey="fuel" title="給油くらべ">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v16"></path><path d="M3 21h12"></path><path d="M6 8h5"></path><path d="M16 9l2-2 2 2v8a1.5 1.5 0 0 1-3 0v-4h-1"></path></svg>
+      <span class="tab-name" data-i18n="tab.fuel">給油くらべ</span>
     </button>
-    <button class="tab-btn" id="tabPv" data-active="false" aria-label="現在価値" title="現在価値">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 8-8"></path><path d="M16 7h4v4"></path><path d="M3 21h18"></path></svg>
-    </button>
-    <button class="tab-btn" id="tabFx" data-active="false" aria-label="為替" title="為替">
+    <button class="tab-btn" id="tabFx" data-active="false" data-tabkey="fx" title="為替">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13"></path><path d="M14 5l3 3-3 3"></path><path d="M20 16H7"></path><path d="M10 13l-3 3 3 3"></path></svg>
+      <span class="tab-name" data-i18n="tab.fx">為替</span>
     </button>
-    <button class="tab-btn" id="tabAsset" data-active="false" aria-label="資産テーブル" title="資産テーブル">
+    <button class="tab-btn" id="tabPv" data-active="false" data-tabkey="pv" title="現在価値">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 8-8"></path><path d="M16 7h4v4"></path><path d="M3 21h18"></path></svg>
+      <span class="tab-name" data-i18n="tab.pv">現在価値</span>
+    </button>
+    <span class="tab-sep" aria-hidden="true"></span>
+    <button class="tab-btn" id="tabAsset" data-active="false" data-tabkey="asset" title="資産">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 10h18"></path><path d="M9 10v10"></path></svg>
+      <span class="tab-name" data-i18n="tab.asset">資産</span>
     </button>
-    <button class="tab-btn" id="tabHouse" data-active="false" aria-label="家賃vs保有" title="家賃 vs 保有">
+    <button class="tab-btn" id="tabHouse" data-active="false" data-tabkey="house" title="家賃vs保有">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M10 20v-6h4v6"></path></svg>
+      <span class="tab-name" data-i18n="tab.house">家賃vs保有</span>
+    </button>
+    <button class="tab-btn" id="tabInvest" data-active="false" data-tabkey="invest" title="株vs不動産">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9"></path><path d="M9 20V4"></path><path d="M14 20v-7"></path><path d="M19 20V11"></path><path d="M2 20h20"></path></svg>
+      <span class="tab-name" data-i18n="tab.invest">株vs不動産</span>
     </button>
   </div>
 
@@ -906,18 +948,24 @@
   </div>
 
   <div id="fuelView" hidden>
-    <p class="tool-title">給油所くらべ</p>
-    <p class="tool-note">遠くの安い店まで走る価値があるか、往復で余分に燃やす分を足して比べます。</p>
-    <div class="field-row">
-      <span class="field-label">燃費<span class="hint">（km/L）</span></span>
-      <input class="num" type="number" id="fuelKmpl" value="12" min="1" step="0.1" inputmode="decimal">
+    <p class="tool-title" id="fuelTitle">給油くらべ</p>
+    <p class="tool-note">遠くの安い店まで走る価値があるか、往復で余分に使う分を足して比べます。</p>
+    <div class="fuel-types" id="fuelTypes">
+      <button class="chip" data-fuel="gasoline">ガソリン</button>
+      <button class="chip" data-fuel="diesel">軽油</button>
+      <button class="chip" data-fuel="lpg">LPG</button>
+      <button class="chip" data-fuel="ev">電気</button>
     </div>
     <div class="field-row">
-      <span class="field-label">給油量<span class="hint">（L）</span></span>
-      <input class="num" type="number" id="fuelLiters" value="40" min="1" step="1" inputmode="decimal">
+      <span class="field-label">燃費<span class="hint" id="fuelKmplUnit">（km/L）</span></span>
+      <input class="num" type="number" id="fuelKmpl" value="12" min="0.1" step="0.1" inputmode="decimal">
+    </div>
+    <div class="field-row">
+      <span class="field-label" id="fuelAmountLabel">給油量<span class="hint" id="fuelAmountUnit">（L）</span></span>
+      <input class="num" type="number" id="fuelLiters" value="40" min="0.1" step="1" inputmode="decimal">
     </div>
     <div class="station-list" id="stationList"></div>
-    <button class="chip add-btn" id="addStationBtn">＋ 給油所を追加</button>
+    <button class="chip add-btn" id="addStationBtn">＋ 店を追加</button>
     <div class="result-box" id="fuelResult"></div>
   </div>
 
@@ -947,26 +995,28 @@
       <select id="fxFrom"></select>
     </div>
     <button class="icon-btn fx-swap" id="fxSwap" aria-label="通貨を入れ替える" title="入れ替え">⇅</button>
-
-    <p class="fx-label">銀行レート<span class="hint">（自動取得）</span></p>
     <div class="fx-row">
       <div class="fx-out" id="fxOut">—</div>
       <select id="fxTo"></select>
     </div>
-    <p class="fx-status" id="fxStatus">レートを取得中…</p>
+    <p class="fx-primary-label" id="fxPrimaryLabel">両替所レート（手入力）</p>
+    <p class="fx-compare-line" id="fxCompareLine"></p>
 
-    <p class="fx-label">両替所レート<span class="hint">（1単位あたり・手入力で保存）</span></p>
-    <div class="fx-row">
-      <input class="num fx-manual" type="number" id="fxManualRate" step="0.0001" min="0" inputmode="decimal" placeholder="例 0.1085">
-      <div class="fx-out fx-out-sub" id="fxManualOut">—</div>
-    </div>
-    <div class="result-box" id="fxCompare"></div>
-
-    <div class="fx-links">
-      <a class="chip" href="https://exchange.mibank.me/close-branch" target="_blank" rel="noopener">両替所レートを調べる ↗</a>
-      <button class="chip" id="fxRefresh">銀行レートを更新</button>
+    <button class="chip fx-toggle" id="fxDetailToggle">詳細を見る ▾</button>
+    <div class="fx-detail" id="fxDetail" hidden>
+      <div class="field-row">
+        <span class="field-label">両替所レート<span class="hint">（1単位あたり）</span></span>
+        <input class="num" type="number" id="fxManualRate" step="0.0001" min="0" inputmode="decimal" placeholder="手入力">
+      </div>
+      <table class="fx-table" id="fxTable"></table>
+      <p class="fx-status" id="fxStatus"></p>
+      <div class="fx-links">
+        <a class="chip" id="fxMibankLink" href="https://exchange.mibank.me/close-branch" target="_blank" rel="noopener">両替所を地図で探す ↗</a>
+        <button class="chip" id="fxRefresh">レートを更新</button>
+      </div>
     </div>
   </div>
+
   <div id="assetView" hidden>
     <p class="tool-title">資産テーブル</p>
     <p class="tool-note">端末の中だけに保存されます。サーバーにも送信されません。</p>
@@ -1015,6 +1065,41 @@
     <div class="result-box" id="hsResult"></div>
     <div class="bar-chart" id="hsChart"></div>
     <div class="result-box" id="hsBreakeven"></div>
+  </div>
+
+  <div id="investView" hidden>
+    <p class="tool-title">株 vs 不動産</p>
+    <p class="tool-note">同じ自己資金を、株に入れる場合と不動産に入れる場合で比べます。不動産はレバレッジが効く一方、税と維持費がかかります。</p>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">共通</p>
+      <div class="field-row"><span class="field-label">自己資金</span><input class="num" type="number" id="ivCash" value="80000000" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">保有年数</span><input class="num" type="number" id="ivYears" value="10" min="1" max="40" inputmode="numeric"></div>
+    </div>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">株式</p>
+      <div class="field-row"><span class="field-label">期待リターン<span class="hint">（年%）</span></span><input class="num" type="number" id="ivStockRet" value="7" step="0.1" inputmode="decimal"></div>
+      <div class="field-row"><span class="field-label">譲渡益税<span class="hint">（%）</span></span><input class="num" type="number" id="ivStockTax" value="22" step="0.1" inputmode="decimal"></div>
+      <div class="field-row"><span class="field-label">基礎控除<span class="hint">（年）</span></span><input class="num" type="number" id="ivStockDeduct" value="2500000" inputmode="numeric"></div>
+    </div>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">不動産</p>
+      <div class="field-row"><span class="field-label">価格上昇率<span class="hint">（年%）</span></span><input class="num" type="number" id="ivReGrowth" value="3" step="0.1" inputmode="decimal"></div>
+      <div class="field-row"><span class="field-label">LTV<span class="hint">（借入比率%）</span></span><input class="num" type="number" id="ivLtv" value="60" step="1" min="0" max="90" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">ローン金利<span class="hint">（年%）</span></span><input class="num" type="number" id="ivReRate" value="4" step="0.1" inputmode="decimal"></div>
+      <div class="field-row"><span class="field-label">賃料利回り<span class="hint">（年・価格の%）</span></span><input class="num" type="number" id="ivYield" value="3.5" step="0.1" inputmode="decimal"></div>
+      <div class="field-row"><span class="field-label">空室率<span class="hint">（%）</span></span><input class="num" type="number" id="ivVacancy" value="8" step="1" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">取得税<span class="hint">（%）</span></span><input class="num" type="number" id="ivAcqTax" value="1.1" step="0.1" inputmode="decimal"></div>
+      <div class="field-row"><span class="field-label">保有コスト<span class="hint">（年・価格の%）</span></span><input class="num" type="number" id="ivUpkeep" value="0.5" step="0.1" inputmode="decimal"></div>
+      <div class="field-row"><span class="field-label">売却時費用<span class="hint">（%）</span></span><input class="num" type="number" id="ivSellCost" value="0.5" step="0.1" inputmode="decimal"></div>
+      <div class="field-row"><span class="field-label">譲渡益税<span class="hint">（%）</span></span><input class="num" type="number" id="ivReTax" value="20" step="0.1" inputmode="decimal"></div>
+    </div>
+
+    <div class="result-box" id="ivResult"></div>
+    <div class="bar-chart" id="ivChart"></div>
+    <div class="result-box" id="ivBreakeven"></div>
   </div>
 </div>
 
@@ -1315,7 +1400,8 @@
     pv:        { view: "pvView",        tab: "tabPv" },
     fx:        { view: "fxView",        tab: "tabFx" },
     asset:     { view: "assetView",     tab: "tabAsset" },
-    house:     { view: "houseView",     tab: "tabHouse" }
+    house:     { view: "houseView",     tab: "tabHouse" },
+    invest:    { view: "investView",    tab: "tabInvest" }
   };
 
   function setActiveTab(tab) {
@@ -1337,6 +1423,7 @@
     if (tab === "fx") initFx();
     if (tab === "asset") renderAssets();
     if (tab === "house") calcHouse();
+    if (tab === "invest") calcInvest();
     try { localStorage.setItem("pace-tab", tab); } catch (e) {}
   }
 
@@ -2276,28 +2363,22 @@
   var fuelResultEl = document.getElementById("fuelResult");
   var addStationBtn = document.getElementById("addStationBtn");
 
-  var fuelState = loadJSON("pace-fuel", {
-    kmpl: 12, liters: 40,
-    stations: [
-      { name: "近い店", dist: 1, price: 1650 },
-      { name: "遠い安い店", dist: 8, price: 1580 }
-    ]
-  });
-
-  function fuelSave() { saveJSON("pace-fuel", fuelState); }
 
   function stationTotal(st) {
-    var kmpl = parseFloat(fuelState.kmpl);
-    var liters = parseFloat(fuelState.liters);
+    var cur = fuelCur();
+    var kmpl = parseFloat(cur.kmpl);
+    var amount = parseFloat(cur.amount);
     var d = parseFloat(st.dist), p = parseFloat(st.price);
-    if (!(kmpl > 0) || !(liters > 0) || !(d >= 0) || !(p > 0)) return null;
-    var extra = (d * 2) / kmpl;
-    return { extra: extra, total: (liters + extra) * p };
+    if (!(kmpl > 0) || !(amount > 0) || !(d >= 0) || !(p > 0)) return null;
+    var extra = (d * 2) / kmpl;          // 往復で余分に使う量
+    return { extra: extra, total: (amount + extra) * p };
   }
 
   function renderFuel() {
-    fuelKmpl.value = fuelState.kmpl;
-    fuelLiters.value = fuelState.liters;
+    applyFuelType();
+    var cur = fuelCur();
+    fuelKmpl.value = cur.kmpl;
+    fuelLiters.value = cur.amount;
     stationListEl.innerHTML = "";
     var head = document.createElement("div");
     head.className = "station-head";
@@ -2306,7 +2387,7 @@
     });
     stationListEl.appendChild(head);
 
-    fuelState.stations.forEach(function (st, i) {
+    cur.stations.forEach(function (st, i) {
       var row = document.createElement("div");
       row.className = "station";
 
@@ -2321,11 +2402,11 @@
       var del = document.createElement("button");
       del.className = "st-del"; del.textContent = "×"; del.setAttribute("aria-label", "削除");
 
-      nameIn.addEventListener("input", function () { fuelState.stations[i].name = nameIn.value; fuelSave(); calcFuel(); });
-      distIn.addEventListener("input", function () { fuelState.stations[i].dist = distIn.value; fuelSave(); calcFuel(); });
-      priceIn.addEventListener("input", function () { fuelState.stations[i].price = priceIn.value; fuelSave(); calcFuel(); });
+      nameIn.addEventListener("input", function () { fuelCur().stations[i].name = nameIn.value; fuelSave(); calcFuel(); });
+      distIn.addEventListener("input", function () { fuelCur().stations[i].dist = distIn.value; fuelSave(); calcFuel(); });
+      priceIn.addEventListener("input", function () { fuelCur().stations[i].price = priceIn.value; fuelSave(); calcFuel(); });
       del.addEventListener("click", function () {
-        fuelState.stations.splice(i, 1); fuelSave(); renderFuel();
+        fuelCur().stations.splice(i, 1); fuelSave(); renderFuel();
       });
 
       row.appendChild(nameIn); row.appendChild(distIn); row.appendChild(priceIn); row.appendChild(del);
@@ -2335,8 +2416,9 @@
   }
 
   function calcFuel() {
+    var unit = FUEL_TYPES[fuelAll.type].amtUnit.replace(/[（）]/g, "");
     var rows = [];
-    fuelState.stations.forEach(function (st) {
+    fuelCur().stations.forEach(function (st) {
       var r = stationTotal(st);
       if (r) rows.push({ name: st.name || "無名", total: r.total, extra: r.extra, dist: parseFloat(st.dist) });
     });
@@ -2363,21 +2445,22 @@
     var l3 = document.createElement("div");
     l3.style.color = "var(--text-muted)";
     l3.style.fontSize = "12px";
-    l3.textContent = "往復 " + fmt(best.dist * 2, 1) + "km で余分に燃やす " + fmt(best.extra, 2) + "L を含めた比較";
+    l3.textContent = "往復 " + fmt(best.dist * 2, 1) + "km で余分に使う " + fmt(best.extra, 2) + unit + " を含めた比較";
     fuelResultEl.appendChild(l3);
   }
 
   [fuelKmpl, fuelLiters].forEach(function (el) {
     el.addEventListener("input", function () {
-      fuelState.kmpl = fuelKmpl.value;
-      fuelState.liters = fuelLiters.value;
+      fuelCur().kmpl = fuelKmpl.value;
+      fuelCur().amount = fuelLiters.value;
       fuelSave();
       calcFuel();
     });
   });
 
   addStationBtn.addEventListener("click", function () {
-    fuelState.stations.push({ name: "", dist: 5, price: 1600 });
+    var d = FUEL_TYPES[fuelAll.type].def;
+    fuelCur().stations.push({ name: "", dist: 5, price: d.price });
     fuelSave();
     renderFuel();
   });
@@ -2487,8 +2570,8 @@
   });
 
   // ==================== 為替 ====================
-  // 銀行レート = ECB基準（自動取得） / 両替所レート = 手入力（保存される）
-  var CURRENCIES = ["KRW", "JPY", "USD", "EUR", "CNY", "GBP", "AUD", "CAD", "CHF", "SGD", "HKD", "THB"];
+  // 3層: 基準レート(매매기준율) / 銀行の現金レート / 両替所レート(手入力)
+  // 銀行・基準は GitHub Actions が取得した rates.json を読む（CORSのため直接取得は不可）
   var fxAmount = document.getElementById("fxAmount");
   var fxFrom = document.getElementById("fxFrom");
   var fxTo = document.getElementById("fxTo");
@@ -2497,103 +2580,155 @@
   var fxSwap = document.getElementById("fxSwap");
   var fxRefresh = document.getElementById("fxRefresh");
   var fxManualRate = document.getElementById("fxManualRate");
-  var fxManualOut = document.getElementById("fxManualOut");
-  var fxCompareEl = document.getElementById("fxCompare");
+  var fxPrimaryLabel = document.getElementById("fxPrimaryLabel");
+  var fxCompareLine = document.getElementById("fxCompareLine");
+  var fxTable = document.getElementById("fxTable");
+  var fxDetail = document.getElementById("fxDetail");
+  var fxDetailToggle = document.getElementById("fxDetailToggle");
 
   var fxInited = false;
+  var fxBank = null;                     // rates.json の中身
   var fxPrefs = loadJSON("pace-fx", { from: "KRW", to: "JPY", amount: 10000 });
   var fxManual = loadJSON("pace-fx-manual", {});
+  var FX_FALLBACK = ["KRW", "JPY", "USD", "EUR", "CNY", "GBP", "AUD"];
 
-  function fxCacheKey(base) { return "pace-fxrates-" + base; }
   function fxPairKey() { return fxFrom.value + "_" + fxTo.value; }
+  function fxForeign() { return fxFrom.value === "KRW" ? fxTo.value : fxFrom.value; }
+  function fxIsKrwPair() {
+    return (fxFrom.value === "KRW") !== (fxTo.value === "KRW");
+  }
+  function fxBuyingForeign() { return fxFrom.value === "KRW"; }
 
   function fxFillSelects() {
+    var list = ["KRW"];
+    if (fxBank && fxBank.rates) {
+      Object.keys(fxBank.rates).forEach(function (c) { if (list.indexOf(c) < 0) list.push(c); });
+    } else {
+      FX_FALLBACK.forEach(function (c) { if (list.indexOf(c) < 0) list.push(c); });
+    }
     [fxFrom, fxTo].forEach(function (sel) {
+      var keep = sel.value;
       sel.innerHTML = "";
-      CURRENCIES.forEach(function (c) {
+      list.forEach(function (c) {
         var o = document.createElement("option");
         o.value = c; o.textContent = c;
         sel.appendChild(o);
       });
+      if (list.indexOf(keep) >= 0) sel.value = keep;
     });
-    fxFrom.value = fxPrefs.from;
-    fxTo.value = fxPrefs.to;
+    if (list.indexOf(fxPrefs.from) >= 0) fxFrom.value = fxPrefs.from;
+    if (list.indexOf(fxPrefs.to) >= 0) fxTo.value = fxPrefs.to;
     fxAmount.value = fxPrefs.amount;
   }
 
-  function fxBankRate() {
-    if (fxFrom.value === fxTo.value) return 1;
-    var cached = loadJSON(fxCacheKey(fxFrom.value), null);
-    if (!cached || !cached.rates) return null;
-    return cached.rates[fxTo.value] || null;
+  // 外貨1単位あたりのKRW（基準 / 銀行現金）を返す
+  function fxKrwPerUnit() {
+    if (!fxBank || !fxBank.rates) return null;
+    var r = fxBank.rates[fxForeign()];
+    if (!r) return null;
+    var unit = r.unit || 1;
+    var base = r.base / unit;
+    var cashBuy = (r.cashBuy || r.base) / unit;    // 현찰 살 때（客が買う=高い）
+    var cashSell = (r.cashSell || r.base) / unit;  // 현찰 팔 때（客が売る=安い）
+    if (cashBuy < cashSell) { var t = cashBuy; cashBuy = cashSell; cashSell = t; }
+    return { base: base, cashBuy: cashBuy, cashSell: cashSell, date: r.date, time: r.time };
   }
 
-  function fxDigits() { return (fxTo.value === "KRW" || fxTo.value === "JPY") ? 0 : 2; }
+  function fxConvert(krwPerUnit, amount) {
+    if (!(krwPerUnit > 0) || !isFinite(amount)) return null;
+    return fxBuyingForeign() ? amount / krwPerUnit : amount * krwPerUnit;
+  }
+
+  function fxDigits() {
+    var to = fxTo.value;
+    return (to === "KRW" || to === "JPY") ? 0 : 2;
+  }
 
   function fxCompute() {
     var amount = parseFloat(fxAmount.value);
-    var bank = fxBankRate();
-    var cached = loadJSON(fxCacheKey(fxFrom.value), null);
-
-    // 銀行レート
-    if (bank === null || !isFinite(amount)) {
-      fxOut.textContent = "—";
-    } else {
-      fxOut.textContent = fmt(amount * bank, fxDigits());
-    }
-
-    if (bank !== null && cached) {
-      var age = Math.round((Date.now() - cached.at) / 60000);
-      fxStatus.textContent = "銀行レート 1 " + fxFrom.value + " = " + fmt(bank, 4) + " " + fxTo.value +
-        "（基準日 " + cached.date + " ／ " + (age < 60 ? age + "分前に取得" : Math.round(age / 60) + "時間前に取得") + "）";
-    } else if (fxFrom.value === fxTo.value) {
-      fxStatus.textContent = "同じ通貨です。";
-    }
-
-    // 両替所レート（手入力）
     var saved = fxManual[fxPairKey()];
     fxManualRate.value = saved === undefined ? "" : saved;
     var manual = parseFloat(fxManualRate.value);
-    fxCompareEl.innerHTML = "";
-    if (!isFinite(manual) || manual <= 0 || !isFinite(amount)) {
-      fxManualOut.textContent = "—";
+    var rates = fxIsKrwPair() ? fxKrwPerUnit() : null;
+
+    fxTable.innerHTML = "";
+    fxCompareLine.textContent = "";
+
+    if (!rates) {
+      fxOut.textContent = "—";
+      fxPrimaryLabel.textContent = "KRWとの組み合わせのみ対応";
+      fxStatus.textContent = fxBank
+        ? "この通貨ペアのレートは保存されていません。KRWを含む組み合わせを選んでください。"
+        : "レートファイル（rates.json）をまだ読み込めていません。";
       return;
     }
-    fxManualOut.textContent = fmt(amount * manual, fxDigits());
 
-    if (bank !== null) {
-      var diff = amount * manual - amount * bank;
-      var pct = (manual / bank - 1) * 100;
-      var better = diff > 0;
-      var line = document.createElement("div");
-      line.innerHTML = '両替所は銀行より <b></b>（<span class="pctv"></span>）';
-      line.querySelector("b").textContent = (better ? "+" : "") + fmt(diff, fxDigits()) + " " + fxTo.value;
-      line.querySelector("b").style.color = better ? "var(--sage)" : "var(--wood)";
-      line.querySelector(".pctv").textContent = (pct >= 0 ? "+" : "") + pct.toFixed(2) + "%";
-      var note = document.createElement("div");
-      note.style.color = "var(--text-muted)";
-      note.style.fontSize = "12px";
-      note.textContent = better ? "この両替所のほうが得です。" : "銀行のほうが得です。";
-      fxCompareEl.appendChild(line);
-      fxCompareEl.appendChild(note);
+    var buying = fxBuyingForeign();
+    var bankRate = buying ? rates.cashBuy : rates.cashSell;
+
+    var candidates = [
+      { key: "base", label: "基準レート", rate: rates.base },
+      { key: "bank", label: "銀行 現金", rate: bankRate }
+    ];
+    if (isFinite(manual) && manual > 0) candidates.push({ key: "manual", label: "両替所", rate: manual });
+
+    candidates.forEach(function (c) { c.out = fxConvert(c.rate, amount); });
+
+    // 主役: 両替所 > 銀行
+    var primary = candidates.filter(function (c) { return c.key === "manual"; })[0] ||
+                  candidates.filter(function (c) { return c.key === "bank"; })[0];
+    fxOut.textContent = primary.out === null ? "—" : fmt(primary.out, fxDigits());
+    fxPrimaryLabel.textContent = primary.key === "manual"
+      ? "両替所レート（手入力）で受け取る額"
+      : "銀行の現金レートで受け取る額 ／ 両替所レートは詳細から入力";
+
+    // 比較行
+    if (primary.key === "manual") {
+      var bank = candidates[1], base = candidates[0];
+      function pct(a, b) { return ((a - b) / b) * 100; }   // 受取額ベース（多いほど得）
+      var vsBank = pct(primary.out, bank.out);
+      var vsBase = pct(primary.out, base.out);
+      var good = vsBank >= 0;
+      var span = document.createElement("span");
+      span.innerHTML = '銀行より <b class="d1"></b> ／ 基準より <span class="d2"></span>';
+      span.querySelector(".d1").textContent = (vsBank >= 0 ? "+" : "") + vsBank.toFixed(2) + "%";
+      span.querySelector(".d1").style.color = good ? "var(--sage)" : "var(--wood)";
+      span.querySelector(".d2").textContent = (vsBase >= 0 ? "+" : "") + vsBase.toFixed(2) + "%";
+      fxCompareLine.appendChild(span);
     }
+
+    // 詳細テーブル
+    var bestOut = Math.max.apply(null, candidates.map(function (c) { return c.out; }));
+    var thead = document.createElement("tr");
+    ["", "レート", "受取額"].forEach(function (t) {
+      var th = document.createElement("th"); th.textContent = t; thead.appendChild(th);
+    });
+    fxTable.appendChild(thead);
+    candidates.forEach(function (c) {
+      var tr = document.createElement("tr");
+      if (c.out === bestOut) tr.className = "is-best";
+      var td1 = document.createElement("td"); td1.textContent = c.label;
+      var td2 = document.createElement("td"); td2.textContent = fmt(c.rate, 2);
+      var td3 = document.createElement("td"); td3.textContent = fmt(c.out, fxDigits());
+      tr.appendChild(td1); tr.appendChild(td2); tr.appendChild(td3);
+      fxTable.appendChild(tr);
+    });
+
+    var when = fxBank && fxBank.updated ? fxBank.updated.replace("T", " ").slice(0, 16) : "不明";
+    fxStatus.textContent = "レートは " + fxForeign() + " 1単位あたりのKRW。" +
+      (buying ? "現金を買う（현찰 살 때）" : "現金を売る（현찰 팔 때）") +
+      " ／ 更新 " + when;
   }
 
-  function fxFetch(force) {
-    var base = fxFrom.value;
-    var cached = loadJSON(fxCacheKey(base), null);
-    if (!force && cached && (Date.now() - cached.at) < 6 * 3600 * 1000) { fxCompute(); return; }
-    fxStatus.textContent = "銀行レートを取得中…";
-    fetch("https://api.frankfurter.dev/v1/latest?base=" + base)
+  function fxLoadRates(force) {
+    var url = "./rates.json" + (force ? "?t=" + Date.now() : "");
+    return fetch(url, { cache: force ? "reload" : "default" })
       .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(function (data) {
-        saveJSON(fxCacheKey(base), { at: Date.now(), date: data.date, rates: data.rates });
-        fxCompute();
-      })
+      .then(function (j) { fxBank = j; fxFillSelects(); fxCompute(); })
       .catch(function () {
+        fxFillSelects();
         fxCompute();
-        if (cached) fxStatus.textContent += "（更新失敗。保存済みを表示中）";
-        else fxStatus.textContent = "銀行レートを取得できませんでした。両替所レートは手入力で使えます。";
+        fxStatus.textContent = "rates.json を読み込めませんでした。両替所レートの手入力は使えます。";
       });
   }
 
@@ -2606,16 +2741,16 @@
     if (fxInited) { fxCompute(); return; }
     fxInited = true;
     fxFillSelects();
-    fxFetch(false);
+    fxLoadRates(false);
   }
 
   fxAmount.addEventListener("input", function () { fxSavePrefs(); fxCompute(); });
-  fxFrom.addEventListener("change", function () { fxSavePrefs(); fxFetch(false); });
+  fxFrom.addEventListener("change", function () { fxSavePrefs(); fxCompute(); });
   fxTo.addEventListener("change", function () { fxSavePrefs(); fxCompute(); });
-  fxRefresh.addEventListener("click", function () { fxFetch(true); });
+  fxRefresh.addEventListener("click", function () { fxLoadRates(true); });
   fxSwap.addEventListener("click", function () {
     var a = fxFrom.value; fxFrom.value = fxTo.value; fxTo.value = a;
-    fxSavePrefs(); fxFetch(false);
+    fxSavePrefs(); fxCompute();
   });
   fxManualRate.addEventListener("input", function () {
     var v = parseFloat(fxManualRate.value);
@@ -2624,7 +2759,11 @@
     saveJSON("pace-fx-manual", fxManual);
     fxCompute();
   });
-
+  fxDetailToggle.addEventListener("click", function () {
+    var open = !fxDetail.hidden;
+    fxDetail.hidden = open;
+    fxDetailToggle.textContent = open ? "詳細を見る ▾" : "詳細を閉じる ▴";
+  });
 
   // ==================== 資産テーブル ====================
   var assetListEl = document.getElementById("assetList");
@@ -2906,6 +3045,186 @@
 
   HS_IDS.forEach(function (id) {
     hsEl[id].addEventListener("input", function () { hsSave(); calcHouse(); });
+  });
+
+
+  // ==================== 燃料種別 ====================
+  var FUEL_TYPES = {
+    gasoline: { label: "ガソリン", effUnit: "（km/L）", amtLabel: "給油量", amtUnit: "（L）", title: "給油くらべ",
+                def: { kmpl: 12, amount: 40, price: 1650 } },
+    diesel:   { label: "軽油",     effUnit: "（km/L）", amtLabel: "給油量", amtUnit: "（L）", title: "給油くらべ",
+                def: { kmpl: 15, amount: 40, price: 1500 } },
+    lpg:      { label: "LPG",      effUnit: "（km/L）", amtLabel: "充填量", amtUnit: "（L）", title: "LPG充填くらべ",
+                def: { kmpl: 9,  amount: 45, price: 1050 } },
+    ev:       { label: "電気",     effUnit: "（km/kWh）", amtLabel: "充電量", amtUnit: "（kWh）", title: "充電くらべ",
+                def: { kmpl: 5.5, amount: 50, price: 350 } }
+  };
+
+  var fuelTitleEl = document.getElementById("fuelTitle");
+  var fuelKmplUnitEl = document.getElementById("fuelKmplUnit");
+  var fuelAmountLabelEl = document.getElementById("fuelAmountLabel");
+  var fuelAmountUnitEl = document.getElementById("fuelAmountUnit");
+  var fuelTypesEl = document.getElementById("fuelTypes");
+
+  function defaultFuelEntry(type) {
+    var d = FUEL_TYPES[type].def;
+    return {
+      kmpl: d.kmpl, amount: d.amount,
+      stations: [
+        { name: "近い店", dist: 1, price: d.price },
+        { name: "遠い安い店", dist: 8, price: Math.round(d.price * 0.96) }
+      ]
+    };
+  }
+
+  var fuelAll = loadJSON("pace-fuel-v2", null);
+  if (!fuelAll) {
+    fuelAll = { type: "gasoline", byType: {} };
+    Object.keys(FUEL_TYPES).forEach(function (t) { fuelAll.byType[t] = defaultFuelEntry(t); });
+    // 旧データがあれば引き継ぐ
+    var legacy = loadJSON("pace-fuel", null);
+    if (legacy && legacy.stations) {
+      fuelAll.byType.gasoline = { kmpl: legacy.kmpl, amount: legacy.liters, stations: legacy.stations };
+    }
+  }
+  Object.keys(FUEL_TYPES).forEach(function (t) {
+    if (!fuelAll.byType[t]) fuelAll.byType[t] = defaultFuelEntry(t);
+  });
+
+  function fuelCur() { return fuelAll.byType[fuelAll.type]; }
+  function fuelSave() { saveJSON("pace-fuel-v2", fuelAll); }
+
+  function applyFuelType() {
+    var t = FUEL_TYPES[fuelAll.type];
+    fuelTitleEl.textContent = t.title;
+    fuelKmplUnitEl.textContent = t.effUnit;
+    fuelAmountUnitEl.textContent = t.amtUnit;
+    fuelAmountLabelEl.childNodes[0].nodeValue = t.amtLabel;
+    Array.prototype.forEach.call(fuelTypesEl.querySelectorAll(".chip"), function (b) {
+      b.setAttribute("data-active", b.getAttribute("data-fuel") === fuelAll.type ? "true" : "false");
+    });
+  }
+
+  Array.prototype.forEach.call(fuelTypesEl.querySelectorAll(".chip"), function (b) {
+    b.addEventListener("click", function () {
+      fuelAll.type = b.getAttribute("data-fuel");
+      fuelSave();
+      applyFuelType();
+      renderFuel();
+    });
+  });
+
+  // ==================== 株 vs 不動産 ====================
+  var IV_IDS = ["ivCash", "ivYears", "ivStockRet", "ivStockTax", "ivStockDeduct",
+    "ivReGrowth", "ivLtv", "ivReRate", "ivYield", "ivVacancy", "ivAcqTax", "ivUpkeep", "ivSellCost", "ivReTax"];
+  var ivEl = {};
+  IV_IDS.forEach(function (id) { ivEl[id] = document.getElementById(id); });
+  var ivResultEl = document.getElementById("ivResult");
+  var ivChartEl = document.getElementById("ivChart");
+  var ivBreakevenEl = document.getElementById("ivBreakeven");
+
+  var ivSaved = loadJSON("pace-invest", null);
+  if (ivSaved) IV_IDS.forEach(function (id) { if (ivSaved[id] !== undefined) ivEl[id].value = ivSaved[id]; });
+
+  function ivNum(id) { var v = parseFloat(ivEl[id].value); return isFinite(v) ? v : 0; }
+  function ivSave() { var s = {}; IV_IDS.forEach(function (id) { s[id] = ivEl[id].value; }); saveJSON("pace-invest", s); }
+
+  function stockNet() {
+    var E = ivNum("ivCash"), N = ivNum("ivYears"), r = ivNum("ivStockRet") / 100;
+    var end = E * Math.pow(1 + r, N);
+    var gain = end - E;
+    var taxable = Math.max(0, gain - ivNum("ivStockDeduct"));
+    return end - taxable * ivNum("ivStockTax") / 100;
+  }
+
+  function realEstateNet(growthPct) {
+    var E = ivNum("ivCash"), N = ivNum("ivYears");
+    var ltv = ivNum("ivLtv") / 100;
+    var acq = ivNum("ivAcqTax") / 100;
+    var denom = (1 - ltv) + acq;
+    if (denom <= 0) return NaN;
+    var P = E / denom;                       // 買える物件価格
+    var loan = P * ltv;
+    var g = growthPct / 100;
+    var opp = ivNum("ivStockRet") / 100;     // 余剰資金の再投資利回り
+
+    var cash = 0;
+    for (var y = 0; y < N; y++) {
+      var value = P * Math.pow(1 + g, y);
+      var income = value * (ivNum("ivYield") / 100) * (1 - ivNum("ivVacancy") / 100);
+      var cost = value * (ivNum("ivUpkeep") / 100) + loan * (ivNum("ivReRate") / 100);
+      cash = cash * (1 + opp) + (income - cost);
+    }
+    var sale = P * Math.pow(1 + g, N);
+    var sellCost = sale * (ivNum("ivSellCost") / 100);
+    var capGain = Math.max(0, sale - P);
+    var capTax = capGain * (ivNum("ivReTax") / 100);
+    return sale - sellCost - capTax - loan + cash;
+  }
+
+  function calcInvest() {
+    var s = stockNet();
+    var re = realEstateNet(ivNum("ivReGrowth"));
+    var rows = [{ label: "株式", value: s }, { label: "不動産", value: re }];
+    var best = s >= re ? rows[0] : rows[1];
+
+    var E = ivNum("ivCash"), N = ivNum("ivYears");
+    function cagr(v) { return E > 0 && N > 0 ? (Math.pow(Math.max(v, 1) / E, 1 / N) - 1) * 100 : 0; }
+
+    ivResultEl.innerHTML = "";
+    var l1 = document.createElement("div");
+    l1.innerHTML = N + "年後は <span class=\"result-win\"></span> が有利 ／ <b></b>";
+    l1.querySelector(".result-win").textContent = best.label;
+    l1.querySelector("b").textContent = fmt(best.value);
+    ivResultEl.appendChild(l1);
+
+    var l2 = document.createElement("div");
+    l2.style.fontSize = "12px";
+    l2.style.color = "var(--text-muted)";
+    l2.textContent = "株式 年" + cagr(s).toFixed(2) + "% ／ 不動産 年" + cagr(re).toFixed(2) +
+      "%（税引後の実効利回り）";
+    ivResultEl.appendChild(l2);
+
+    var ltv = ivNum("ivLtv") / 100, acq = ivNum("ivAcqTax") / 100;
+    var P = ((1 - ltv) + acq) > 0 ? E / ((1 - ltv) + acq) : 0;
+    var l3 = document.createElement("div");
+    l3.style.fontSize = "12px";
+    l3.style.color = "var(--text-muted)";
+    l3.textContent = "自己資金 " + fmt(E) + " で買える物件は " + fmt(P) + "（借入 " + fmt(P * ltv) + "）";
+    ivResultEl.appendChild(l3);
+
+    drawBars(ivChartEl, rows.map(function (r) {
+      return { label: r.label, value: r.value, color: r.label === best.label ? "var(--sage)" : "var(--wood)" };
+    }));
+
+    // 不動産が株に並ぶ価格上昇率を二分探索
+    function diff(g) { return realEstateNet(g) - s; }
+    var lo = -15, hi = 25, ans = null;
+    if (isFinite(diff(lo)) && isFinite(diff(hi)) && diff(lo) * diff(hi) < 0) {
+      for (var i = 0; i < 60; i++) {
+        var mid = (lo + hi) / 2;
+        if (diff(lo) * diff(mid) <= 0) hi = mid; else lo = mid;
+      }
+      ans = (lo + hi) / 2;
+    }
+    ivBreakevenEl.innerHTML = "";
+    var b1 = document.createElement("div");
+    if (ans === null) {
+      b1.textContent = "この条件では、価格上昇率を −15〜+25% の範囲で動かしても順位が入れ替わりません。";
+      ivBreakevenEl.appendChild(b1);
+    } else {
+      b1.innerHTML = "不動産が株に並ぶ分岐点は <b>年 " + ans.toFixed(2) + "%</b> の価格上昇";
+      var b2 = document.createElement("div");
+      b2.style.fontSize = "12px";
+      b2.style.color = "var(--text-muted)";
+      b2.textContent = "ローンは利息のみ、余剰キャッシュは株の期待リターンで再投資する前提です。";
+      ivBreakevenEl.appendChild(b1);
+      ivBreakevenEl.appendChild(b2);
+    }
+  }
+
+  IV_IDS.forEach(function (id) {
+    ivEl[id].addEventListener("input", function () { ivSave(); calcInvest(); });
   });
 
   // 初期タブ復元

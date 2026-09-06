@@ -1,0 +1,35 @@
+name: 為替レートの更新
+
+on:
+  schedule:
+    # 韓国時間の平日 09:00 / 12:00 / 15:00 / 18:00（UTC は -9時間）
+    - cron: "0 0,3,6,9 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rates
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: レートを取得
+        run: python3 scripts/fetch_rates.py
+
+      - name: 変更があればコミット
+        run: |
+          if git diff --quiet -- rates.json; then
+            echo "変更なし"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rates.json
+          git commit -m "chore: 為替レートを更新 ($(date -u '+%Y-%m-%d %H:%MZ'))"
+          git push
