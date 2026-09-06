@@ -726,7 +726,7 @@
 
   .bar-chart { width: 100%; display: flex; flex-direction: column; gap: 6px; }
   .bar-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
-  .bar-label { flex: 0 0 46px; color: var(--text-muted); }
+  .bar-label { flex: 0 0 78px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bar-track { flex: 1 1 0; height: 12px; background: var(--bg); border-radius: 999px; overflow: hidden; border: 1px solid var(--surface-border); }
   .bar-fill { height: 100%; border-radius: 999px; transition: width 0.3s ease; }
   .bar-value { flex: 0 0 auto; font-variant-numeric: tabular-nums; color: var(--text); }
@@ -795,6 +795,22 @@
     .result-box { font-size: 14px; }
     .bar-label { flex: 0 0 70px; }
   }
+
+  #costView { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+  #costView[hidden] { display: none; }
+  #costView .field-row { width: 100%; }
+  #costView input.num { width: 118px; }
+  .cost-list { width: 100%; display: flex; flex-direction: column; gap: 7px; }
+  .cost-row { display: flex; gap: 6px; align-items: center; }
+  .cost-row input {
+    font-family: inherit; font-size: 13px; padding: 7px 8px; min-width: 0;
+    border: 1px solid var(--surface-border); border-radius: 9px;
+    background: var(--bg); color: var(--text);
+  }
+  .cost-row .cs-name { flex: 1 1 0; }
+  .cost-row .cs-amt { flex: 0 0 100px; text-align: right; font-variant-numeric: tabular-nums; }
+  .cs-caption { width: 100%; margin: 2px 0 -4px; font-size: 11.5px; color: var(--text-muted); }
+  .cs-lead { font-size: 13.5px; line-height: 1.8; }
 </style>
 
 <div class="shell">
@@ -832,6 +848,10 @@
       <span class="tab-name" data-i18n="tab.pv">現在価値</span>
     </button>
     <span class="tab-sep" aria-hidden="true"></span>
+    <button class="tab-btn" id="tabCost" data-active="false" data-tabkey="cost" title="住居の重み">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M12 20v-5"></path><path d="M9 15h6"></path></svg>
+      <span class="tab-name" data-i18n="tab.cost">住居の重み</span>
+    </button>
     <button class="tab-btn" id="tabAsset" data-active="false" data-tabkey="asset" title="資産">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 10h18"></path><path d="M9 10v10"></path></svg>
       <span class="tab-name" data-i18n="tab.asset">資産</span>
@@ -1162,6 +1182,32 @@
       <button class="chip" id="bkClear">すべて消去</button>
     </div>
   </div>
+
+  <div id="costView" hidden>
+    <p class="tool-title">住居の重み</p>
+    <p class="tool-note">毎月の固定費を入れると、どれを削るのが一番効くかが分かります。小さな節約と大きな節約の差を、年数で確かめてください。</p>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">前提</p>
+      <div class="field-row"><span class="field-label">手取り月収</span><input class="num" type="number" id="csIncome" value="2400000" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">年数</span><input class="num" type="number" id="csYears" value="20" min="1" max="50" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">運用利回り<span class="hint">（年%）</span></span><input class="num" type="number" id="csReturn" value="5" step="0.1" inputmode="decimal"></div>
+      <div class="field-row"><span class="field-label">削減率<span class="hint">（各費目を何%減らすか）</span></span><input class="num" type="number" id="csCut" value="10" step="1" min="1" max="100" inputmode="numeric"></div>
+    </div>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">毎月の固定費</p>
+      <div class="cost-list" id="costList"></div>
+      <button class="chip add-btn" id="addCostBtn">＋ 費目を追加</button>
+    </div>
+
+    <div class="result-box" id="costRatio"></div>
+    <p class="cs-caption">月々の大きさ</p>
+    <div class="bar-chart" id="costChart"></div>
+    <p class="cs-caption" id="csCutCaption">10%削ったときの効果（運用込み）</p>
+    <div class="bar-chart" id="costCutChart"></div>
+    <div class="result-box" id="costLesson"></div>
+  </div>
 </div>
 
 <div class="screensaver" id="screensaver" hidden>
@@ -1463,6 +1509,7 @@
     asset:     { view: "assetView",     tab: "tabAsset" },
     house:     { view: "houseView",     tab: "tabHouse" },
     invest:    { view: "investView",    tab: "tabInvest" },
+    cost:      { view: "costView",      tab: "tabCost" },
     settings:  { view: "settingsView",  tab: "tabSettings" }
   };
 
@@ -1487,6 +1534,7 @@
     if (tab === "house") calcHouse();
     if (tab === "invest") calcInvest();
     if (tab === "settings") renderBackupList();
+    if (tab === "cost") renderCost();
     try { localStorage.setItem("pace-tab", tab); } catch (e) {}
   }
 
@@ -3293,11 +3341,11 @@
 
   // ==================== バックアップ ====================
   var BACKUP_KEYS = ["pace-assets", "pace-pv", "pace-house", "pace-invest",
-    "pace-fuel-v2", "pace-fuel", "pace-fx", "pace-fx-manual", "pace-counter",
+    "pace-fuel-v2", "pace-fuel", "pace-fx", "pace-fx-manual", "pace-counter", "pace-cost",
     "pace-daily-stats", "maai-counter", "maai-daily-stats", "maai-ambient", "maai-ambient-vol"];
   var KEY_LABEL = {
     "pace-assets": "資産テーブル", "pace-pv": "現在価値の記録", "pace-house": "家賃vs保有",
-    "pace-invest": "株vs不動産", "pace-fuel-v2": "給油くらべ", "pace-fx": "為替の設定",
+    "pace-invest": "株vs不動産", "pace-cost": "住居の重み", "pace-fuel-v2": "給油くらべ", "pace-fx": "為替の設定",
     "pace-fx-manual": "両替所レート", "maai-counter": "カウンター", "maai-daily-stats": "今日の集中記録"
   };
 
@@ -3400,6 +3448,170 @@
     BACKUP_KEYS.forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
     bkStatus.textContent = "消去しました。画面を再読み込みします…";
     setTimeout(function () { location.reload(); }, 900);
+  });
+
+
+  // ==================== 住居の重み ====================
+  var CS_IDS = ["csIncome", "csYears", "csReturn", "csCut"];
+  var csEl = {};
+  CS_IDS.forEach(function (id) { csEl[id] = document.getElementById(id); });
+  var costListEl = document.getElementById("costList");
+  var costRatioEl = document.getElementById("costRatio");
+  var costChartEl = document.getElementById("costChart");
+  var costCutChartEl = document.getElementById("costCutChart");
+  var costLessonEl = document.getElementById("costLesson");
+  var csCutCaption = document.getElementById("csCutCaption");
+
+  var costState = loadJSON("pace-cost", {
+    csIncome: 2400000, csYears: 20, csReturn: 5, csCut: 10,
+    items: [
+      { name: "住居（家賃・管理費）", amount: 620000 },
+      { name: "食費", amount: 500000 },
+      { name: "通信", amount: 70000 },
+      { name: "交通", amount: 90000 },
+      { name: "サブスク・娯楽", amount: 60000 }
+    ]
+  });
+  CS_IDS.forEach(function (id) { if (costState[id] !== undefined) csEl[id].value = costState[id]; });
+
+  function costSave() {
+    CS_IDS.forEach(function (id) { costState[id] = csEl[id].value; });
+    saveJSON("pace-cost", costState);
+  }
+  function csNum(id) { var v = parseFloat(csEl[id].value); return isFinite(v) ? v : 0; }
+
+  // 毎月 m を利回り r で n ヶ月積み立てた将来価値
+  function futureValueOfMonthly(m, annualPct, years) {
+    var r = annualPct / 100 / 12;
+    var n = Math.round(years * 12);
+    if (n <= 0) return 0;
+    if (r === 0) return m * n;
+    return m * (Math.pow(1 + r, n) - 1) / r;
+  }
+
+  function renderCost() {
+    costListEl.innerHTML = "";
+    costState.items.forEach(function (it, i) {
+      var row = document.createElement("div");
+      row.className = "cost-row";
+      var name = document.createElement("input");
+      name.type = "text"; name.className = "cs-name"; name.placeholder = "費目"; name.value = it.name || "";
+      var amt = document.createElement("input");
+      amt.type = "number"; amt.className = "cs-amt"; amt.inputMode = "numeric"; amt.value = it.amount;
+      var del = document.createElement("button");
+      del.className = "st-del"; del.textContent = "×"; del.setAttribute("aria-label", "削除");
+
+      name.addEventListener("input", function () { costState.items[i].name = name.value; costSave(); });
+      amt.addEventListener("input", function () { costState.items[i].amount = amt.value; costSave(); calcCost(); });
+      del.addEventListener("click", function () { costState.items.splice(i, 1); costSave(); renderCost(); });
+
+      row.appendChild(name); row.appendChild(amt); row.appendChild(del);
+      costListEl.appendChild(row);
+    });
+    calcCost();
+  }
+
+  function calcCost() {
+    var income = csNum("csIncome");
+    var years = csNum("csYears");
+    var ret = csNum("csReturn");
+    var cutPct = csNum("csCut");
+
+    var items = costState.items
+      .map(function (it) { return { name: it.name || "無名", amount: parseFloat(it.amount) }; })
+      .filter(function (it) { return isFinite(it.amount) && it.amount > 0; });
+
+    if (!items.length) {
+      costRatioEl.textContent = "費目を入れると比較します。";
+      costChartEl.innerHTML = ""; costCutChartEl.innerHTML = ""; costLessonEl.innerHTML = "";
+      return;
+    }
+
+    var total = items.reduce(function (a, b) { return a + b.amount; }, 0);
+    var sorted = items.slice().sort(function (a, b) { return b.amount - a.amount; });
+    var top = sorted[0];
+
+    // --- 比率 ---
+    costRatioEl.innerHTML = "";
+    var r1 = document.createElement("div");
+    r1.className = "cs-lead";
+    r1.innerHTML = '一番大きいのは <span class="result-win"></span>。手取りの <b></b> を占めています。';
+    r1.querySelector(".result-win").textContent = top.name;
+    r1.querySelector("b").textContent = income > 0 ? (top.amount / income * 100).toFixed(1) + "%" : "—";
+    costRatioEl.appendChild(r1);
+
+    var r2 = document.createElement("div");
+    r2.style.fontSize = "12px";
+    r2.style.color = "var(--text-muted)";
+    r2.textContent = "固定費の合計 " + fmt(total) + " ／ 手取りの " +
+      (income > 0 ? (total / income * 100).toFixed(1) : "—") + "%。残るのは " + fmt(income - total);
+    costRatioEl.appendChild(r2);
+
+    if (income > 0 && top.amount / income > 0.3) {
+      var r3 = document.createElement("div");
+      r3.style.fontSize = "12px";
+      r3.style.color = "var(--wood)";
+      r3.textContent = "住居費が手取りの30%を超えています。ここが家計で最も重い一点です。";
+      costRatioEl.appendChild(r3);
+    }
+
+    drawBars(costChartEl, sorted.map(function (it, i) {
+      return { label: it.name, value: it.amount, color: i === 0 ? "var(--wood)" : "#9aa2ae" };
+    }));
+
+    // --- 削減効果 ---
+    csCutCaption.textContent = cutPct + "%削ったときの" + years + "年後の差（運用込み）";
+    var cuts = sorted.map(function (it) {
+      var monthly = it.amount * cutPct / 100;
+      return { label: it.name, value: futureValueOfMonthly(monthly, ret, years), monthly: monthly, name: it.name };
+    });
+    var bestCut = cuts[0];
+    drawBars(costCutChartEl, cuts.map(function (c, i) {
+      return { label: c.label, value: c.value, color: i === 0 ? "var(--sage)" : "#9aa2ae" };
+    }));
+
+    // --- 結論 ---
+    costLessonEl.innerHTML = "";
+    var l1 = document.createElement("div");
+    l1.className = "cs-lead";
+    l1.innerHTML = '<span class="result-win"></span> を ' + cutPct + '% 減らすと、月 <b class="m"></b>。' +
+      years + '年で <b class="t"></b> になります。';
+    l1.querySelector(".result-win").textContent = bestCut.name;
+    l1.querySelector(".m").textContent = fmt(bestCut.monthly);
+    l1.querySelector(".t").textContent = fmt(bestCut.value);
+    costLessonEl.appendChild(l1);
+
+    if (cuts.length > 1) {
+      var smallest = cuts[cuts.length - 1];
+      var ratio = smallest.value > 0 ? bestCut.value / smallest.value : 0;
+      var l2 = document.createElement("div");
+      l2.style.fontSize = "12.5px";
+      l2.style.lineHeight = "1.8";
+      l2.textContent = "同じ" + cutPct + "%でも、「" + smallest.name + "」を削った場合は " +
+        fmt(smallest.value) + "。差は " + (ratio ? ratio.toFixed(1) + "倍" : "—") + "です。";
+      costLessonEl.appendChild(l2);
+
+      // 最大費目を全部なくすのと、最小費目を全部なくすのを比較
+      var wipeSmall = futureValueOfMonthly(smallest.monthly * 100 / cutPct, ret, years);
+      var l3 = document.createElement("div");
+      l3.style.fontSize = "12px";
+      l3.style.color = "var(--text-muted)";
+      l3.style.lineHeight = "1.8";
+      l3.textContent = bestCut.value >= wipeSmall
+        ? "「" + bestCut.name + "」を" + cutPct + "%削るほうが、「" + smallest.name + "」を丸ごとゼロにするより効きます。"
+        : "この条件では、小さな費目をなくすほうが上回ります。削減率を上げて試してみてください。";
+      costLessonEl.appendChild(l3);
+    }
+  }
+
+  CS_IDS.forEach(function (id) {
+    csEl[id].addEventListener("input", function () { costSave(); calcCost(); });
+  });
+
+  document.getElementById("addCostBtn").addEventListener("click", function () {
+    costState.items.push({ name: "", amount: 0 });
+    costSave();
+    renderCost();
   });
 
   // 初期タブ復元
