@@ -764,6 +764,37 @@
   #investView[hidden] { display: none; }
   #investView .field-row { width: 100%; }
   #investView input.num { width: 118px; }
+
+  #settingsView { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+  #settingsView[hidden] { display: none; }
+  .bk-row { display: flex; gap: 8px; width: 100%; }
+  .bk-row > * { flex: 1 1 0; text-align: center; }
+  .bk-file { cursor: pointer; }
+  .bk-area {
+    width: 100%; font-family: inherit; font-size: 12px; line-height: 1.5;
+    border: 1px solid var(--surface-border); border-radius: 10px;
+    background: var(--bg); color: var(--text); padding: 10px; resize: vertical;
+  }
+  .bk-list { width: 100%; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
+  .bk-item { display: flex; justify-content: space-between; padding: 5px 2px; border-bottom: 1px dashed var(--surface-border); }
+  .bk-item span:last-child { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+  /* ===== デスクトップ幅 ===== */
+  @media (min-width: 880px) {
+    .shell { max-width: 860px; }
+    .card { max-width: 860px; padding: 30px 34px 30px; }
+    .tab-bar { gap: 5px; }
+    .tab-btn { font-size: 12.5px; padding: 7px 13px; }
+    #fuelView, #pvView, #fxView, #assetView, #houseView, #investView, #settingsView {
+      max-width: 720px;
+    }
+    #houseView .hs-group, #investView .hs-group {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px 22px; align-items: center;
+    }
+    #houseView .hs-head, #investView .hs-head { grid-column: 1 / -1; }
+    .result-box { font-size: 14px; }
+    .bar-label { flex: 0 0 70px; }
+  }
 </style>
 
 <div class="shell">
@@ -812,6 +843,11 @@
     <button class="tab-btn" id="tabInvest" data-active="false" data-tabkey="invest" title="株vs不動産">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9"></path><path d="M9 20V4"></path><path d="M14 20v-7"></path><path d="M19 20V11"></path><path d="M2 20h20"></path></svg>
       <span class="tab-name" data-i18n="tab.invest">株vs不動産</span>
+    </button>
+    <span class="tab-sep" aria-hidden="true"></span>
+    <button class="tab-btn" id="tabSettings" data-active="false" data-tabkey="settings" title="設定">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      <span class="tab-name" data-i18n="tab.settings">設定</span>
     </button>
   </div>
 
@@ -1100,6 +1136,31 @@
     <div class="result-box" id="ivResult"></div>
     <div class="bar-chart" id="ivChart"></div>
     <div class="result-box" id="ivBreakeven"></div>
+  </div>
+
+  <div id="settingsView" hidden>
+    <p class="tool-title">設定</p>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">バックアップ</p>
+      <p class="tool-note" style="text-align:left">入力したデータはこの端末の中だけに保存されています。別の端末で使うには、ここで書き出して読み込ませてください。</p>
+      <div class="bk-row">
+        <button class="chip" id="bkDownload">書き出す</button>
+        <button class="chip" id="bkCopy">コピー</button>
+      </div>
+      <textarea class="bk-area" id="bkArea" placeholder="ここにバックアップ文字列を貼り付けて「読み込む」を押します" rows="4"></textarea>
+      <div class="bk-row">
+        <label class="chip bk-file">ファイル選択<input type="file" id="bkFile" accept="application/json,.json" hidden></label>
+        <button class="chip" id="bkRestore">読み込む</button>
+      </div>
+      <p class="fx-status" id="bkStatus"></p>
+    </div>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">保存されているデータ</p>
+      <div class="bk-list" id="bkList"></div>
+      <button class="chip" id="bkClear">すべて消去</button>
+    </div>
   </div>
 </div>
 
@@ -1401,7 +1462,8 @@
     fx:        { view: "fxView",        tab: "tabFx" },
     asset:     { view: "assetView",     tab: "tabAsset" },
     house:     { view: "houseView",     tab: "tabHouse" },
-    invest:    { view: "investView",    tab: "tabInvest" }
+    invest:    { view: "investView",    tab: "tabInvest" },
+    settings:  { view: "settingsView",  tab: "tabSettings" }
   };
 
   function setActiveTab(tab) {
@@ -1424,6 +1486,7 @@
     if (tab === "asset") renderAssets();
     if (tab === "house") calcHouse();
     if (tab === "invest") calcInvest();
+    if (tab === "settings") renderBackupList();
     try { localStorage.setItem("pace-tab", tab); } catch (e) {}
   }
 
@@ -3225,6 +3288,118 @@
 
   IV_IDS.forEach(function (id) {
     ivEl[id].addEventListener("input", function () { ivSave(); calcInvest(); });
+  });
+
+
+  // ==================== バックアップ ====================
+  var BACKUP_KEYS = ["pace-assets", "pace-pv", "pace-house", "pace-invest",
+    "pace-fuel-v2", "pace-fuel", "pace-fx", "pace-fx-manual", "pace-counter",
+    "pace-daily-stats", "maai-counter", "maai-daily-stats", "maai-ambient", "maai-ambient-vol"];
+  var KEY_LABEL = {
+    "pace-assets": "資産テーブル", "pace-pv": "現在価値の記録", "pace-house": "家賃vs保有",
+    "pace-invest": "株vs不動産", "pace-fuel-v2": "給油くらべ", "pace-fx": "為替の設定",
+    "pace-fx-manual": "両替所レート", "maai-counter": "カウンター", "maai-daily-stats": "今日の集中記録"
+  };
+
+  var bkArea = document.getElementById("bkArea");
+  var bkStatus = document.getElementById("bkStatus");
+  var bkListEl = document.getElementById("bkList");
+
+  function collectBackup() {
+    var data = {};
+    BACKUP_KEYS.forEach(function (k) {
+      try { var v = localStorage.getItem(k); if (v !== null) data[k] = v; } catch (e) {}
+    });
+    return { app: "maai", version: 1, exported: new Date().toISOString(), data: data };
+  }
+
+  function renderBackupList() {
+    bkListEl.innerHTML = "";
+    var b = collectBackup();
+    var keys = Object.keys(b.data);
+    if (!keys.length) {
+      var p = document.createElement("p");
+      p.className = "pv-empty";
+      p.textContent = "まだ保存されたデータはありません。";
+      bkListEl.appendChild(p);
+      return;
+    }
+    keys.forEach(function (k) {
+      var row = document.createElement("div");
+      row.className = "bk-item";
+      var a = document.createElement("span");
+      a.textContent = KEY_LABEL[k] || k;
+      var s = document.createElement("span");
+      s.textContent = (new Blob([b.data[k]]).size) + " B";
+      row.appendChild(a); row.appendChild(s);
+      bkListEl.appendChild(row);
+    });
+  }
+
+  function restoreBackup(text) {
+    var obj;
+    try { obj = JSON.parse(text); } catch (e) { bkStatus.textContent = "読み込めませんでした。バックアップの文字列が壊れています。"; return; }
+    if (!obj || obj.app !== "maai" || !obj.data) { bkStatus.textContent = "このアプリのバックアップではないようです。"; return; }
+    var keys = Object.keys(obj.data);
+    if (!confirm(keys.length + " 件のデータを読み込みます。今この端末にある同じ項目は上書きされます。よろしいですか？")) return;
+    var ok = 0;
+    keys.forEach(function (k) {
+      try { localStorage.setItem(k, obj.data[k]); ok++; } catch (e) {}
+    });
+    bkStatus.textContent = ok + " 件を読み込みました。画面を再読み込みします…";
+    setTimeout(function () { location.reload(); }, 900);
+  }
+
+  document.getElementById("bkDownload").addEventListener("click", function () {
+    var json = JSON.stringify(collectBackup(), null, 2);
+    var blob = new Blob([json], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    var d = new Date();
+    a.href = url;
+    a.download = "maai-backup-" + d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    bkStatus.textContent = "書き出しました。";
+  });
+
+  document.getElementById("bkCopy").addEventListener("click", function () {
+    var json = JSON.stringify(collectBackup());
+    bkArea.value = json;
+    bkArea.select();
+    var done = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(json).then(function () {
+        bkStatus.textContent = "コピーしました。別の端末で貼り付けて読み込んでください。";
+      }).catch(function () {
+        bkStatus.textContent = "下の欄に出しました。手動でコピーしてください。";
+      });
+      done = true;
+    }
+    if (!done) bkStatus.textContent = "下の欄に出しました。手動でコピーしてください。";
+  });
+
+  document.getElementById("bkFile").addEventListener("change", function (e) {
+    var f = e.target.files && e.target.files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function () { bkArea.value = reader.result; bkStatus.textContent = "ファイルを読み込みました。「読み込む」を押してください。"; };
+    reader.readAsText(f);
+  });
+
+  document.getElementById("bkRestore").addEventListener("click", function () {
+    var t = bkArea.value.trim();
+    if (!t) { bkStatus.textContent = "バックアップの文字列がありません。"; return; }
+    restoreBackup(t);
+  });
+
+  document.getElementById("bkClear").addEventListener("click", function () {
+    if (!confirm("この端末に保存されたデータをすべて消します。元に戻せません。よろしいですか？")) return;
+    BACKUP_KEYS.forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
+    bkStatus.textContent = "消去しました。画面を再読み込みします…";
+    setTimeout(function () { location.reload(); }, 900);
   });
 
   // 初期タブ復元
