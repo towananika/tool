@@ -1,7 +1,7 @@
 {
   "name": "間合い",
   "short_name": "間合い",
-  "description": "集中と休憩の時間を設定し、切り替わるたびにベルが鳴るタイマー",
+  "description": "タイマー・ストップウォッチ・カウンターと、給油所くらべ・現在価値・為替の計算がひとつになった道具箱",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -9,7 +9,17 @@
   "background_color": "#f5f1e9",
   "theme_color": "#93704b",
   "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
   ]
 }

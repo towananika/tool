@@ -1,11 +1,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>間合い</title>
+<title>Pace — 間合い</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#93704b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="間合い">
+<meta name="apple-mobile-web-app-title" content="Pace">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -345,17 +345,17 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding-top: 18px;
+    gap: 10px;
+    padding-top: 14px;
     border-top: 1px dashed var(--surface-border);
     overflow: hidden;
     max-height: 0;
     opacity: 0;
-    transition: max-height 0.3s ease, opacity 0.25s ease, padding 0.3s ease, border-color 0.3s ease;
+    transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.3s ease, border-color 0.3s ease;
   }
 
   .settings[data-open="true"] {
-    max-height: 320px;
+    max-height: 900px;
     opacity: 1;
   }
 
@@ -505,10 +505,22 @@
   .daylight-panel {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-top: 4px;
-    padding-top: 12px;
+    gap: 8px;
+    margin-top: 2px;
+    padding-top: 8px;
+  }
+
+  .settings-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 8px;
     border-top: 1px dashed var(--surface-border);
+  }
+
+  .settings-group:first-child {
+    padding-top: 0;
+    border-top: none;
   }
 
   .daylight-status {
@@ -604,15 +616,129 @@
   @media (prefers-reduced-motion: reduce) {
     .ring-progress, .settings { transition: none; }
   }
+
+  /* ===== brand ===== */
+  body { flex-direction: column; }
+  .shell { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; max-width: 380px; }
+  .brand { text-align: center; }
+  .brand-name { margin: 0; font-size: 27px; font-weight: 700; letter-spacing: 0.14em; }
+  .brand-sub { margin: 3px 0 0; font-size: 12.5px; color: var(--text-muted); letter-spacing: 0.42em; }
+  .brand-tag { margin: 7px 0 0; font-size: 11.5px; color: var(--text-muted); letter-spacing: 0.02em; }
+
+  .tab-sep { width: 1px; height: 18px; background: var(--surface-border); align-self: center; margin: 0 2px; }
+  .tab-bar { flex-wrap: nowrap; }
+  .tab-btn { width: 30px; height: 30px; flex: 0 0 auto; }
+
+  /* ===== stopwatch ===== */
+  #stopwatchView, #fuelView, #pvView, #fxView { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; }
+  #stopwatchView[hidden], #fuelView[hidden], #pvView[hidden], #fxView[hidden] { display: none; }
+
+  .sw-face { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 26px 0 6px; }
+  .sw-time { font-size: 44px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+  .sw-lapdiff { min-height: 18px; font-size: 13px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .sw-controls { display: flex; gap: 8px; }
+  .sw-btn { min-width: 84px; padding: 10px 14px; }
+  .sw-primary { background: var(--wood-soft); border-color: var(--wood); color: var(--wood); font-weight: 700; }
+  .sw-btn:disabled { opacity: 0.4; cursor: default; }
+  .lap-list { list-style: none; margin: 0; padding: 0; width: 100%; max-height: 190px; overflow-y: auto; }
+  .lap-list li { display: flex; justify-content: space-between; padding: 7px 4px; font-size: 13.5px; font-variant-numeric: tabular-nums; border-bottom: 1px dashed var(--surface-border); }
+  .lap-list li span:first-child { color: var(--text-muted); }
+  .lap-best { color: var(--sage); font-weight: 700; }
+  .lap-worst { color: var(--wood); }
+
+  /* ===== shared tool bits ===== */
+  .tool-title { margin: 4px 0 0; font-size: 15px; font-weight: 700; }
+  .tool-note { margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.6; text-align: center; }
+  #fuelView .field-row, #pvView .field-row { width: 100%; }
+  input.num, .pv-in {
+    font-family: inherit; font-size: 14px; font-variant-numeric: tabular-nums;
+    border: 1px solid var(--surface-border); border-radius: 9px;
+    background: var(--bg); color: var(--text); padding: 7px 9px; width: 92px; text-align: right;
+  }
+  .add-btn { width: 100%; padding: 9px; }
+  .result-box {
+    width: 100%; background: var(--bg); border: 1px solid var(--surface-border);
+    border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.75; min-height: 20px;
+  }
+  .result-box b { color: var(--wood); }
+  .result-win { color: var(--sage); font-weight: 700; }
+
+  /* ===== fuel ===== */
+  .station-list { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+  .station { display: flex; align-items: center; gap: 6px; }
+  .station input { flex: 1 1 0; min-width: 0; text-align: left; padding: 7px 8px; font-family: inherit; font-size: 13.5px;
+    border: 1px solid var(--surface-border); border-radius: 9px; background: var(--bg); color: var(--text); }
+  .station input.st-num { flex: 0 0 66px; text-align: right; font-variant-numeric: tabular-nums; }
+  .st-del { flex: 0 0 26px; height: 30px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 16px; border-radius: 8px; }
+  .st-del:hover { background: var(--wood-soft); color: var(--wood); }
+  .station-head { display: flex; gap: 6px; font-size: 11px; color: var(--text-muted); padding: 0 2px; }
+  .station-head span:nth-child(1) { flex: 1 1 0; }
+  .station-head span:nth-child(2), .station-head span:nth-child(3) { flex: 0 0 66px; text-align: right; }
+  .station-head span:nth-child(4) { flex: 0 0 26px; }
+
+  /* ===== pv ===== */
+  .pv-form { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+  .pv-row2 { display: flex; gap: 8px; }
+  .pv-form .pv-in { width: 100%; text-align: left; }
+  .pv-row2 .pv-in { flex: 1 1 0; min-width: 0; }
+  .pv-row2 .pv-in:last-child { text-align: right; }
+  .pv-list { width: 100%; display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; }
+  .pv-item { display: flex; align-items: baseline; gap: 8px; padding: 8px 10px; border: 1px solid var(--surface-border); border-radius: 10px; background: var(--bg); }
+  .pv-item .pv-main { flex: 1 1 0; min-width: 0; }
+  .pv-item .pv-name { font-size: 13.5px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pv-item .pv-meta { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .pv-item .pv-val { font-size: 13.5px; font-weight: 700; color: var(--wood); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .pv-empty { font-size: 12.5px; color: var(--text-muted); text-align: center; padding: 10px 0; }
+
+  /* ===== fx ===== */
+  .fx-row { width: 100%; display: flex; gap: 8px; align-items: center; }
+  .fx-amount { flex: 1 1 0; min-width: 0; width: auto; font-size: 19px; padding: 11px 12px; }
+  .fx-row select { flex: 0 0 92px; padding: 11px 8px; font-size: 14px; }
+  .fx-out { flex: 1 1 0; min-width: 0; font-size: 19px; font-weight: 700; color: var(--wood);
+    font-variant-numeric: tabular-nums; text-align: right; padding: 11px 12px;
+    border: 1px solid var(--surface-border); border-radius: 9px; background: var(--bg); overflow-x: auto; }
+  .fx-swap { align-self: center; }
+  .fx-status { margin: 0; font-size: 11.5px; color: var(--text-muted); text-align: center; line-height: 1.6; }
+
+
+  .fx-label { width: 100%; margin: 2px 0 -6px; font-size: 12px; color: var(--text-muted); }
+  .fx-label .hint { font-size: 10.5px; opacity: 0.8; }
+  .fx-manual { flex: 0 0 120px; width: auto; }
+  .fx-out-sub { font-size: 17px; }
+  .fx-links { display: flex; gap: 8px; width: 100%; }
+  .fx-links > * { flex: 1 1 0; text-align: center; text-decoration: none; padding: 9px 6px;
+    font-size: 11.5px; line-height: 1.35; display: flex; align-items: center; justify-content: center; }
+  .fx-links a { color: var(--text); }
+  .fx-links a:hover { color: var(--wood); }
 </style>
+
+<div class="shell">
+  <header class="brand">
+    <h1 class="brand-name">Pace</h1>
+    <p class="brand-sub">間合い</p>
+    <p class="brand-tag">Pace yourself. Keep your distance.</p>
+  </header>
 
 <div class="card" id="card" data-mode="focus">
   <div class="tab-bar">
     <button class="tab-btn" id="tabTimer" data-active="true" aria-label="タイマー" title="タイマー">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l3 2"></path><path d="M9 2h6"></path></svg>
     </button>
+    <button class="tab-btn" id="tabStopwatch" data-active="false" aria-label="ストップウォッチ" title="ストップウォッチ">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 13l4-2"></path><path d="M9 2h6"></path><path d="M18.5 6.5l1.5-1.5"></path></svg>
+    </button>
     <button class="tab-btn" id="tabCounter" data-active="false" aria-label="カウンター" title="カウンター">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+    </button>
+    <span class="tab-sep" aria-hidden="true"></span>
+    <button class="tab-btn" id="tabFuel" data-active="false" aria-label="給油所くらべ" title="給油所くらべ">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v16"></path><path d="M3 21h12"></path><path d="M6 8h5"></path><path d="M16 9l2-2 2 2v8a1.5 1.5 0 0 1-3 0v-4h-1"></path></svg>
+    </button>
+    <button class="tab-btn" id="tabPv" data-active="false" aria-label="現在価値" title="現在価値">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 8-8"></path><path d="M16 7h4v4"></path><path d="M3 21h18"></path></svg>
+    </button>
+    <button class="tab-btn" id="tabFx" data-active="false" aria-label="為替" title="為替">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13"></path><path d="M14 5l3 3-3 3"></path><path d="M20 16H7"></path><path d="M10 13l-3 3 3 3"></path></svg>
     </button>
   </div>
 
@@ -642,65 +768,71 @@
     <p class="break-hint" id="breakHint" hidden></p>
 
     <div class="settings" id="settings" data-open="false">
-      <div class="field-row presets-row">
-        <span class="field-label">プリセット</span>
-        <div class="presets">
-          <button class="chip" data-focus="90" data-rest="20">深い集中 90/20</button>
-          <button class="chip" data-focus="25" data-rest="5">浅い集中 25/5</button>
-          <button class="chip" data-focus="52" data-rest="17">52/17</button>
-        </div>
-      </div>
-      <div class="field-row">
-        <span class="field-label">休憩時間（分）</span>
-        <div class="stepper">
-          <button data-step="-1" data-target="restMin" aria-label="休憩時間を減らす">−</button>
-          <input type="number" id="restMin" value="5" min="1" max="60" inputmode="numeric">
-          <button data-step="1" data-target="restMin" aria-label="休憩時間を増やす">＋</button>
-        </div>
-      </div>
-      <div class="field-row">
-        <span class="field-label">ベル音</span>
-        <div class="sound-row">
-          <select id="soundSelect">
-            <option value="temple">鐘（低く長い余韻）</option>
-            <option value="chime" selected>チャイム（澄んだ音）</option>
-            <option value="beep">シンプルビープ</option>
-            <option value="moktak">木魚（乾いた音）</option>
-          </select>
-          <button class="chip" id="previewBtn">試聴</button>
-        </div>
-      </div>
-      <p class="daily-stats" id="dailyStats">今日: 0回 ／ 0分</p>
-
-      <div class="field-row">
-        <span class="field-label">アンビエントサウンド<span class="hint">（集中=ブラウン／休憩=ピンク）</span></span>
-        <label class="switch">
-          <input type="checkbox" id="ambientToggle">
-          <span class="switch-track"></span>
-        </label>
-      </div>
-      <div class="field-row" id="ambientVolumeRow" hidden>
-        <span class="field-label">音量</span>
-        <input type="range" id="ambientVolume" min="0" max="1" step="0.05" value="0.18">
-      </div>
-
-      <div class="field-row">
-        <span class="field-label">日照モード<span class="hint">（実験的）</span></span>
-        <label class="switch">
-          <input type="checkbox" id="daylightToggle">
-          <span class="switch-track"></span>
-        </label>
-      </div>
-      <div class="daylight-panel" id="daylightPanel" hidden>
-        <p class="daylight-status" id="daylightStatus">位置情報を確認中…</p>
-        <div class="field-row">
-          <span class="field-label">緯度・経度（手動調整）</span>
-          <div class="latlon-row">
-            <input type="number" id="latInput" step="0.01" inputmode="decimal">
-            <input type="number" id="lonInput" step="0.01" inputmode="decimal">
+      <div class="settings-group">
+        <div class="field-row presets-row">
+          <span class="field-label">プリセット</span>
+          <div class="presets">
+            <button class="chip" data-focus="90" data-rest="20">深い集中 90/20</button>
+            <button class="chip" data-focus="25" data-rest="5">浅い集中 25/5</button>
+            <button class="chip" data-focus="52" data-rest="17">52/17</button>
           </div>
         </div>
-        <button class="chip" id="screensaverBtn">全体表示（スクリーンセーバー）</button>
+        <div class="field-row">
+          <span class="field-label">休憩時間（分）</span>
+          <div class="stepper">
+            <button data-step="-1" data-target="restMin" aria-label="休憩時間を減らす">−</button>
+            <input type="number" id="restMin" value="5" min="1" max="60" inputmode="numeric">
+            <button data-step="1" data-target="restMin" aria-label="休憩時間を増やす">＋</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="field-label">ベル音</span>
+          <div class="sound-row">
+            <select id="soundSelect">
+              <option value="temple">鐘（低く長い余韻）</option>
+              <option value="chime" selected>チャイム（澄んだ音）</option>
+              <option value="beep">シンプルビープ</option>
+              <option value="moktak">木魚（乾いた音）</option>
+            </select>
+            <button class="chip" id="previewBtn">試聴</button>
+          </div>
+        </div>
+        <p class="daily-stats" id="dailyStats">今日: 0回 ／ 0分</p>
+      </div>
+
+      <div class="settings-group">
+        <div class="field-row">
+          <span class="field-label">アンビエントサウンド<span class="hint">（集中=ブラウン／休憩=ピンク）</span></span>
+          <label class="switch">
+            <input type="checkbox" id="ambientToggle">
+            <span class="switch-track"></span>
+          </label>
+        </div>
+        <div class="field-row" id="ambientVolumeRow" hidden>
+          <span class="field-label">音量</span>
+          <input type="range" id="ambientVolume" min="0" max="1" step="0.05" value="0.18">
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="field-row">
+          <span class="field-label">日照モード<span class="hint">（実験的）</span></span>
+          <label class="switch">
+            <input type="checkbox" id="daylightToggle">
+            <span class="switch-track"></span>
+          </label>
+        </div>
+        <div class="daylight-panel" id="daylightPanel" hidden>
+          <p class="daylight-status" id="daylightStatus">位置情報を確認中…</p>
+          <div class="field-row">
+            <span class="field-label">緯度・経度（手動調整）</span>
+            <div class="latlon-row">
+              <input type="number" id="latInput" step="0.01" inputmode="decimal">
+              <input type="number" id="lonInput" step="0.01" inputmode="decimal">
+            </div>
+          </div>
+          <button class="chip" id="screensaverBtn">全体表示（スクリーンセーバー）</button>
+        </div>
       </div>
     </div>
   </div>
@@ -726,6 +858,82 @@
           <button data-step="1" data-target="counterStep" aria-label="増減幅を増やす">＋</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div id="stopwatchView" hidden>
+    <div class="sw-face">
+      <div class="sw-time" id="swTime">0:00.00</div>
+      <div class="sw-lapdiff" id="swLapDiff"></div>
+    </div>
+    <div class="sw-controls">
+      <button class="chip sw-btn" id="swLapBtn" disabled>ラップ</button>
+      <button class="chip sw-btn sw-primary" id="swStartBtn">スタート</button>
+      <button class="chip sw-btn" id="swResetBtn" disabled>リセット</button>
+    </div>
+    <ol class="lap-list" id="lapList"></ol>
+  </div>
+
+  <div id="fuelView" hidden>
+    <p class="tool-title">給油所くらべ</p>
+    <p class="tool-note">遠くの安い店まで走る価値があるか、往復で余分に燃やす分を足して比べます。</p>
+    <div class="field-row">
+      <span class="field-label">燃費<span class="hint">（km/L）</span></span>
+      <input class="num" type="number" id="fuelKmpl" value="12" min="1" step="0.1" inputmode="decimal">
+    </div>
+    <div class="field-row">
+      <span class="field-label">給油量<span class="hint">（L）</span></span>
+      <input class="num" type="number" id="fuelLiters" value="40" min="1" step="1" inputmode="decimal">
+    </div>
+    <div class="station-list" id="stationList"></div>
+    <button class="chip add-btn" id="addStationBtn">＋ 給油所を追加</button>
+    <div class="result-box" id="fuelResult"></div>
+  </div>
+
+  <div id="pvView" hidden>
+    <p class="tool-title">現在価値</p>
+    <p class="tool-note">将来もらえるお金が、いま手元にあるとしたらいくらか。記録は積み重ねて保存されます。</p>
+    <div class="field-row">
+      <span class="field-label">割引率<span class="hint">（年率 %）</span></span>
+      <input class="num" type="number" id="pvRate" value="4" min="0" max="50" step="0.1" inputmode="decimal">
+    </div>
+    <div class="pv-form">
+      <input class="pv-in" type="text" id="pvLabel" placeholder="ラベル（例: 跳躍口座 満期）">
+      <div class="pv-row2">
+        <input class="pv-in" type="date" id="pvDate">
+        <input class="pv-in" type="number" id="pvAmount" placeholder="金額" inputmode="numeric">
+      </div>
+      <button class="chip add-btn" id="pvAddBtn">＋ 記録を追加</button>
+    </div>
+    <div class="pv-list" id="pvList"></div>
+    <div class="result-box" id="pvTotal"></div>
+  </div>
+
+  <div id="fxView" hidden>
+    <p class="tool-title">為替</p>
+    <div class="fx-row">
+      <input class="num fx-amount" type="number" id="fxAmount" value="10000" inputmode="decimal">
+      <select id="fxFrom"></select>
+    </div>
+    <button class="icon-btn fx-swap" id="fxSwap" aria-label="通貨を入れ替える" title="入れ替え">⇅</button>
+
+    <p class="fx-label">銀行レート<span class="hint">（自動取得）</span></p>
+    <div class="fx-row">
+      <div class="fx-out" id="fxOut">—</div>
+      <select id="fxTo"></select>
+    </div>
+    <p class="fx-status" id="fxStatus">レートを取得中…</p>
+
+    <p class="fx-label">両替所レート<span class="hint">（1単位あたり・手入力で保存）</span></p>
+    <div class="fx-row">
+      <input class="num fx-manual" type="number" id="fxManualRate" step="0.0001" min="0" inputmode="decimal" placeholder="例 0.1085">
+      <div class="fx-out fx-out-sub" id="fxManualOut">—</div>
+    </div>
+    <div class="result-box" id="fxCompare"></div>
+
+    <div class="fx-links">
+      <a class="chip" href="https://exchange.mibank.me/close-branch" target="_blank" rel="noopener">両替所レートを調べる ↗</a>
+      <button class="chip" id="fxRefresh">銀行レートを更新</button>
     </div>
   </div>
 </div>
@@ -1019,20 +1227,38 @@
   });
 
   // --- Tab switching ---
+  var VIEWS = {
+    timer:     { view: "timerView",     tab: "tabTimer" },
+    stopwatch: { view: "stopwatchView", tab: "tabStopwatch" },
+    counter:   { view: "counterView",   tab: "tabCounter" },
+    fuel:      { view: "fuelView",      tab: "tabFuel" },
+    pv:        { view: "pvView",        tab: "tabPv" },
+    fx:        { view: "fxView",        tab: "tabFx" }
+  };
+
   function setActiveTab(tab) {
+    if (!VIEWS[tab]) tab = "timer";
     activeTab = tab;
-    tabTimer.setAttribute("data-active", tab === "timer" ? "true" : "false");
-    tabCounter.setAttribute("data-active", tab === "counter" ? "true" : "false");
-    timerView.hidden = tab !== "timer";
-    counterView.hidden = tab !== "counter";
+    Object.keys(VIEWS).forEach(function (k) {
+      document.getElementById(VIEWS[k].tab).setAttribute("data-active", k === tab ? "true" : "false");
+      document.getElementById(VIEWS[k].view).hidden = k !== tab;
+    });
+    var basic = (tab === "timer" || tab === "counter");
     modeDot.hidden = tab !== "timer";
+    settingsBtn.style.visibility = basic ? "visible" : "hidden";
+    resetBtn.style.visibility = basic ? "visible" : "hidden";
     settingsPanel.setAttribute("data-open", "false");
     counterSettings.setAttribute("data-open", "false");
     if (tab === "counter") renderCounter();
+    if (tab === "fuel") renderFuel();
+    if (tab === "pv") renderPv();
+    if (tab === "fx") initFx();
+    try { localStorage.setItem("pace-tab", tab); } catch (e) {}
   }
 
-  tabTimer.addEventListener("click", function () { setActiveTab("timer"); });
-  tabCounter.addEventListener("click", function () { setActiveTab("counter"); });
+  Object.keys(VIEWS).forEach(function (k) {
+    document.getElementById(VIEWS[k].tab).addEventListener("click", function () { setActiveTab(k); });
+  });
 
   // --- Counter ---
   function renderCounter() {
@@ -1379,18 +1605,60 @@
     } catch (e) {}
   })();
 
+  // 金属の共振（高Qのバンドパスで「カーン」という芯を作る）
+  function metalRing(ctx, at, freq, dur, peak) {
+    var n = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    var buffer = ctx.createBuffer(1, n, ctx.sampleRate);
+    var data = buffer.getChannelData(0);
+    for (var i = 0; i < n; i++) data[i] = Math.random() * 2 - 1;
+    var src = ctx.createBufferSource();
+    src.buffer = buffer;
+    var bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = freq;
+    bp.Q.value = 14;
+    var g = ctx.createGain();
+    g.gain.setValueAtTime(peak, at);
+    g.gain.exponentialRampToValueAtTime(0.0004, at + dur);
+    src.connect(bp).connect(g).connect(ctx.destination);
+    src.start(at);
+    src.stop(at + dur + 0.01);
+  }
+
+  // 筐体の胴鳴り（この低域が「機械らしさ」の正体）
+  function clickBody(ctx, at, freq, peak, dur) {
+    var osc = ctx.createOscillator();
+    var g = ctx.createGain();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(freq, at);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.6, at + dur);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.linearRampToValueAtTime(peak, at + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0004, at + dur);
+    osc.connect(g).connect(ctx.destination);
+    osc.start(at);
+    osc.stop(at + dur + 0.01);
+  }
+
   function playClick(up) {
     try {
       var ctx = getCtx();
       var now = ctx.currentTime;
-      var pitch = up ? 1 : 0.86;
+      var jitter = 0.94 + Math.random() * 0.12;   // 一打ごとの個体差
+      var pitch = (up ? 1 : 0.9) * jitter;
 
-      // sharp mechanical "kachi" — a real click, not a soft tone
-      noiseBurst(ctx, now, 0.008, "bandpass", 3600 * pitch, 0.4, 0.012);
-      noiseBurst(ctx, now, 0.004, "highpass", 5000, 0.15, 0.006);
+      // ① レバーを押し込む硬いアタック
+      noiseBurst(ctx, now, 0.006, "bandpass", 2600 * pitch, 0.42, 0.009);
+      noiseBurst(ctx, now, 0.003, "highpass", 6000, 0.12, 0.004);
 
-      // a beat later, the ratchet/pawl catching — smaller, lower
-      noiseBurst(ctx, now + 0.012, 0.007, "bandpass", 1900 * pitch, 0.22, 0.012);
+      // ② 金属の共振
+      metalRing(ctx, now, 3200 * pitch, 0.018, 0.16);
+
+      // ③ 数ミリ秒後、爪が次の歯に落ちる二段目の「カチ」
+      noiseBurst(ctx, now + 0.011 + Math.random() * 0.004, 0.005, "bandpass", 1500 * pitch, 0.28, 0.01);
+
+      // ④ 胴鳴り
+      clickBody(ctx, now, 190 * pitch, 0.2, 0.035);
     } catch (e) {}
   }
 
@@ -1399,22 +1667,22 @@
       var ctx = getCtx();
       var now = ctx.currentTime;
 
-      // "カッチ" — the heavier snap of a mechanical counter's reset lever:
-      // one firm, low, resonant click, not a multi-grain ratchet.
-      noiseBurst(ctx, now, 0.014, "bandpass", 1400, 0.55, 0.03);
-      noiseBurst(ctx, now, 0.006, "highpass", 3200, 0.2, 0.012);
+      // ① 桁を送る重い一撃（クリックよりはっきり大きく、低く）
+      noiseBurst(ctx, now, 0.016, "bandpass", 1000, 0.95, 0.03);
+      noiseBurst(ctx, now, 0.006, "highpass", 4000, 0.25, 0.01);
+      metalRing(ctx, now, 2000, 0.07, 0.38);
+      clickBody(ctx, now, 140, 0.6, 0.1);
 
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(220, now);
-      osc.frequency.exponentialRampToValueAtTime(110, now + 0.05);
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(0.3, now + 0.006);
-      gain.gain.exponentialRampToValueAtTime(0.0005, now + 0.07);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(now);
-      osc.stop(now + 0.08);
+      // ② ドラムが回り切って受け止められる二打目
+      var t2 = now + 0.06;
+      noiseBurst(ctx, t2, 0.01, "bandpass", 780, 0.5, 0.022);
+      metalRing(ctx, t2, 1500, 0.05, 0.2);
+      clickBody(ctx, t2, 105, 0.4, 0.09);
+
+      // ③ 最後に軽く収まる余韻
+      var t3 = now + 0.115;
+      noiseBurst(ctx, t3, 0.006, "bandpass", 1300, 0.22, 0.014);
+      clickBody(ctx, t3, 90, 0.16, 0.07);
     } catch (e) {}
   }
 
@@ -1818,4 +2086,464 @@
 
   updatePresetHighlight();
   render();
+
+  // ==================== 共通ユーティリティ ====================
+  function pad2(n) { return n < 10 ? "0" + n : String(n); }
+  function fmt(n, digits) {
+    if (n === null || n === undefined || !isFinite(n)) return "—";
+    return n.toLocaleString("ja-JP", { maximumFractionDigits: digits === undefined ? 0 : digits });
+  }
+  function loadJSON(key, fallback) {
+    try { var v = JSON.parse(localStorage.getItem(key) || "null"); return v === null ? fallback : v; }
+    catch (e) { return fallback; }
+  }
+  function saveJSON(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+  }
+
+  // ==================== ストップウォッチ ====================
+  var swTimeEl = document.getElementById("swTime");
+  var swLapDiffEl = document.getElementById("swLapDiff");
+  var swStartBtn = document.getElementById("swStartBtn");
+  var swLapBtn = document.getElementById("swLapBtn");
+  var swResetBtn = document.getElementById("swResetBtn");
+  var lapListEl = document.getElementById("lapList");
+
+  var sw = { running: false, startAt: 0, elapsed: 0, rafId: null, laps: [], lastLapAt: 0 };
+
+  function swFormat(ms) {
+    var total = Math.floor(ms / 10);
+    var cs = total % 100;
+    var s = Math.floor(total / 100) % 60;
+    var m = Math.floor(total / 6000);
+    return m + ":" + pad2(s) + "." + pad2(cs);
+  }
+
+  function swNow() { return sw.running ? sw.elapsed + (Date.now() - sw.startAt) : sw.elapsed; }
+
+  function swRender() {
+    swTimeEl.textContent = swFormat(swNow());
+    if (sw.running) sw.rafId = requestAnimationFrame(swRender);
+  }
+
+  function swRenderLaps() {
+    lapListEl.innerHTML = "";
+    if (!sw.laps.length) { swLapDiffEl.textContent = ""; return; }
+    var best = Math.min.apply(null, sw.laps);
+    var worst = Math.max.apply(null, sw.laps);
+    for (var i = sw.laps.length - 1; i >= 0; i--) {
+      var li = document.createElement("li");
+      var cls = sw.laps.length > 1 ? (sw.laps[i] === best ? "lap-best" : (sw.laps[i] === worst ? "lap-worst" : "")) : "";
+      var a = document.createElement("span");
+      a.textContent = "Lap " + (i + 1);
+      var b = document.createElement("span");
+      b.className = cls;
+      b.textContent = swFormat(sw.laps[i]);
+      li.appendChild(a); li.appendChild(b);
+      lapListEl.appendChild(li);
+    }
+    swLapDiffEl.textContent = "最速 " + swFormat(best) + " ／ 最遅 " + swFormat(worst);
+  }
+
+  function swStartPause() {
+    if (sw.running) {
+      sw.elapsed += Date.now() - sw.startAt;
+      sw.running = false;
+      cancelAnimationFrame(sw.rafId);
+      swStartBtn.textContent = "再開";
+    } else {
+      sw.startAt = Date.now();
+      sw.running = true;
+      swStartBtn.textContent = "ストップ";
+    }
+    swLapBtn.disabled = !sw.running;
+    swResetBtn.disabled = sw.running || swNow() === 0;
+    swRender();
+  }
+
+  function swLap() {
+    var now = swNow();
+    sw.laps.push(now - sw.lastLapAt);
+    sw.lastLapAt = now;
+    swRenderLaps();
+    playClick(true);
+  }
+
+  function swReset() {
+    sw.running = false;
+    cancelAnimationFrame(sw.rafId);
+    sw.elapsed = 0; sw.laps = []; sw.lastLapAt = 0;
+    swStartBtn.textContent = "スタート";
+    swLapBtn.disabled = true;
+    swResetBtn.disabled = true;
+    swRenderLaps();
+    swRender();
+  }
+
+  swStartBtn.addEventListener("click", swStartPause);
+  swLapBtn.addEventListener("click", swLap);
+  swResetBtn.addEventListener("click", swReset);
+  swRender();
+
+  // ==================== 給油所くらべ ====================
+  var fuelKmpl = document.getElementById("fuelKmpl");
+  var fuelLiters = document.getElementById("fuelLiters");
+  var stationListEl = document.getElementById("stationList");
+  var fuelResultEl = document.getElementById("fuelResult");
+  var addStationBtn = document.getElementById("addStationBtn");
+
+  var fuelState = loadJSON("pace-fuel", {
+    kmpl: 12, liters: 40,
+    stations: [
+      { name: "近い店", dist: 1, price: 1650 },
+      { name: "遠い安い店", dist: 8, price: 1580 }
+    ]
+  });
+
+  function fuelSave() { saveJSON("pace-fuel", fuelState); }
+
+  function stationTotal(st) {
+    var kmpl = parseFloat(fuelState.kmpl);
+    var liters = parseFloat(fuelState.liters);
+    var d = parseFloat(st.dist), p = parseFloat(st.price);
+    if (!(kmpl > 0) || !(liters > 0) || !(d >= 0) || !(p > 0)) return null;
+    var extra = (d * 2) / kmpl;
+    return { extra: extra, total: (liters + extra) * p };
+  }
+
+  function renderFuel() {
+    fuelKmpl.value = fuelState.kmpl;
+    fuelLiters.value = fuelState.liters;
+    stationListEl.innerHTML = "";
+    var head = document.createElement("div");
+    head.className = "station-head";
+    ["店名", "距離km", "単価", ""].forEach(function (t) {
+      var s = document.createElement("span"); s.textContent = t; head.appendChild(s);
+    });
+    stationListEl.appendChild(head);
+
+    fuelState.stations.forEach(function (st, i) {
+      var row = document.createElement("div");
+      row.className = "station";
+
+      var nameIn = document.createElement("input");
+      nameIn.type = "text"; nameIn.placeholder = "店名"; nameIn.value = st.name || "";
+      var distIn = document.createElement("input");
+      distIn.type = "number"; distIn.className = "st-num"; distIn.step = "0.1"; distIn.min = "0";
+      distIn.inputMode = "decimal"; distIn.value = st.dist;
+      var priceIn = document.createElement("input");
+      priceIn.type = "number"; priceIn.className = "st-num"; priceIn.step = "1"; priceIn.min = "0";
+      priceIn.inputMode = "numeric"; priceIn.value = st.price;
+      var del = document.createElement("button");
+      del.className = "st-del"; del.textContent = "×"; del.setAttribute("aria-label", "削除");
+
+      nameIn.addEventListener("input", function () { fuelState.stations[i].name = nameIn.value; fuelSave(); calcFuel(); });
+      distIn.addEventListener("input", function () { fuelState.stations[i].dist = distIn.value; fuelSave(); calcFuel(); });
+      priceIn.addEventListener("input", function () { fuelState.stations[i].price = priceIn.value; fuelSave(); calcFuel(); });
+      del.addEventListener("click", function () {
+        fuelState.stations.splice(i, 1); fuelSave(); renderFuel();
+      });
+
+      row.appendChild(nameIn); row.appendChild(distIn); row.appendChild(priceIn); row.appendChild(del);
+      stationListEl.appendChild(row);
+    });
+    calcFuel();
+  }
+
+  function calcFuel() {
+    var rows = [];
+    fuelState.stations.forEach(function (st) {
+      var r = stationTotal(st);
+      if (r) rows.push({ name: st.name || "無名", total: r.total, extra: r.extra, dist: parseFloat(st.dist) });
+    });
+    fuelResultEl.innerHTML = "";
+    if (!rows.length) { fuelResultEl.textContent = "距離と単価を入れると比較します。"; return; }
+    rows.sort(function (a, b) { return a.total - b.total; });
+    var best = rows[0];
+
+    var l1 = document.createElement("div");
+    l1.innerHTML = '<span class="result-win"></span> が最安 ／ 合計 <b></b>';
+    l1.querySelector(".result-win").textContent = best.name;
+    l1.querySelector("b").textContent = fmt(best.total);
+    fuelResultEl.appendChild(l1);
+
+    if (rows.length > 1) {
+      var second = rows[1];
+      var l2 = document.createElement("div");
+      l2.innerHTML = '2位「<span class="nm"></span>」より <b></b> 得';
+      l2.querySelector(".nm").textContent = second.name;
+      l2.querySelector("b").textContent = fmt(second.total - best.total);
+      fuelResultEl.appendChild(l2);
+    }
+
+    var l3 = document.createElement("div");
+    l3.style.color = "var(--text-muted)";
+    l3.style.fontSize = "12px";
+    l3.textContent = "往復 " + fmt(best.dist * 2, 1) + "km で余分に燃やす " + fmt(best.extra, 2) + "L を含めた比較";
+    fuelResultEl.appendChild(l3);
+  }
+
+  [fuelKmpl, fuelLiters].forEach(function (el) {
+    el.addEventListener("input", function () {
+      fuelState.kmpl = fuelKmpl.value;
+      fuelState.liters = fuelLiters.value;
+      fuelSave();
+      calcFuel();
+    });
+  });
+
+  addStationBtn.addEventListener("click", function () {
+    fuelState.stations.push({ name: "", dist: 5, price: 1600 });
+    fuelSave();
+    renderFuel();
+  });
+
+  // ==================== 現在価値 ====================
+  var pvRateEl = document.getElementById("pvRate");
+  var pvLabelEl = document.getElementById("pvLabel");
+  var pvDateEl = document.getElementById("pvDate");
+  var pvAmountEl = document.getElementById("pvAmount");
+  var pvAddBtn = document.getElementById("pvAddBtn");
+  var pvListEl = document.getElementById("pvList");
+  var pvTotalEl = document.getElementById("pvTotal");
+
+  var pvState = loadJSON("pace-pv", { rate: 4, items: [] });
+
+  function pvSave() { saveJSON("pace-pv", pvState); }
+
+  function yearsUntil(dateStr) {
+    var t = new Date(dateStr + "T00:00:00").getTime();
+    if (isNaN(t)) return null;
+    return (t - Date.now()) / (365.2425 * 24 * 3600 * 1000);
+  }
+
+  function presentValue(amount, years, ratePct) {
+    return amount / Math.pow(1 + ratePct / 100, years);
+  }
+
+  function renderPv() {
+    pvRateEl.value = pvState.rate;
+    pvListEl.innerHTML = "";
+    if (!pvState.items.length) {
+      var empty = document.createElement("p");
+      empty.className = "pv-empty";
+      empty.textContent = "まだ記録がありません。将来の入金予定を足していくと、いまの価値で合計されます。";
+      pvListEl.appendChild(empty);
+      pvTotalEl.textContent = "";
+      return;
+    }
+    var total = 0, totalFace = 0;
+    var sorted = pvState.items.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+    sorted.forEach(function (it) {
+      var y = yearsUntil(it.date);
+      if (y === null) return;
+      var pv = presentValue(Number(it.amount), y, Number(pvState.rate));
+      total += pv; totalFace += Number(it.amount);
+
+      var el = document.createElement("div");
+      el.className = "pv-item";
+      var main = document.createElement("div");
+      main.className = "pv-main";
+      var nm = document.createElement("span");
+      nm.className = "pv-name";
+      nm.textContent = it.label || "（無題）";
+      var meta = document.createElement("span");
+      meta.className = "pv-meta";
+      meta.textContent = it.date + " ／ " + (y >= 0 ? "あと " + fmt(y, 1) + "年" : fmt(-y, 1) + "年前") + " ／ 額面 " + fmt(Number(it.amount));
+      main.appendChild(nm); main.appendChild(meta);
+
+      var val = document.createElement("span");
+      val.className = "pv-val";
+      val.textContent = fmt(pv);
+
+      var del = document.createElement("button");
+      del.className = "st-del";
+      del.textContent = "×";
+      del.setAttribute("aria-label", "削除");
+      del.addEventListener("click", function () {
+        if (!confirm("この記録を削除します。よろしいですか？")) return;
+        pvState.items = pvState.items.filter(function (x) { return x.id !== it.id; });
+        pvSave();
+        renderPv();
+      });
+
+      el.appendChild(main); el.appendChild(val); el.appendChild(del);
+      pvListEl.appendChild(el);
+    });
+
+    pvTotalEl.innerHTML = "";
+    var t1 = document.createElement("div");
+    t1.innerHTML = 'いまの価値の合計 <b></b>';
+    t1.querySelector("b").textContent = fmt(total);
+    var t2 = document.createElement("div");
+    t2.style.color = "var(--text-muted)";
+    t2.style.fontSize = "12px";
+    t2.textContent = "額面合計 " + fmt(totalFace) + " ／ 割引率 " + pvState.rate + "% で " + fmt(totalFace - total) + " 目減り";
+    pvTotalEl.appendChild(t1); pvTotalEl.appendChild(t2);
+  }
+
+  pvRateEl.addEventListener("input", function () {
+    pvState.rate = pvRateEl.value === "" ? 0 : Number(pvRateEl.value);
+    pvSave();
+    renderPv();
+  });
+
+  pvAddBtn.addEventListener("click", function () {
+    var amount = Number(pvAmountEl.value);
+    if (!pvDateEl.value || !amount) { alert("日付と金額を入れてください。"); return; }
+    pvState.items.push({
+      id: String(Date.now()) + Math.random().toString(16).slice(2, 6),
+      label: pvLabelEl.value,
+      date: pvDateEl.value,
+      amount: amount
+    });
+    pvSave();
+    pvLabelEl.value = ""; pvAmountEl.value = "";
+    renderPv();
+  });
+
+  // ==================== 為替 ====================
+  // 銀行レート = ECB基準（自動取得） / 両替所レート = 手入力（保存される）
+  var CURRENCIES = ["KRW", "JPY", "USD", "EUR", "CNY", "GBP", "AUD", "CAD", "CHF", "SGD", "HKD", "THB"];
+  var fxAmount = document.getElementById("fxAmount");
+  var fxFrom = document.getElementById("fxFrom");
+  var fxTo = document.getElementById("fxTo");
+  var fxOut = document.getElementById("fxOut");
+  var fxStatus = document.getElementById("fxStatus");
+  var fxSwap = document.getElementById("fxSwap");
+  var fxRefresh = document.getElementById("fxRefresh");
+  var fxManualRate = document.getElementById("fxManualRate");
+  var fxManualOut = document.getElementById("fxManualOut");
+  var fxCompareEl = document.getElementById("fxCompare");
+
+  var fxInited = false;
+  var fxPrefs = loadJSON("pace-fx", { from: "KRW", to: "JPY", amount: 10000 });
+  var fxManual = loadJSON("pace-fx-manual", {});
+
+  function fxCacheKey(base) { return "pace-fxrates-" + base; }
+  function fxPairKey() { return fxFrom.value + "_" + fxTo.value; }
+
+  function fxFillSelects() {
+    [fxFrom, fxTo].forEach(function (sel) {
+      sel.innerHTML = "";
+      CURRENCIES.forEach(function (c) {
+        var o = document.createElement("option");
+        o.value = c; o.textContent = c;
+        sel.appendChild(o);
+      });
+    });
+    fxFrom.value = fxPrefs.from;
+    fxTo.value = fxPrefs.to;
+    fxAmount.value = fxPrefs.amount;
+  }
+
+  function fxBankRate() {
+    if (fxFrom.value === fxTo.value) return 1;
+    var cached = loadJSON(fxCacheKey(fxFrom.value), null);
+    if (!cached || !cached.rates) return null;
+    return cached.rates[fxTo.value] || null;
+  }
+
+  function fxDigits() { return (fxTo.value === "KRW" || fxTo.value === "JPY") ? 0 : 2; }
+
+  function fxCompute() {
+    var amount = parseFloat(fxAmount.value);
+    var bank = fxBankRate();
+    var cached = loadJSON(fxCacheKey(fxFrom.value), null);
+
+    // 銀行レート
+    if (bank === null || !isFinite(amount)) {
+      fxOut.textContent = "—";
+    } else {
+      fxOut.textContent = fmt(amount * bank, fxDigits());
+    }
+
+    if (bank !== null && cached) {
+      var age = Math.round((Date.now() - cached.at) / 60000);
+      fxStatus.textContent = "銀行レート 1 " + fxFrom.value + " = " + fmt(bank, 4) + " " + fxTo.value +
+        "（基準日 " + cached.date + " ／ " + (age < 60 ? age + "分前に取得" : Math.round(age / 60) + "時間前に取得") + "）";
+    } else if (fxFrom.value === fxTo.value) {
+      fxStatus.textContent = "同じ通貨です。";
+    }
+
+    // 両替所レート（手入力）
+    var saved = fxManual[fxPairKey()];
+    fxManualRate.value = saved === undefined ? "" : saved;
+    var manual = parseFloat(fxManualRate.value);
+    fxCompareEl.innerHTML = "";
+    if (!isFinite(manual) || manual <= 0 || !isFinite(amount)) {
+      fxManualOut.textContent = "—";
+      return;
+    }
+    fxManualOut.textContent = fmt(amount * manual, fxDigits());
+
+    if (bank !== null) {
+      var diff = amount * manual - amount * bank;
+      var pct = (manual / bank - 1) * 100;
+      var better = diff > 0;
+      var line = document.createElement("div");
+      line.innerHTML = '両替所は銀行より <b></b>（<span class="pctv"></span>）';
+      line.querySelector("b").textContent = (better ? "+" : "") + fmt(diff, fxDigits()) + " " + fxTo.value;
+      line.querySelector("b").style.color = better ? "var(--sage)" : "var(--wood)";
+      line.querySelector(".pctv").textContent = (pct >= 0 ? "+" : "") + pct.toFixed(2) + "%";
+      var note = document.createElement("div");
+      note.style.color = "var(--text-muted)";
+      note.style.fontSize = "12px";
+      note.textContent = better ? "この両替所のほうが得です。" : "銀行のほうが得です。";
+      fxCompareEl.appendChild(line);
+      fxCompareEl.appendChild(note);
+    }
+  }
+
+  function fxFetch(force) {
+    var base = fxFrom.value;
+    var cached = loadJSON(fxCacheKey(base), null);
+    if (!force && cached && (Date.now() - cached.at) < 6 * 3600 * 1000) { fxCompute(); return; }
+    fxStatus.textContent = "銀行レートを取得中…";
+    fetch("https://api.frankfurter.dev/v1/latest?base=" + base)
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (data) {
+        saveJSON(fxCacheKey(base), { at: Date.now(), date: data.date, rates: data.rates });
+        fxCompute();
+      })
+      .catch(function () {
+        fxCompute();
+        if (cached) fxStatus.textContent += "（更新失敗。保存済みを表示中）";
+        else fxStatus.textContent = "銀行レートを取得できませんでした。両替所レートは手入力で使えます。";
+      });
+  }
+
+  function fxSavePrefs() {
+    fxPrefs = { from: fxFrom.value, to: fxTo.value, amount: fxAmount.value };
+    saveJSON("pace-fx", fxPrefs);
+  }
+
+  function initFx() {
+    if (fxInited) { fxCompute(); return; }
+    fxInited = true;
+    fxFillSelects();
+    fxFetch(false);
+  }
+
+  fxAmount.addEventListener("input", function () { fxSavePrefs(); fxCompute(); });
+  fxFrom.addEventListener("change", function () { fxSavePrefs(); fxFetch(false); });
+  fxTo.addEventListener("change", function () { fxSavePrefs(); fxCompute(); });
+  fxRefresh.addEventListener("click", function () { fxFetch(true); });
+  fxSwap.addEventListener("click", function () {
+    var a = fxFrom.value; fxFrom.value = fxTo.value; fxTo.value = a;
+    fxSavePrefs(); fxFetch(false);
+  });
+  fxManualRate.addEventListener("input", function () {
+    var v = parseFloat(fxManualRate.value);
+    if (isFinite(v) && v > 0) fxManual[fxPairKey()] = v;
+    else delete fxManual[fxPairKey()];
+    saveJSON("pace-fx-manual", fxManual);
+    fxCompute();
+  });
+
+  // 初期タブ復元
+  setActiveTab(loadJSON("pace-tab", "timer"));
+
 </script>
+
+</body></html>
