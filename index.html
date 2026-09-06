@@ -846,6 +846,16 @@
     .menu-tile { min-height: 96px; font-size: 13px; }
     .menu-tile svg { width: 24px; height: 24px; }
   }
+
+  #jeonseView { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+  #jeonseView[hidden] { display: none; }
+  #jeonseView .field-row { width: 100%; }
+  #jeonseView input.num { width: 124px; }
+  @media (min-width: 880px) {
+    #jeonseView { max-width: 720px; }
+    #jeonseView .hs-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 22px; align-items: center; }
+    #jeonseView .hs-head { grid-column: 1 / -1; }
+  }
 </style>
 
 <div class="shell">
@@ -886,6 +896,10 @@
     <button class="tab-btn" id="tabCost" data-active="false" data-tabkey="cost" title="住居の重み">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M12 20v-5"></path><path d="M9 15h6"></path></svg>
       <span class="tab-name" data-i18n="tab.cost">住居の重み</span>
+    </button>
+    <button class="tab-btn" id="tabJeonse" data-active="false" data-tabkey="jeonse" title="チョンセ融資">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18"></path><path d="M5 10V7l7-4 7 4v3"></path><path d="M6 10v8"></path><path d="M10 10v8"></path><path d="M14 10v8"></path><path d="M18 10v8"></path><path d="M3 21h18"></path></svg>
+      <span class="tab-name" data-i18n="tab.jeonse">チョンセ融資</span>
     </button>
     <button class="tab-btn" id="tabAsset" data-active="false" data-tabkey="asset" title="資産">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 10h18"></path><path d="M9 10v10"></path></svg>
@@ -1252,6 +1266,47 @@
     <div class="bar-chart" id="costCutChart"></div>
     <div class="result-box" id="costLesson"></div>
   </div>
+
+  <div id="jeonseView" hidden>
+    <p class="tool-title">チョンセ融資</p>
+    <p class="tool-note">청년 전세대출を使うと一般の전세대출よりどれだけ得か。限度額を超えた分は一般金利で借りる前提で計算します。金利は制度改定で変わるため、必ず最新の条件を確認してください。</p>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">条件</p>
+      <div class="field-row"><span class="field-label">保証金<span class="hint">（전세금）</span></span><input class="num" type="number" id="jsDeposit" value="250000000" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">自己資金</span><input class="num" type="number" id="jsOwn" value="70000000" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">契約年数</span><input class="num" type="number" id="jsYears" value="2" min="1" max="20" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">投資利回り<span class="hint">（機会費用・年%）</span></span><input class="num" type="number" id="jsInvest" value="5" step="0.1" inputmode="decimal"></div>
+    </div>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">청년 전세대출</p>
+      <div class="field-row"><span class="field-label">金利<span class="hint">（年%）</span></span><input class="num" type="number" id="jsYouthRate" value="2.3" step="0.1" inputmode="decimal"></div>
+      <div class="field-row"><span class="field-label">限度額</span><input class="num" type="number" id="jsYouthLimit" value="200000000" inputmode="numeric"></div>
+    </div>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">一般 전세대출</p>
+      <div class="field-row"><span class="field-label">金利<span class="hint">（年%）</span></span><input class="num" type="number" id="jsNormalRate" value="4" step="0.1" inputmode="decimal"></div>
+    </div>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">所得控除</p>
+      <div class="field-row"><span class="field-label">控除率<span class="hint">（元利返済額の%）</span></span><input class="num" type="number" id="jsDeductRate" value="40" step="1" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">年間上限</span><input class="num" type="number" id="jsDeductCap" value="4000000" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">適用税率<span class="hint">（%）</span></span><input class="num" type="number" id="jsTaxRate" value="16.5" step="0.1" inputmode="decimal"></div>
+    </div>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">월세と比べる</p>
+      <div class="field-row"><span class="field-label">월세 保証金</span><input class="num" type="number" id="jsMDeposit" value="10000000" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">月家賃</span><input class="num" type="number" id="jsMRent" value="650000" inputmode="numeric"></div>
+    </div>
+
+    <div class="result-box" id="jsResult"></div>
+    <div class="bar-chart" id="jsChart"></div>
+    <div class="result-box" id="jsVsMonthly"></div>
+  </div>
 </div>
 
 <div class="screensaver" id="screensaver" hidden>
@@ -1555,6 +1610,7 @@
     house:     { view: "houseView",     tab: "tabHouse" },
     invest:    { view: "investView",    tab: "tabInvest" },
     cost:      { view: "costView",      tab: "tabCost" },
+    jeonse:    { view: "jeonseView",    tab: "tabJeonse" },
     settings:  { view: "settingsView",  tab: "tabSettings" }
   };
 
@@ -1583,6 +1639,7 @@
     if (tab === "invest") calcInvest();
     if (tab === "settings") renderBackupList();
     if (tab === "cost") renderCost();
+    if (tab === "jeonse") calcJeonse();
     if (tab === "menu") buildMenu();
     try { localStorage.setItem("pace-tab", tab); } catch (e) {}
   }
@@ -3390,11 +3447,11 @@
 
   // ==================== バックアップ ====================
   var BACKUP_KEYS = ["pace-assets", "pace-pv", "pace-house", "pace-invest",
-    "pace-fuel-v2", "pace-fuel", "pace-fx", "pace-fx-manual", "pace-counter", "pace-cost",
+    "pace-fuel-v2", "pace-fuel", "pace-fx", "pace-fx-manual", "pace-counter", "pace-cost", "pace-jeonse",
     "pace-daily-stats", "maai-counter", "maai-daily-stats", "maai-ambient", "maai-ambient-vol"];
   var KEY_LABEL = {
     "pace-assets": "資産テーブル", "pace-pv": "現在価値の記録", "pace-house": "家賃vs保有",
-    "pace-invest": "株vs不動産", "pace-cost": "住居の重み", "pace-fuel-v2": "給油くらべ", "pace-fx": "為替の設定",
+    "pace-invest": "株vs不動産", "pace-cost": "住居の重み", "pace-jeonse": "チョンセ融資", "pace-fuel-v2": "給油くらべ", "pace-fx": "為替の設定",
     "pace-fx-manual": "両替所レート", "maai-counter": "カウンター", "maai-daily-stats": "今日の集中記録"
   };
 
@@ -3668,7 +3725,7 @@
   var MENU_GROUPS = [
     { head: "はかる", keys: ["timer", "stopwatch", "counter"] },
     { head: "くらべる", keys: ["fuel", "fx", "pv"] },
-    { head: "お金と住まい", keys: ["cost", "asset", "house", "invest"] },
+    { head: "お金と住まい", keys: ["cost", "asset", "house", "jeonse", "invest"] },
     { head: "その他", keys: ["settings"] }
   ];
 
@@ -3712,6 +3769,124 @@
   backBtn.addEventListener("click", function (e) {
     e.stopPropagation();
     setActiveTab("menu");
+  });
+
+
+  // ==================== チョンセ融資 ====================
+  var JS_IDS = ["jsDeposit", "jsOwn", "jsYears", "jsInvest", "jsYouthRate", "jsYouthLimit",
+    "jsNormalRate", "jsDeductRate", "jsDeductCap", "jsTaxRate", "jsMDeposit", "jsMRent"];
+  var jsEl = {};
+  JS_IDS.forEach(function (id) { jsEl[id] = document.getElementById(id); });
+  var jsResultEl = document.getElementById("jsResult");
+  var jsChartEl = document.getElementById("jsChart");
+  var jsVsMonthlyEl = document.getElementById("jsVsMonthly");
+
+  var jsSaved = loadJSON("pace-jeonse", null);
+  if (jsSaved) JS_IDS.forEach(function (id) { if (jsSaved[id] !== undefined) jsEl[id].value = jsSaved[id]; });
+
+  function jsNum(id) { var v = parseFloat(jsEl[id].value); return isFinite(v) ? v : 0; }
+  function jsSave() { var s = {}; JS_IDS.forEach(function (id) { s[id] = jsEl[id].value; }); saveJSON("pace-jeonse", s); }
+
+  // 年間の利息と、所得控除による還付額
+  function jeonseYear(youthAmount, normalAmount) {
+    var iy = youthAmount * jsNum("jsYouthRate") / 100;
+    var inr = normalAmount * jsNum("jsNormalRate") / 100;
+    var interest = iy + inr;
+    var deductBase = Math.min(interest * jsNum("jsDeductRate") / 100, jsNum("jsDeductCap"));
+    var refund = deductBase * jsNum("jsTaxRate") / 100;
+    return { interest: interest, refund: refund, net: interest - refund };
+  }
+
+  function calcJeonse() {
+    var deposit = jsNum("jsDeposit");
+    var own = jsNum("jsOwn");
+    var years = jsNum("jsYears");
+    var need = Math.max(0, deposit - own);
+    var limit = jsNum("jsYouthLimit");
+    var youth = Math.min(need, limit);
+    var over = need - youth;
+
+    var withYouth = jeonseYear(youth, over);
+    var allNormal = jeonseYear(0, need);
+    var saveYear = allNormal.net - withYouth.net;
+
+    jsResultEl.innerHTML = "";
+
+    var r0 = document.createElement("div");
+    r0.style.fontSize = "12px";
+    r0.style.color = "var(--text-muted)";
+    r0.textContent = "必要な借入 " + fmt(need) + " ＝ 청년 " + fmt(youth) +
+      (over > 0 ? " ＋ 一般 " + fmt(over) + "（限度超過分）" : "（限度内）");
+    jsResultEl.appendChild(r0);
+
+    var r1 = document.createElement("div");
+    r1.className = "cs-lead";
+    if (need <= 0) {
+      r1.textContent = "自己資金だけで足ります。借入は不要です。";
+      jsResultEl.appendChild(r1);
+      jsChartEl.innerHTML = "";
+    } else {
+      r1.innerHTML = '청년 전세대출を使うと 年 <b class="y"></b> 得。月あたり <span class="m"></span>';
+      r1.querySelector(".y").textContent = fmt(saveYear);
+      r1.querySelector(".m").textContent = fmt(saveYear / 12);
+      jsResultEl.appendChild(r1);
+
+      var r2 = document.createElement("div");
+      r2.style.fontSize = "12.5px";
+      r2.style.lineHeight = "1.8";
+      r2.textContent = "月の利息は " + fmt(withYouth.interest / 12) + "（全額一般なら " +
+        fmt(allNormal.interest / 12) + "）。所得控除の還付を引いた実質は月 " + fmt(withYouth.net / 12) + "。";
+      jsResultEl.appendChild(r2);
+
+      var r3 = document.createElement("div");
+      r3.style.fontSize = "12px";
+      r3.style.color = "var(--text-muted)";
+      r3.textContent = years + "年の合計では " + fmt(saveYear * years) + " の差。所得控除だけで年 " +
+        fmt(withYouth.refund) + " 戻ります。";
+      jsResultEl.appendChild(r3);
+
+      if (over > 0) {
+        var r4 = document.createElement("div");
+        r4.style.fontSize = "12px";
+        r4.style.color = "var(--wood)";
+        r4.textContent = "限度額 " + fmt(limit) + " を " + fmt(over) +
+          " 超えています。超過分は一般金利なので、保証金を下げるか自己資金を増やすと効きます。";
+        jsResultEl.appendChild(r4);
+      }
+
+      drawBars(jsChartEl, [
+        { label: "청년併用", value: withYouth.net, color: "var(--sage)" },
+        { label: "全額一般", value: allNormal.net, color: "var(--wood)" }
+      ]);
+    }
+
+    // ---- 월세との比較（年額・機会費用込み）----
+    var inv = jsNum("jsInvest") / 100;
+    var jeonseCost = withYouth.net + own * inv;                       // 利息(控除後) + 自己資金の機会費用
+    var mDeposit = jsNum("jsMDeposit");
+    var monthlyCost = jsNum("jsMRent") * 12 + mDeposit * inv;         // 家賃 + 保証金の機会費用
+    var diff = monthlyCost - jeonseCost;
+
+    jsVsMonthlyEl.innerHTML = "";
+    var m1 = document.createElement("div");
+    m1.className = "cs-lead";
+    m1.innerHTML = '<span class="result-win"></span> のほうが 年 <b></b> 有利';
+    m1.querySelector(".result-win").textContent = diff > 0 ? "전세" : "월세";
+    m1.querySelector("b").textContent = fmt(Math.abs(diff));
+    jsVsMonthlyEl.appendChild(m1);
+
+    var m2 = document.createElement("div");
+    m2.style.fontSize = "12px";
+    m2.style.color = "var(--text-muted)";
+    m2.style.lineHeight = "1.8";
+    m2.textContent = "전세 年 " + fmt(jeonseCost) + "（利息 " + fmt(withYouth.net) +
+      " ＋ 自己資金 " + fmt(own) + " の機会費用 " + fmt(own * inv) + "） ／ 월세 年 " +
+      fmt(monthlyCost) + "（家賃 " + fmt(jsNum("jsMRent") * 12) + " ＋ 保証金の機会費用 " + fmt(mDeposit * inv) + "）";
+    jsVsMonthlyEl.appendChild(m2);
+  }
+
+  JS_IDS.forEach(function (id) {
+    jsEl[id].addEventListener("input", function () { jsSave(); calcJeonse(); });
   });
 
   // 初期タブ復元
