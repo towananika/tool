@@ -1,7 +1,100 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pace — 間合い</title>
+<title>間合い — 暮らしの判断を数字にする道具箱</title>
+<meta name="description" content="タイマー・ストップウォッチ・カウンターに加え、給油所の比較、為替の3層比較、現在価値、資産の棚卸し、家賃と持ち家の比較、株と不動産の比較、韓国の청년 전세대출の損得計算までを1枚のページにまとめた無料の計算道具。計算式と前提はすべて公開。データは端末内にのみ保存。">
+<meta name="author" content="towananika">
+<link rel="canonical" href="https://towananika.github.io/tool/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="間合い / Maai">
+<meta property="og:title" content="間合い — 暮らしの判断を数字にする道具箱">
+<meta property="og:description" content="家賃と持ち家、株と不動産、給油所の遠近、両替所と銀行。迷う場面を数字で比べる11の道具。計算式は全公開、データは端末内のみ。">
+<meta property="og:url" content="https://towananika.github.io/tool/">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large">
 <link rel="manifest" href="manifest.json">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://towananika.github.io/tool/#app",
+      "name": "間合い (Maai)",
+      "alternateName": "Pace",
+      "url": "https://towananika.github.io/tool/",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web",
+      "browserRequirements": "JavaScript が有効なモダンブラウザ",
+      "inLanguage": "ja",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" },
+      "license": "https://opensource.org/licenses/MIT",
+      "description": "暮らしの判断を数字で比べるための計算道具。計算式と前提を公開し、入力データは利用者の端末内にのみ保存する。",
+      "featureList": [
+        "ポモドーロタイマー（集中と休憩の切り替え、アンビエントノイズ、日照連動）",
+        "ストップウォッチ（ラップ計測）",
+        "カウンター",
+        "給油所くらべ（ガソリン・軽油・LPG・電気、往復燃料を織り込んだ最安判定）",
+        "為替（基準レート・銀行現金レート・両替所レートの3層比較）",
+        "現在価値（将来の入金を割引率で現在価値に換算する台帳）",
+        "住居の重み（固定費を同率削減したときの将来差額の比較）",
+        "資産テーブル（現金・投資・拘束・負債の棚卸しと現金比率）",
+        "家賃 vs 保有（월세・전세・매매を同一資金から毎月シミュレーション）",
+        "チョンセ融資（청년 전세대출と一般融資の差額、所得控除込み）",
+        "株 vs 不動産（レバレッジ・税・空室を織り込んだ税引後比較）"
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://towananika.github.io/tool/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "遠くの安い給油所まで走る価値があるかは、どう計算しますか？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "総額 =（給油量 + 往復で余分に使う量）× 単価。往復で余分に使う量 = 距離 × 2 ÷ 燃費。電気自動車の場合は燃費を km/kWh、給油量を kWh に読み替えます。この総額が最も小さい店が最安です。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "家賃と持ち家は、どうすれば公平に比べられますか？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "同じ手元資金から出発させ、住居費をすべてその資金から支払いながら毎月運用する形で比較します。N年後の純資産 = 運用残高 + 保有資産（持ち家は価格上昇後の評価額、賃貸は返還される保証金）− 残債。持ち家が賃貸に並ぶ住宅価格上昇率を二分探索で求めると、判断の分岐点が一つの数字になります。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "節約はどこから手をつけるのが効きますか？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "固定費を同じ割合だけ削ったときの将来価値で比べると差が明確になります。毎月 m を年利 r で n ヶ月積み立てた将来価値は m × ((1+r/12)^n − 1) ÷ (r/12)。住居費は金額そのものが大きいため、同率でも他の費目より効果が桁違いに大きくなります。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "両替所と銀行、どちらが得かはどう判断しますか？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "外貨1単位あたりのウォンで揃えて比較します。外貨を買うときは現金売渡（현찰 살 때）、売るときは現金買入（현찰 팔 때）が銀行側のレートです。基準レート（매매기준율）との差が、その業者が抜いている幅にあたります。"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "청년 전세대출はどれだけ得になりますか？",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "限度額までを청년金利、超過分を一般金利で借りる混合で年間利息を求め、全額を一般金利で借りた場合との差をとります。さらに元利返済額の所得控除（控除率・年間上限・適用税率）による還付を差し引くと実質負担が出ます。金利と限度額は制度改定で変わるため、すべて入力式にしています。"
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
 <meta name="theme-color" content="#93704b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -621,8 +714,8 @@
   body { flex-direction: column; }
   .shell { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; max-width: 380px; }
   .brand { text-align: center; }
-  .brand-name { margin: 0; font-size: 27px; font-weight: 700; letter-spacing: 0.14em; }
-  .brand-sub { margin: 3px 0 0; font-size: 12.5px; color: var(--text-muted); letter-spacing: 0.42em; }
+  .brand-name { margin: 0; font-size: 25px; font-weight: 500; letter-spacing: 0.34em; text-indent: 0.34em; }
+  .brand-sub { margin: 6px 0 0; font-size: 10.5px; color: var(--text-muted); letter-spacing: 0.3em; }
   .brand-tag { margin: 7px 0 0; font-size: 11.5px; color: var(--text-muted); letter-spacing: 0.02em; }
 
   .tab-sep { width: 1px; height: 18px; background: var(--surface-border); align-self: center; margin: 0 2px; }
@@ -856,13 +949,58 @@
     #jeonseView .hs-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 22px; align-items: center; }
     #jeonseView .hs-head { grid-column: 1 / -1; }
   }
+
+  /* ===== 自然の色 ===== */
+  :root { --sky:#6f93ab; --sky-soft:#e4ecf1; --sea:#4a7d85; --sea-soft:#e0eaea;
+          --leaf:#6f8a63; --leaf-soft:#e6ece1; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --sky:#8fb0c6; --sky-soft:#26313a; --sea:#78a8ae; --sea-soft:#1f2c2e;
+                                      --leaf:#93ac88; --leaf-soft:#242c21; }
+  }
+  :root[data-theme="dark"] { --sky:#8fb0c6; --sky-soft:#26313a; --sea:#78a8ae; --sea-soft:#1f2c2e;
+                             --leaf:#93ac88; --leaf-soft:#242c21; }
+
+  .menu-tile[data-tone="sky"] svg { color: var(--sky); }
+  .menu-tile[data-tone="sea"] svg { color: var(--sea); }
+  .menu-tile[data-tone="leaf"] svg { color: var(--leaf); }
+  .menu-tile[data-tone="wood"] svg { color: var(--wood); }
+  .menu-tile[data-tone="sky"]:hover { background: var(--sky-soft); border-color: var(--sky); }
+  .menu-tile[data-tone="sea"]:hover { background: var(--sea-soft); border-color: var(--sea); }
+  .menu-tile[data-tone="leaf"]:hover { background: var(--leaf-soft); border-color: var(--leaf); }
+  .menu-head { display: flex; align-items: center; gap: 8px; }
+  .menu-head b { width: 6px; height: 6px; border-radius: 50%; display: block; flex: 0 0 auto; }
+  .menu-head i { flex: 1 1 auto; height: 1px; background: var(--surface-border); }
+
+  /* ===== 説明セクション ===== */
+  .about {
+    width: 100%; max-width: 720px; margin: 34px auto 0;
+    color: var(--text); line-height: 1.95; font-size: 14px;
+  }
+  .about h1 { font-size: 19px; font-weight: 700; margin: 0 0 10px; letter-spacing: 0.02em; }
+  .about h2 { font-size: 15px; font-weight: 700; margin: 30px 0 10px;
+    padding-bottom: 7px; border-bottom: 1px solid var(--surface-border); }
+  .about h3 { font-size: 14px; font-weight: 700; margin: 0 0 6px; color: var(--wood); }
+  .about p { margin: 0 0 10px; }
+  .about-lead { color: var(--text-muted); }
+  .about-item { margin: 0 0 22px; }
+  .formula {
+    margin: 8px 0 10px; padding: 12px 14px; overflow-x: auto;
+    background: var(--surface); border: 1px solid var(--surface-border); border-radius: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.5px; line-height: 1.8; white-space: pre; color: var(--text);
+  }
+  .about-notes { margin: 0; padding-left: 1.2em; color: var(--text-muted); font-size: 13px; }
+  .about-notes li { margin-bottom: 8px; }
+  .about a { color: var(--sea); }
+  .about code { font-family: ui-monospace, monospace; font-size: 12.5px;
+    background: var(--surface); padding: 2px 6px; border-radius: 5px; }
 </style>
 
 <div class="shell">
   <header class="brand">
-    <h1 class="brand-name">Pace</h1>
-    <p class="brand-sub">間合い</p>
-    <p class="brand-tag">Pace yourself. Keep your distance.</p>
+    <p class="brand-name">間合い</p>
+    <p class="brand-sub">MAAI</p>
+    <p class="brand-tag">近すぎず、遠すぎず。判断のための距離を測る。</p>
   </header>
 
 <div class="card" id="card" data-mode="focus">
@@ -1309,6 +1447,93 @@
   </div>
 </div>
 
+<section class="about" id="about">
+  <h1>間合い — 暮らしの判断を数字にする道具箱</h1>
+  <p class="about-lead">
+    迷う場面を、勘ではなく数字で比べるための道具を1枚にまとめています。
+    <strong>計算式と前提はすべてこのページに書いてあります。</strong>
+    入力したデータは利用者の端末（ブラウザ）にのみ保存され、サーバーには送信されません。無料・登録不要です。
+  </p>
+
+  <h2>収録している道具と、その計算式</h2>
+
+  <article class="about-item" id="about-fuel">
+    <h3>給油くらべ — 遠くの安い店まで走る価値があるか</h3>
+    <p>安い店が遠い場合、そこまで走るのに使う燃料も費用のうちです。往復分を上乗せして総額で比べます。</p>
+    <pre class="formula">総額 =（給油量 + 往復で余分に使う量）× 単価
+往復で余分に使う量 = 距離 × 2 ÷ 燃費</pre>
+    <p>ガソリン・軽油・LPGは km/L と L、電気自動車は km/kWh と kWh に単位が切り替わります。</p>
+  </article>
+
+  <article class="about-item" id="about-fx">
+    <h3>為替 — 基準・銀行・両替所の3層で比べる</h3>
+    <p>外貨1単位あたりのウォンに揃えて比較します。外貨を買うときは現金売渡（현찰 살 때）、売るときは現金買入（현찰 팔 때）が銀行側のレートです。</p>
+    <pre class="formula">受取額（外貨を買う）= 支払ウォン ÷ 1単位あたりのウォン
+受取額（外貨を売る）= 外貨額 × 1単位あたりのウォン
+両替所の有利さ = 両替所での受取額 ÷ 銀行での受取額 − 1</pre>
+    <p>基準レート（매매기준율）との差が、その業者が抜いている幅にあたります。銀行と基準のレートは平日に自動更新され、両替所レートは手入力で保存されます。</p>
+  </article>
+
+  <article class="about-item" id="about-pv">
+    <h3>現在価値 — 将来のお金を今の価値に直す</h3>
+    <pre class="formula">現在価値 = 将来の金額 ÷ (1 + 割引率)^年数</pre>
+    <p>将来の入金予定を記録として積み重ね、合計を現在価値で見ます。額面合計との差が「待つことで目減りする分」です。</p>
+  </article>
+
+  <article class="about-item" id="about-cost">
+    <h3>住居の重み — どの固定費を削るのが効くか</h3>
+    <p>固定費を同じ割合だけ削ったときの将来価値で比べます。金額そのものが大きい費目ほど、同率でも効果が桁違いになります。</p>
+    <pre class="formula">削減の将来価値 = 毎月の削減額 × ((1 + r/12)^n − 1) ÷ (r/12)
+r = 年利、n = 月数</pre>
+    <p>住居費が手取りの30%を超える場合は警告が出ます。多くの家計で、住居費を1割削る効果は、娯楽費を丸ごとゼロにする効果を上回ります。</p>
+  </article>
+
+  <article class="about-item" id="about-house">
+    <h3>家賃 vs 保有 — 월세・전세・매매を同じ土俵で</h3>
+    <p>同じ手元資金から出発させ、住居費をすべてその資金から支払いながら毎月運用する形で比較します。</p>
+    <pre class="formula">N年後の純資産 = 運用残高 + 保有資産 − 残債
+運用残高は毎月 (1 + 年利/12) で増え、その月の住居費を差し引く
+保有資産：매매は価格 ×(1+上昇率)^N、월세・전세は返還される保証金
+전세대출は利息のみ、住宅ローンは元利均等で残債を計算</pre>
+    <p>さらに、매매が賃貸に並ぶ住宅価格上昇率を二分探索で求めます。この一つの数字が「買うべきかどうか」の分岐点になります。</p>
+  </article>
+
+  <article class="about-item" id="about-jeonse">
+    <h3>チョンセ融資 — 청년 전세대출はどれだけ得か</h3>
+    <pre class="formula">청년で借りられる額 = min(必要額, 限度額)
+超過分は一般金利
+年間利息 = 청년額 × 청년金利 + 超過額 × 一般金利
+還付 = min(利息 × 控除率, 年間上限) × 適用税率
+実質負担 = 年間利息 − 還付</pre>
+    <p>全額を一般金利で借りた場合との差が、制度を使うことの価値です。월세との比較では、自己資金と保証金の機会費用も年額に含めます。金利と限度額は制度改定で変わるため、すべて入力式です。</p>
+  </article>
+
+  <article class="about-item" id="about-invest">
+    <h3>株 vs 不動産 — レバレッジと税を織り込む</h3>
+    <pre class="formula">株式：自己資金 ×(1+期待리턴)^N、利益から基礎控除を引いて譲渡益税
+不動産：買える価格 = 自己資金 ÷ ((1 − LTV) + 取得税率)
+  毎年 賃料収入 ×(1 − 空室率) − 保有コスト − ローン利息 を余剰資金として再投資
+  売却時 価格 ×(1+上昇率)^N − 売却費用 − 譲渡益税 − 残債</pre>
+    <p>不動産はレバレッジが効くため、同じ自己資金でも動かす資産の規模が違います。その代わり税・空室・維持費がかかります。不動産が株に並ぶ価格上昇率も算出します。</p>
+  </article>
+
+  <h2>前提と限界</h2>
+  <ul class="about-notes">
+    <li>すべて税引き前後の扱いを明示していますが、個別の税制優遇や地域差は反映していません。実際の判断では専門家に確認してください。</li>
+    <li>為替の銀行・基準レートは公開データを平日4回取得したものです。取引時点のレートとは必ず差が出ます。</li>
+    <li>両替所のレートは自動取得していません。事業者側が公開APIを提供していないためで、手入力で保存する方式にしています。</li>
+    <li>住宅価格上昇率や期待リターンは、利用者が入力した仮定です。将来を予測するものではなく、<strong>「その仮定ならこうなる」を示す道具</strong>です。</li>
+  </ul>
+
+  <h2>引用・再利用について</h2>
+  <p>
+    計算式・前提・出力の解釈は自由に引用してください。出典として
+    <code>間合い (Maai) — https://towananika.github.io/tool/</code>
+    を示していただければ十分です。ソースコードは MIT ライセンスで
+    <a href="https://github.com/towananika/tool">GitHub</a> に公開しています。
+  </p>
+</section>
+
 <div class="screensaver" id="screensaver" hidden>
   <div class="landscape">
     <svg viewBox="0 0 400 160" preserveAspectRatio="none">
@@ -1642,6 +1867,8 @@
     if (tab === "jeonse") calcJeonse();
     if (tab === "menu") buildMenu();
     try { localStorage.setItem("pace-tab", tab); } catch (e) {}
+    var want = tab === "menu" ? "#/" : "#/" + tab;
+    if (location.hash !== want) history.replaceState(null, "", want);
   }
 
   Object.keys(VIEWS).forEach(function (k) {
@@ -3723,10 +3950,10 @@
 
   // ==================== ホーム（メニュー） ====================
   var MENU_GROUPS = [
-    { head: "はかる", keys: ["timer", "stopwatch", "counter"] },
-    { head: "くらべる", keys: ["fuel", "fx", "pv"] },
-    { head: "お金と住まい", keys: ["cost", "asset", "house", "jeonse", "invest"] },
-    { head: "その他", keys: ["settings"] }
+    { head: "はかる", tone: "sky", keys: ["timer", "stopwatch", "counter"] },
+    { head: "くらべる", tone: "sea", keys: ["fuel", "fx", "pv"] },
+    { head: "お金と住まい", tone: "leaf", keys: ["cost", "asset", "house", "jeonse", "invest"] },
+    { head: "その他", tone: "wood", keys: ["settings"] }
   ];
 
   var menuGridEl = document.getElementById("menuGrid");
@@ -3745,7 +3972,12 @@
       if (g.head) {
         var h = document.createElement("p");
         h.className = "menu-head";
-        h.textContent = g.head;
+        var dot = document.createElement("b");
+        dot.style.background = "var(--" + (g.tone || "wood") + ")";
+        var lbl = document.createElement("span");
+        lbl.textContent = g.head;
+        var rule = document.createElement("i");
+        h.appendChild(dot); h.appendChild(lbl); h.appendChild(rule);
         menuGridEl.appendChild(h);
       }
       g.keys.forEach(function (key) {
@@ -3754,6 +3986,7 @@
         var tile = document.createElement("button");
         tile.className = "menu-tile";
         tile.setAttribute("data-key", key);
+        tile.setAttribute("data-tone", g.tone || "wood");
         var svg = srcBtn && srcBtn.querySelector("svg");
         if (svg) tile.appendChild(svg.cloneNode(true));
         var span = document.createElement("span");
@@ -3890,8 +4123,16 @@
   });
 
   // 初期タブ復元
+  function tabFromHash() {
+    var h = (location.hash || "").replace(/^#\/?/, "");
+    return VIEWS[h] ? h : "menu";
+  }
   buildMenu();
-  setActiveTab("menu");
+  setActiveTab(tabFromHash());
+  window.addEventListener("hashchange", function () {
+    var t = tabFromHash();
+    if (t !== activeTab) setActiveTab(t);
+  });
 
 </script>
 
