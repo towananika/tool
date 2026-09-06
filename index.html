@@ -710,6 +710,31 @@
     font-size: 11.5px; line-height: 1.35; display: flex; align-items: center; justify-content: center; }
   .fx-links a { color: var(--text); }
   .fx-links a:hover { color: var(--wood); }
+
+  #assetView, #houseView { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+  #assetView[hidden], #houseView[hidden] { display: none; }
+  .asset-list { width: 100%; display: flex; flex-direction: column; gap: 7px; }
+  .asset-row { display: flex; gap: 6px; align-items: center; }
+  .asset-row input, .asset-row select {
+    font-family: inherit; font-size: 13px; padding: 7px 8px;
+    border: 1px solid var(--surface-border); border-radius: 9px;
+    background: var(--bg); color: var(--text); min-width: 0;
+  }
+  .as-name { flex: 1 1 0; }
+  .as-kind { flex: 0 0 62px; }
+  .as-amount { flex: 0 0 92px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  .bar-chart { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+  .bar-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .bar-label { flex: 0 0 46px; color: var(--text-muted); }
+  .bar-track { flex: 1 1 0; height: 12px; background: var(--bg); border-radius: 999px; overflow: hidden; border: 1px solid var(--surface-border); }
+  .bar-fill { height: 100%; border-radius: 999px; transition: width 0.3s ease; }
+  .bar-value { flex: 0 0 auto; font-variant-numeric: tabular-nums; color: var(--text); }
+
+  .hs-group { width: 100%; }
+  .hs-head { margin: 0 0 2px; font-size: 12.5px; font-weight: 700; color: var(--wood); }
+  #houseView .field-row { width: 100%; }
+  #houseView input.num { width: 118px; }
 </style>
 
 <div class="shell">
@@ -739,6 +764,12 @@
     </button>
     <button class="tab-btn" id="tabFx" data-active="false" aria-label="為替" title="為替">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13"></path><path d="M14 5l3 3-3 3"></path><path d="M20 16H7"></path><path d="M10 13l-3 3 3 3"></path></svg>
+    </button>
+    <button class="tab-btn" id="tabAsset" data-active="false" aria-label="資産テーブル" title="資産テーブル">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 10h18"></path><path d="M9 10v10"></path></svg>
+    </button>
+    <button class="tab-btn" id="tabHouse" data-active="false" aria-label="家賃vs保有" title="家賃 vs 保有">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M10 20v-6h4v6"></path></svg>
     </button>
   </div>
 
@@ -935,6 +966,55 @@
       <a class="chip" href="https://exchange.mibank.me/close-branch" target="_blank" rel="noopener">両替所レートを調べる ↗</a>
       <button class="chip" id="fxRefresh">銀行レートを更新</button>
     </div>
+  </div>
+  <div id="assetView" hidden>
+    <p class="tool-title">資産テーブル</p>
+    <p class="tool-note">端末の中だけに保存されます。サーバーにも送信されません。</p>
+    <div class="asset-list" id="assetList"></div>
+    <button class="chip add-btn" id="addAssetBtn">＋ 項目を追加</button>
+    <div class="result-box" id="assetSummary"></div>
+    <div class="bar-chart" id="assetChart"></div>
+  </div>
+
+  <div id="houseView" hidden>
+    <p class="tool-title">家賃 vs 保有</p>
+    <p class="tool-note">月세・전세・매매を同じ土俵で比べます。手元資金は共通で、住居費はすべてその資金から支払う前提です。</p>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">共通</p>
+      <div class="field-row"><span class="field-label">手元資金</span><input class="num" type="number" id="hsCash" value="80000000" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">比較年数</span><input class="num" type="number" id="hsYears" value="10" min="1" max="40" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">投資利回り<span class="hint">（年%）</span></span><input class="num" type="number" id="hsInvest" value="5" step="0.1" inputmode="decimal"></div>
+      <div class="field-row"><span class="field-label">住宅価格上昇率<span class="hint">（年%）</span></span><input class="num" type="number" id="hsGrowth" value="2" step="0.1" inputmode="decimal"></div>
+      <div class="field-row"><span class="field-label">管理費<span class="hint">（月・共通）</span></span><input class="num" type="number" id="hsFee" value="150000" inputmode="numeric"></div>
+    </div>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">월세（家賃）</p>
+      <div class="field-row"><span class="field-label">保証金</span><input class="num" type="number" id="hsMDeposit" value="10000000" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">月家賃</span><input class="num" type="number" id="hsMRent" value="650000" inputmode="numeric"></div>
+    </div>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">전세</p>
+      <div class="field-row"><span class="field-label">保証金</span><input class="num" type="number" id="hsJDeposit" value="250000000" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">自己資金</span><input class="num" type="number" id="hsJOwn" value="70000000" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">전세대출 金利<span class="hint">（年%）</span></span><input class="num" type="number" id="hsJRate" value="3.5" step="0.1" inputmode="decimal"></div>
+    </div>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">매매（購入）</p>
+      <div class="field-row"><span class="field-label">住宅価格</span><input class="num" type="number" id="hsPrice" value="400000000" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">頭金</span><input class="num" type="number" id="hsDown" value="80000000" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">住宅ローン金利<span class="hint">（年%）</span></span><input class="num" type="number" id="hsLoanRate" value="4" step="0.1" inputmode="decimal"></div>
+      <div class="field-row"><span class="field-label">返済期間<span class="hint">（年）</span></span><input class="num" type="number" id="hsLoanYears" value="30" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">取得税<span class="hint">（%）</span></span><input class="num" type="number" id="hsAcqTax" value="1.1" step="0.1" inputmode="decimal"></div>
+      <div class="field-row"><span class="field-label">保有コスト<span class="hint">（年・価格の%）</span></span><input class="num" type="number" id="hsUpkeep" value="0.4" step="0.1" inputmode="decimal"></div>
+    </div>
+
+    <div class="result-box" id="hsResult"></div>
+    <div class="bar-chart" id="hsChart"></div>
+    <div class="result-box" id="hsBreakeven"></div>
   </div>
 </div>
 
@@ -1233,7 +1313,9 @@
     counter:   { view: "counterView",   tab: "tabCounter" },
     fuel:      { view: "fuelView",      tab: "tabFuel" },
     pv:        { view: "pvView",        tab: "tabPv" },
-    fx:        { view: "fxView",        tab: "tabFx" }
+    fx:        { view: "fxView",        tab: "tabFx" },
+    asset:     { view: "assetView",     tab: "tabAsset" },
+    house:     { view: "houseView",     tab: "tabHouse" }
   };
 
   function setActiveTab(tab) {
@@ -1253,6 +1335,8 @@
     if (tab === "fuel") renderFuel();
     if (tab === "pv") renderPv();
     if (tab === "fx") initFx();
+    if (tab === "asset") renderAssets();
+    if (tab === "house") calcHouse();
     try { localStorage.setItem("pace-tab", tab); } catch (e) {}
   }
 
@@ -2539,6 +2623,289 @@
     else delete fxManual[fxPairKey()];
     saveJSON("pace-fx-manual", fxManual);
     fxCompute();
+  });
+
+
+  // ==================== 資産テーブル ====================
+  var assetListEl = document.getElementById("assetList");
+  var addAssetBtn = document.getElementById("addAssetBtn");
+  var assetSummaryEl = document.getElementById("assetSummary");
+  var assetChartEl = document.getElementById("assetChart");
+
+  var ASSET_KINDS = ["現金", "投資", "拘束", "負債"];
+  var KIND_COLOR = { "現金": "var(--sage)", "投資": "var(--wood)", "拘束": "#9aa2ae", "負債": "#c0715f" };
+
+  var assetState = loadJSON("pace-assets", {
+    items: [
+      { id: "s1", name: "普通預金", kind: "現金", amount: 3000000 },
+      { id: "s2", name: "証券口座", kind: "投資", amount: 60000000 },
+      { id: "s3", name: "定期・積立（満期まで拘束）", kind: "拘束", amount: 7700000 }
+    ]
+  });
+
+  function assetSave() { saveJSON("pace-assets", assetState); }
+
+  function renderAssets() {
+    assetListEl.innerHTML = "";
+    assetState.items.forEach(function (it, i) {
+      var row = document.createElement("div");
+      row.className = "asset-row";
+
+      var name = document.createElement("input");
+      name.type = "text"; name.placeholder = "名前"; name.value = it.name || "";
+      name.className = "as-name";
+
+      var kind = document.createElement("select");
+      kind.className = "as-kind";
+      ASSET_KINDS.forEach(function (k) {
+        var o = document.createElement("option");
+        o.value = k; o.textContent = k;
+        kind.appendChild(o);
+      });
+      kind.value = it.kind || "現金";
+
+      var amount = document.createElement("input");
+      amount.type = "number"; amount.className = "as-amount"; amount.inputMode = "numeric";
+      amount.value = it.amount;
+
+      var del = document.createElement("button");
+      del.className = "st-del"; del.textContent = "×"; del.setAttribute("aria-label", "削除");
+
+      name.addEventListener("input", function () { assetState.items[i].name = name.value; assetSave(); });
+      kind.addEventListener("change", function () { assetState.items[i].kind = kind.value; assetSave(); calcAssets(); });
+      amount.addEventListener("input", function () { assetState.items[i].amount = amount.value; assetSave(); calcAssets(); });
+      del.addEventListener("click", function () {
+        if (!confirm("この項目を削除します。よろしいですか？")) return;
+        assetState.items.splice(i, 1); assetSave(); renderAssets();
+      });
+
+      row.appendChild(name); row.appendChild(kind); row.appendChild(amount); row.appendChild(del);
+      assetListEl.appendChild(row);
+    });
+    calcAssets();
+  }
+
+  function calcAssets() {
+    var byKind = { "現金": 0, "投資": 0, "拘束": 0, "負債": 0 };
+    assetState.items.forEach(function (it) {
+      var v = parseFloat(it.amount);
+      if (!isFinite(v)) return;
+      byKind[it.kind || "現金"] += v;
+    });
+    var gross = byKind["現金"] + byKind["投資"] + byKind["拘束"];
+    var net = gross - byKind["負債"];
+
+    assetSummaryEl.innerHTML = "";
+    var l1 = document.createElement("div");
+    l1.innerHTML = "純資産 <b></b>";
+    l1.querySelector("b").textContent = fmt(net);
+    assetSummaryEl.appendChild(l1);
+
+    var cashRatio = gross > 0 ? (byKind["現金"] / gross) * 100 : 0;
+    var l2 = document.createElement("div");
+    l2.style.fontSize = "12px";
+    l2.style.color = "var(--text-muted)";
+    l2.textContent = "現金比率 " + cashRatio.toFixed(1) + "% ／ すぐ動かせるのは " + fmt(byKind["現金"]) + "、拘束中が " + fmt(byKind["拘束"]);
+    assetSummaryEl.appendChild(l2);
+
+    if (gross > 0 && cashRatio < 10) {
+      var warn = document.createElement("div");
+      warn.style.fontSize = "12px";
+      warn.style.color = "var(--wood)";
+      warn.textContent = "現金比率が10%未満です。資産はあっても動かせない状態になりがちです。";
+      assetSummaryEl.appendChild(warn);
+    }
+
+    drawBars(assetChartEl, ASSET_KINDS.filter(function (k) { return byKind[k] > 0; }).map(function (k) {
+      return { label: k, value: byKind[k], color: KIND_COLOR[k] };
+    }));
+  }
+
+  function drawBars(container, rows) {
+    container.innerHTML = "";
+    if (!rows.length) return;
+    var max = Math.max.apply(null, rows.map(function (r) { return Math.abs(r.value); }));
+    rows.forEach(function (r) {
+      var wrap = document.createElement("div");
+      wrap.className = "bar-row";
+      var lab = document.createElement("span");
+      lab.className = "bar-label";
+      lab.textContent = r.label;
+      var track = document.createElement("div");
+      track.className = "bar-track";
+      var fill = document.createElement("div");
+      fill.className = "bar-fill";
+      fill.style.width = (max > 0 ? (Math.abs(r.value) / max) * 100 : 0) + "%";
+      fill.style.background = r.color;
+      track.appendChild(fill);
+      var val = document.createElement("span");
+      val.className = "bar-value";
+      val.textContent = fmt(r.value);
+      wrap.appendChild(lab); wrap.appendChild(track); wrap.appendChild(val);
+      container.appendChild(wrap);
+    });
+  }
+
+  addAssetBtn.addEventListener("click", function () {
+    assetState.items.push({ id: String(Date.now()), name: "", kind: "現金", amount: 0 });
+    assetSave();
+    renderAssets();
+  });
+
+  // ==================== 家賃 vs 保有 ====================
+  var HS_IDS = ["hsCash", "hsYears", "hsInvest", "hsGrowth", "hsFee",
+    "hsMDeposit", "hsMRent", "hsJDeposit", "hsJOwn", "hsJRate",
+    "hsPrice", "hsDown", "hsLoanRate", "hsLoanYears", "hsAcqTax", "hsUpkeep"];
+  var hsEl = {};
+  HS_IDS.forEach(function (id) { hsEl[id] = document.getElementById(id); });
+  var hsResultEl = document.getElementById("hsResult");
+  var hsChartEl = document.getElementById("hsChart");
+  var hsBreakevenEl = document.getElementById("hsBreakeven");
+
+  var hsState = loadJSON("pace-house", null);
+  if (hsState) HS_IDS.forEach(function (id) { if (hsState[id] !== undefined) hsEl[id].value = hsState[id]; });
+
+  function hsNum(id) { var v = parseFloat(hsEl[id].value); return isFinite(v) ? v : 0; }
+
+  function hsSave() {
+    var s = {};
+    HS_IDS.forEach(function (id) { s[id] = hsEl[id].value; });
+    saveJSON("pace-house", s);
+  }
+
+  // 手元資金を起点に、住居費をすべてそこから払いながら毎月運用する共通モデル
+  function simulate(opt) {
+    var months = Math.round(hsNum("hsYears") * 12);
+    var rm = hsNum("hsInvest") / 100 / 12;
+    var pot = hsNum("hsCash") - opt.initialOutlay;
+    var loan = opt.loan || 0;
+    var loanRate = (opt.loanRate || 0) / 100 / 12;
+    var payment = opt.payment || 0;
+
+    for (var m = 0; m < months; m++) {
+      pot *= (1 + rm);
+      pot -= opt.monthlyCost;
+      if (loan > 0 && payment > 0) {
+        var interest = loan * loanRate;
+        var principal = Math.min(payment - interest, loan);
+        if (principal < 0) principal = 0;
+        loan -= principal;
+        pot -= payment;
+      } else if (loan > 0) {
+        pot -= loan * loanRate;   // 利息のみ（전세대출）
+      }
+    }
+    var g = hsNum("hsGrowth") / 100;
+    var years = hsNum("hsYears");
+    var assetEnd = opt.assetGrows ? opt.assetValue * Math.pow(1 + g, years) : opt.assetValue;
+    return pot + assetEnd - loan;
+  }
+
+  function monthlyPayment(principal, annualRatePct, years) {
+    var r = annualRatePct / 100 / 12;
+    var n = years * 12;
+    if (n <= 0) return 0;
+    if (r === 0) return principal / n;
+    return principal * r / (1 - Math.pow(1 + r, -n));
+  }
+
+  function buildOptions() {
+    var fee = hsNum("hsFee");
+
+    var monthly = {
+      name: "월세",
+      initialOutlay: hsNum("hsMDeposit"),
+      monthlyCost: hsNum("hsMRent") + fee,
+      assetValue: hsNum("hsMDeposit"),   // 契約終了時に返還
+      assetGrows: false
+    };
+
+    var jeonse = {
+      name: "전세",
+      initialOutlay: hsNum("hsJOwn"),
+      monthlyCost: fee,
+      loan: Math.max(0, hsNum("hsJDeposit") - hsNum("hsJOwn")),
+      loanRate: hsNum("hsJRate"),
+      payment: 0,                        // 利息のみ
+      assetValue: hsNum("hsJDeposit"),   // 満期に返還
+      assetGrows: false
+    };
+
+    var loanAmt = Math.max(0, hsNum("hsPrice") - hsNum("hsDown"));
+    var buy = {
+      name: "매매",
+      initialOutlay: hsNum("hsDown") + hsNum("hsPrice") * hsNum("hsAcqTax") / 100,
+      monthlyCost: fee + hsNum("hsPrice") * (hsNum("hsUpkeep") / 100) / 12,
+      loan: loanAmt,
+      loanRate: hsNum("hsLoanRate"),
+      payment: monthlyPayment(loanAmt, hsNum("hsLoanRate"), hsNum("hsLoanYears")),
+      assetValue: hsNum("hsPrice"),
+      assetGrows: true
+    };
+
+    return [monthly, jeonse, buy];
+  }
+
+  function calcHouse() {
+    var opts = buildOptions();
+    var rows = opts.map(function (o) { return { label: o.name, value: simulate(o) }; });
+    var sorted = rows.slice().sort(function (a, b) { return b.value - a.value; });
+    var best = sorted[0];
+
+    hsResultEl.innerHTML = "";
+    var l1 = document.createElement("div");
+    l1.innerHTML = hsNum("hsYears") + "年後は <span class=\"result-win\"></span> が有利 ／ <b></b>";
+    l1.querySelector(".result-win").textContent = best.label;
+    l1.querySelector("b").textContent = fmt(best.value);
+    hsResultEl.appendChild(l1);
+
+    var l2 = document.createElement("div");
+    l2.style.fontSize = "12px";
+    l2.style.color = "var(--text-muted)";
+    l2.textContent = "2位「" + sorted[1].label + "」との差 " + fmt(best.value - sorted[1].value);
+    hsResultEl.appendChild(l2);
+
+    drawBars(hsChartEl, rows.map(function (r) {
+      return { label: r.label, value: r.value, color: r.label === best.label ? "var(--sage)" : "var(--wood)" };
+    }));
+
+    // 매매が最良の賃貸に並ぶための住宅価格上昇率を二分探索
+    var saved = hsEl.hsGrowth.value;
+    function buyMinusRent(g) {
+      hsEl.hsGrowth.value = g;
+      var o = buildOptions();
+      var rentBest = Math.max(simulate(o[0]), simulate(o[1]));
+      return simulate(o[2]) - rentBest;
+    }
+    var lo = -10, hi = 20, mid = 0, ans = null;
+    if (buyMinusRent(lo) * buyMinusRent(hi) < 0) {
+      for (var i = 0; i < 60; i++) {
+        mid = (lo + hi) / 2;
+        if (buyMinusRent(lo) * buyMinusRent(mid) <= 0) hi = mid; else lo = mid;
+      }
+      ans = (lo + hi) / 2;
+    }
+    hsEl.hsGrowth.value = saved;
+
+    hsBreakevenEl.innerHTML = "";
+    var b1 = document.createElement("div");
+    if (ans === null) {
+      b1.textContent = "この条件では、住宅価格上昇率を −10〜+20% の範囲で動かしても順位が入れ替わりません。";
+    } else {
+      b1.innerHTML = "매매が賃貸に並ぶ分岐点は <b>年 " + ans.toFixed(2) + "%</b> の住宅価格上昇";
+      var b2 = document.createElement("div");
+      b2.style.fontSize = "12px";
+      b2.style.color = "var(--text-muted)";
+      b2.textContent = "これを上回ると買うほうが有利、下回ると借りるほうが有利になります。";
+      hsBreakevenEl.appendChild(b1);
+      hsBreakevenEl.appendChild(b2);
+      return;
+    }
+    hsBreakevenEl.appendChild(b1);
+  }
+
+  HS_IDS.forEach(function (id) {
+    hsEl[id].addEventListener("input", function () { hsSave(); calcHouse(); });
   });
 
   // 初期タブ復元
