@@ -811,6 +811,41 @@
   .cost-row .cs-amt { flex: 0 0 100px; text-align: right; font-variant-numeric: tabular-nums; }
   .cs-caption { width: 100%; margin: 2px 0 -4px; font-size: 11.5px; color: var(--text-muted); }
   .cs-lead { font-size: 13.5px; line-height: 1.8; }
+
+  /* ===== ホーム（メニュー） ===== */
+  .tab-bar { display: none; }
+
+  #menuView { width: 100%; }
+  #menuView[hidden] { display: none; }
+  .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
+  .menu-head {
+    grid-column: 1 / -1; margin: 6px 0 -2px; font-size: 11.5px;
+    color: var(--text-muted); letter-spacing: 0.06em;
+  }
+  .menu-head:first-child { margin-top: 0; }
+  .menu-tile {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 7px; padding: 16px 6px 14px; min-height: 88px;
+    border: 1px solid var(--surface-border); border-radius: 16px;
+    background: var(--bg); color: var(--text);
+    font-family: inherit; font-size: 12px; line-height: 1.3; text-align: center;
+    cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+  }
+  .menu-tile:hover { background: var(--wood-soft); border-color: var(--wood); }
+  .menu-tile:active { transform: scale(0.97); }
+  .menu-tile:focus-visible { outline: 2px solid var(--wood); outline-offset: 2px; }
+  .menu-tile svg { width: 22px; height: 22px; color: var(--wood); }
+  .menu-tile .mt-name { word-break: keep-all; }
+
+  .back-btn[hidden] { visibility: hidden; display: flex !important; }
+  .top-row[hidden] { display: none !important; }
+  .current-tool { font-size: 13.5px; font-weight: 700; letter-spacing: 0.02em; }
+
+  @media (min-width: 880px) {
+    .menu-grid { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .menu-tile { min-height: 96px; font-size: 13px; }
+    .menu-tile svg { width: 24px; height: 24px; }
+  }
 </style>
 
 <div class="shell">
@@ -872,6 +907,10 @@
   </div>
 
   <div class="top-row">
+    <button class="icon-btn back-btn" id="backBtn" aria-label="ホームへ戻る" title="ホームへ戻る">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
+    <span class="current-tool" id="currentTool"></span>
     <button class="icon-btn reset-btn" id="resetBtn" aria-label="リセット" title="リセット">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
     </button>
@@ -879,6 +918,11 @@
     <button class="icon-btn settings-btn" id="settingsBtn" aria-label="設定" title="設定">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
     </button>
+  </div>
+
+
+  <div id="menuView">
+    <div class="menu-grid" id="menuGrid"></div>
   </div>
 
   <div id="timerView">
@@ -1500,6 +1544,7 @@
 
   // --- Tab switching ---
   var VIEWS = {
+    menu:      { view: "menuView",      tab: "tabTimer" },
     timer:     { view: "timerView",     tab: "tabTimer" },
     stopwatch: { view: "stopwatchView", tab: "tabStopwatch" },
     counter:   { view: "counterView",   tab: "tabCounter" },
@@ -1524,6 +1569,9 @@
     modeDot.hidden = tab !== "timer";
     settingsBtn.style.visibility = basic ? "visible" : "hidden";
     resetBtn.style.visibility = basic ? "visible" : "hidden";
+    backBtn.style.visibility = tab === "menu" ? "hidden" : "visible";
+    currentToolEl.textContent = tab === "menu" ? "" : tabLabel(tab);
+    document.querySelector(".top-row").hidden = (tab === "menu");
     settingsPanel.setAttribute("data-open", "false");
     counterSettings.setAttribute("data-open", "false");
     if (tab === "counter") renderCounter();
@@ -1535,6 +1583,7 @@
     if (tab === "invest") calcInvest();
     if (tab === "settings") renderBackupList();
     if (tab === "cost") renderCost();
+    if (tab === "menu") buildMenu();
     try { localStorage.setItem("pace-tab", tab); } catch (e) {}
   }
 
@@ -3614,8 +3663,60 @@
     renderCost();
   });
 
+
+  // ==================== ホーム（メニュー） ====================
+  var MENU_GROUPS = [
+    { head: "はかる", keys: ["timer", "stopwatch", "counter"] },
+    { head: "くらべる", keys: ["fuel", "fx", "pv"] },
+    { head: "お金と住まい", keys: ["cost", "asset", "house", "invest"] },
+    { head: "その他", keys: ["settings"] }
+  ];
+
+  var menuGridEl = document.getElementById("menuGrid");
+  var backBtn = document.getElementById("backBtn");
+  var currentToolEl = document.getElementById("currentTool");
+
+  function tabLabel(key) {
+    var btn = document.getElementById(VIEWS[key].tab);
+    var name = btn && btn.querySelector(".tab-name");
+    return name ? name.textContent : key;
+  }
+
+  function buildMenu() {
+    menuGridEl.innerHTML = "";
+    MENU_GROUPS.forEach(function (g) {
+      if (g.head) {
+        var h = document.createElement("p");
+        h.className = "menu-head";
+        h.textContent = g.head;
+        menuGridEl.appendChild(h);
+      }
+      g.keys.forEach(function (key) {
+        if (!VIEWS[key]) return;
+        var srcBtn = document.getElementById(VIEWS[key].tab);
+        var tile = document.createElement("button");
+        tile.className = "menu-tile";
+        tile.setAttribute("data-key", key);
+        var svg = srcBtn && srcBtn.querySelector("svg");
+        if (svg) tile.appendChild(svg.cloneNode(true));
+        var span = document.createElement("span");
+        span.className = "mt-name";
+        span.textContent = tabLabel(key);
+        tile.appendChild(span);
+        tile.addEventListener("click", function () { setActiveTab(key); });
+        menuGridEl.appendChild(tile);
+      });
+    });
+  }
+
+  backBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    setActiveTab("menu");
+  });
+
   // 初期タブ復元
-  setActiveTab(loadJSON("pace-tab", "timer"));
+  buildMenu();
+  setActiveTab("menu");
 
 </script>
 
