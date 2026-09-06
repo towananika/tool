@@ -1015,6 +1015,29 @@
   }
   .menu-empty { width: 100%; text-align: center; font-size: 13px; color: var(--text-muted); margin: 18px 0 4px; }
   .menu-head[data-tone="often"] b { background: var(--wood); }
+
+  /* ホーム: 説明つきタイル（2列） */
+  .menu-grid { grid-template-columns: repeat(2, 1fr); gap: 9px; }
+  .menu-tile { min-height: 0; padding: 13px 11px; gap: 8px;
+    flex-direction: row; align-items: flex-start; text-align: left; }
+  .menu-tile svg { width: 19px; height: 19px; margin-top: 1px; }
+  .mt-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .mt-name { font-size: 12.5px; font-weight: 500; line-height: 1.3; }
+  .mt-desc { font-size: 10.5px; color: var(--text-muted); line-height: 1.4; }
+  @media (min-width: 880px) {
+    .menu-grid { grid-template-columns: repeat(3, 1fr); gap: 11px; }
+    .menu-tile { padding: 15px 14px; }
+    .mt-name { font-size: 13.5px; }
+    .mt-desc { font-size: 11.5px; }
+  }
+
+  .share-toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+    background: var(--text); color: var(--surface); font-size: 12.5px;
+    padding: 10px 18px; border-radius: 999px; z-index: 200;
+    box-shadow: 0 6px 20px rgba(0,0,0,.22); max-width: 88vw; text-align: center;
+  }
+  .share-toast[hidden] { display: none; }
 </style>
 
 <div class="shell">
@@ -1053,7 +1076,7 @@
     </button>
     <span class="tab-sep" aria-hidden="true"></span>
     <button class="tab-btn" id="tabCost" data-active="false" data-tabkey="cost" title="住居の重み">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M12 20v-5"></path><path d="M9 15h6"></path></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"></path><path d="M5 21h14"></path><path d="M3 8h18"></path><path d="M6 8l-3 6a3 3 0 0 0 6 0z"></path><path d="M18 8l-3 6a3 3 0 0 0 6 0z"></path></svg>
       <span class="tab-name" data-i18n="tab.cost">住居の重み</span>
     </button>
     <button class="tab-btn" id="tabJeonse" data-active="false" data-tabkey="jeonse" title="チョンセ融資">
@@ -1088,6 +1111,9 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
     </button>
     <span class="mode-dot" id="modeDot"></span>
+    <button class="icon-btn share-btn" id="shareBtn" aria-label="この条件を共有" title="この条件を共有">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><path d="M12 16V3"></path><path d="M8 7l4-4 4 4"></path></svg>
+    </button>
     <button class="icon-btn settings-btn" id="settingsBtn" aria-label="設定" title="設定">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
     </button>
@@ -1878,6 +1904,7 @@ r = 年利、n = 月数</pre>
     settingsBtn.style.visibility = basic ? "visible" : "hidden";
     resetBtn.style.visibility = basic ? "visible" : "hidden";
     backBtn.style.visibility = tab === "menu" ? "hidden" : "visible";
+    shareBtn.style.visibility = (typeof SHARE !== "undefined" && SHARE[tab]) ? "visible" : "hidden";
     currentToolEl.textContent = tab === "menu" ? "" : tabLabel(tab);
     document.querySelector(".top-row").hidden = (tab === "menu");
     settingsPanel.setAttribute("data-open", "false");
@@ -1896,7 +1923,7 @@ r = 年利、n = 月数</pre>
     else noteUsage(tab);
     try { localStorage.setItem("pace-tab", tab); } catch (e) {}
     var want = tab === "menu" ? "#/" : "#/" + tab;
-    if (location.hash !== want) history.replaceState(null, "", want);
+    if (location.hash.indexOf("?s=") < 0 && location.hash !== want) history.replaceState(null, "", want);
   }
 
   Object.keys(VIEWS).forEach(function (k) {
@@ -4010,6 +4037,21 @@ r = 年利、n = 月数</pre>
     settings:  "せってい 設定 バックアップ 書き出し 読み込み 保存 settings backup 설정 백업"
   };
 
+  var TOOL_DESC = {
+    timer:     "集中と休憩を切り替える",
+    stopwatch: "経過時間とラップを計る",
+    counter:   "数をかぞえる",
+    fuel:      "遠くの安い店まで走る価値",
+    fx:        "両替所と銀行、どちらが得か",
+    pv:        "将来のお金を今の価値に",
+    cost:      "どの固定費を削ると効くか",
+    asset:     "純資産と現金比率の棚卸し",
+    house:     "월세・전세・매매を比べる",
+    jeonse:    "청년 전세대출の得を計る",
+    invest:    "株と不動産、どちらが有利か",
+    settings:  "バックアップと保存データ"
+  };
+
   var menuSearchEl = document.getElementById("menuSearch");
   var menuSearchClear = document.getElementById("menuSearchClear");
   var menuEmptyEl = document.getElementById("menuEmpty");
@@ -4029,7 +4071,7 @@ r = 年利、n = 月数</pre>
 
   function matches(key, q) {
     if (!q) return true;
-    var hay = (tabLabel(key) + " " + (TOOL_KEYWORDS[key] || "")).toLowerCase();
+    var hay = (tabLabel(key) + " " + (TOOL_DESC[key] || "") + " " + (TOOL_KEYWORDS[key] || "")).toLowerCase();
     return hay.indexOf(q) >= 0;
   }
 
@@ -4041,10 +4083,19 @@ r = 年利、n = 月数</pre>
     tile.setAttribute("data-tone", tone || "wood");
     var svg = srcBtn && srcBtn.querySelector("svg");
     if (svg) tile.appendChild(svg.cloneNode(true));
+    var body = document.createElement("span");
+    body.className = "mt-body";
     var span = document.createElement("span");
     span.className = "mt-name";
     span.textContent = tabLabel(key);
-    tile.appendChild(span);
+    body.appendChild(span);
+    if (TOOL_DESC[key]) {
+      var d = document.createElement("span");
+      d.className = "mt-desc";
+      d.textContent = TOOL_DESC[key];
+      body.appendChild(d);
+    }
+    tile.appendChild(body);
     tile.addEventListener("click", function () { setActiveTab(key); });
     return tile;
   }
@@ -4234,13 +4285,118 @@ r = 年利、n = 月数</pre>
     jsEl[id].addEventListener("input", function () { jsSave(); calcJeonse(); });
   });
 
+
+  // ==================== 条件の共有 ====================
+  // 入力値をURLに載せて、同じ条件の計算結果を人に渡せるようにする
+  var shareBtn = document.getElementById("shareBtn");
+
+  function idsGetter(ids) {
+    return {
+      get: function () { var o = {}; ids.forEach(function (id) { o[id] = document.getElementById(id).value; }); return o; },
+      set: function (o) {
+        ids.forEach(function (id) { if (o[id] !== undefined) document.getElementById(id).value = o[id]; });
+      }
+    };
+  }
+
+  var SHARE = {
+    house:  { io: idsGetter(HS_IDS), after: function () { hsSave(); calcHouse(); } },
+    invest: { io: idsGetter(IV_IDS), after: function () { ivSave(); calcInvest(); } },
+    jeonse: { io: idsGetter(JS_IDS), after: function () { jsSave(); calcJeonse(); } },
+    cost:   {
+      io: {
+        get: function () { var o = {}; CS_IDS.forEach(function (id) { o[id] = csEl[id].value; }); o.items = costState.items; return o; },
+        set: function (o) {
+          CS_IDS.forEach(function (id) { if (o[id] !== undefined) csEl[id].value = o[id]; });
+          if (o.items) costState.items = o.items;
+        }
+      },
+      after: function () { costSave(); renderCost(); }
+    },
+    fuel:   {
+      io: {
+        get: function () { return { type: fuelAll.type, entry: fuelCur() }; },
+        set: function (o) { if (o.type && FUEL_TYPES[o.type]) fuelAll.type = o.type; if (o.entry) fuelAll.byType[fuelAll.type] = o.entry; }
+      },
+      after: function () { fuelSave(); renderFuel(); }
+    },
+    pv:     {
+      io: {
+        get: function () { return { rate: pvState.rate, items: pvState.items }; },
+        set: function (o) { if (o.rate !== undefined) pvState.rate = o.rate; if (o.items) pvState.items = o.items; }
+      },
+      after: function () { pvSave(); renderPv(); }
+    }
+  };
+
+  function b64encode(str) {
+    return btoa(unescape(encodeURIComponent(str))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function b64decode(str) {
+    var s = str.replace(/-/g, "+").replace(/_/g, "/");
+    while (s.length % 4) s += "=";
+    return decodeURIComponent(escape(atob(s)));
+  }
+
+  var shareToast = null;
+  function toast(msg) {
+    if (!shareToast) {
+      shareToast = document.createElement("div");
+      shareToast.className = "share-toast";
+      document.body.appendChild(shareToast);
+    }
+    shareToast.textContent = msg;
+    shareToast.hidden = false;
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { shareToast.hidden = true; }, 2600);
+  }
+
+  function buildShareUrl() {
+    var s = SHARE[activeTab];
+    if (!s) return null;
+    var payload = b64encode(JSON.stringify(s.io.get()));
+    return location.origin + location.pathname + "#/" + activeTab + "?s=" + payload;
+  }
+
+  shareBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var url = buildShareUrl();
+    if (!url) { toast("この道具には共有できる条件がありません"); return; }
+    if (navigator.share) {
+      navigator.share({ title: "間合い — " + tabLabel(activeTab), url: url }).catch(function () {});
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url)
+        .then(function () { toast("この条件のリンクをコピーしました"); })
+        .catch(function () { prompt("このリンクをコピーしてください", url); });
+    } else {
+      prompt("このリンクをコピーしてください", url);
+    }
+  });
+
+  // ハッシュに条件が載っていれば読み込む
+  function applySharedState(tab) {
+    var m = (location.hash || "").match(/[?&]s=([^&]+)/);
+    if (!m || !SHARE[tab]) return false;
+    try {
+      var obj = JSON.parse(b64decode(m[1]));
+      SHARE[tab].io.set(obj);
+      SHARE[tab].after();
+      toast("共有された条件を読み込みました");
+      return true;
+    } catch (e) { return false; }
+  }
+
   // 初期タブ復元
   function tabFromHash() {
-    var h = (location.hash || "").replace(/^#\/?/, "");
+    var h = (location.hash || "").replace(/^#\/?/, "").split("?")[0];
     return VIEWS[h] ? h : "menu";
   }
   buildMenu();
-  setActiveTab(tabFromHash());
+  var startTab = tabFromHash();
+  setActiveTab(startTab);
+  applySharedState(startTab);
   window.addEventListener("hashchange", function () {
     var t = tabFromHash();
     if (t !== activeTab) setActiveTab(t);
