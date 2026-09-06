@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>計算式と前提 — 間合い (Maai)</title>
+<meta name="description" content="間合い（Maai）に収録した各道具の計算式・前提・限界をすべて公開しています。給油くらべ、為替の3層比較、現在価値、住居の重み、家賃と持ち家、청년 전세대출、株と不動産。引用・再利用は自由です。">
+<link rel="canonical" href="https://towananika.github.io/tool/about.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="間合い / Maai">
+<meta property="og:title" content="計算式と前提 — 間合い (Maai)">
+<meta property="og:description" content="各道具の計算式・前提・限界を全公開。引用・再利用は自由です。">
+<meta property="og:url" content="https://towananika.github.io/tool/about.html">
+<meta property="og:locale" content="ja_JP">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg: #f5f1e9;
+    --surface: #fbf9f4;
+    --surface-border: #e2dac8;
+    --text: #2b2924;
+    --text-muted: #8a8271;
+    --wood: #93704b;
+    --sea: #5b7d8a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1a16;
+      --surface: #242119;
+      --surface-border: #38332a;
+      --text: #ede8dd;
+      --text-muted: #a89e8a;
+      --wood: #c99f74;
+      --sea: #8fb0bd;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    padding: 28px 20px 64px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .back {
+    display: block; max-width: 720px; margin: 0 auto 22px;
+    color: var(--text-muted); text-decoration: none; font-size: 13px;
+  }
+  .back:hover { color: var(--wood); }
+  .about {
+    width: 100%; max-width: 720px; margin: 0 auto;
+    line-height: 1.95; font-size: 14px;
+  }
+  .about h1 { font-size: 19px; font-weight: 700; margin: 0 0 10px; letter-spacing: 0.02em; }
+  .about h2 { font-size: 15px; font-weight: 700; margin: 30px 0 10px;
+    padding-bottom: 7px; border-bottom: 1px solid var(--surface-border); }
+  .about h3 { font-size: 14px; font-weight: 700; margin: 0 0 6px; color: var(--wood); }
+  .about p { margin: 0 0 10px; }
+  .about-lead { color: var(--text-muted); }
+  .about-item { margin: 0 0 22px; }
+  .formula {
+    margin: 8px 0 10px; padding: 12px 14px; overflow-x: auto;
+    background: var(--surface); border: 1px solid var(--surface-border); border-radius: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.5px; line-height: 1.8; white-space: pre; color: var(--text);
+  }
+  .about-notes { margin: 0; padding-left: 1.2em; color: var(--text-muted); font-size: 13px; }
+  .about-notes li { margin-bottom: 8px; }
+  .about a { color: var(--sea); }
+  .about code { font-family: ui-monospace, monospace; font-size: 12.5px;
+    background: var(--surface); padding: 2px 6px; border-radius: 5px; }
+</style>
+</head>
+<body>
+
+<a class="back" href="./">← 道具箱へもどる</a>
+
+<main class="about">
+  <h1>間合い — 暮らしの判断を数字にする道具箱</h1>
+  <p class="about-lead">
+    迷う場面を、勘ではなく数字で比べるための道具を1枚にまとめています。
+    <strong>計算式と前提はすべてこのページに書いてあります。</strong>
+    入力したデータは利用者の端末（ブラウザ）にのみ保存され、サーバーには送信されません。無料・登録不要です。
+  </p>
+
+  <h2>収録している道具と、その計算式</h2>
+
+  <article class="about-item" id="about-fuel">
+    <h3>給油くらべ — 遠くの安い店まで走る価値があるか</h3>
+    <p>安い店が遠い場合、そこまで走るのに使う燃料も費用のうちです。往復分を上乗せして総額で比べます。</p>
+    <pre class="formula">総額 =（給油量 + 往復で余分に使う量）× 単価
+往復で余分に使う量 = 距離 × 2 ÷ 燃費</pre>
+    <p>ガソリン・軽油・LPGは km/L と L、電気自動車は km/kWh と kWh に単位が切り替わります。</p>
+  </article>
+
+  <article class="about-item" id="about-fx">
+    <h3>為替 — 基準・銀行・両替所の3層で比べる</h3>
+    <p>外貨1単位あたりのウォンに揃えて比較します。外貨を買うときは現金売渡（현찰 살 때）、売るときは現金買入（현찰 팔 때）が銀行側のレートです。</p>
+    <pre class="formula">受取額（外貨を買う）= 支払ウォン ÷ 1単位あたりのウォン
+受取額（外貨を売る）= 外貨額 × 1単位あたりのウォン
+両替所の有利さ = 両替所での受取額 ÷ 銀行での受取額 − 1</pre>
+    <p>基準レート（매매기준율）との差が、その業者が抜いている幅にあたります。銀行と基準のレートは平日に自動更新され、両替所レートは手入力で保存されます。</p>
+  </article>
+
+  <article class="about-item" id="about-pv">
+    <h3>現在価値 — 将来のお金を今の価値に直す</h3>
+    <pre class="formula">現在価値 = 将来の金額 ÷ (1 + 割引率)^年数</pre>
+    <p>将来の入金予定を記録として積み重ね、合計を現在価値で見ます。額面合計との差が「待つことで目減りする分」です。</p>
+  </article>
+
+  <article class="about-item" id="about-cost">
+    <h3>住居の重み — どの固定費を削るのが効くか</h3>
+    <p>固定費を同じ割合だけ削ったときの将来価値で比べます。金額そのものが大きい費目ほど、同率でも効果が桁違いになります。</p>
+    <pre class="formula">削減の将来価値 = 毎月の削減額 × ((1 + r/12)^n − 1) ÷ (r/12)
+r = 年利、n = 月数</pre>
+    <p>住居費が手取りの30%を超える場合は警告が出ます。多くの家計で、住居費を1割削る効果は、娯楽費を丸ごとゼロにする効果を上回ります。</p>
+  </article>
+
+  <article class="about-item" id="about-house">
+    <h3>家賃 vs 保有 — 월세・전세・매매を同じ土俵で</h3>
+    <p>同じ手元資金から出発させ、住居費をすべてその資金から支払いながら毎月運用する形で比較します。</p>
+    <pre class="formula">N年後の純資産 = 運用残高 + 保有資産 − 残債
+運用残高は毎月 (1 + 年利/12) で増え、その月の住居費を差し引く
+保有資産：매매は価格 ×(1+上昇率)^N、월세・전세は返還される保証金
+전세대출は利息のみ、住宅ローンは元利均等で残債を計算</pre>
+    <p>さらに、매매が賃貸に並ぶ住宅価格上昇率を二分探索で求めます。この一つの数字が「買うべきかどうか」の分岐点になります。</p>
+  </article>
+
+  <article class="about-item" id="about-jeonse">
+    <h3>チョンセ融資 — 청년 전세대출はどれだけ得か</h3>
+    <pre class="formula">청년で借りられる額 = min(必要額, 限度額)
+超過分は一般金利
+年間利息 = 청년額 × 청년金利 + 超過額 × 一般金利
+還付 = min(利息 × 控除率, 年間上限) × 適用税率
+実質負担 = 年間利息 − 還付</pre>
+    <p>全額を一般金利で借りた場合との差が、制度を使うことの価値です。월세との比較では、自己資金と保証金の機会費用も年額に含めます。金利と限度額は制度改定で変わるため、すべて入力式です。</p>
+  </article>
+
+  <article class="about-item" id="about-invest">
+    <h3>株 vs 不動産 — レバレッジと税を織り込む</h3>
+    <pre class="formula">株式：自己資金 ×(1+期待리턴)^N、利益から基礎控除を引いて譲渡益税
+不動産：買える価格 = 自己資金 ÷ ((1 − LTV) + 取得税率)
+  毎年 賃料収入 ×(1 − 空室率) − 保有コスト − ローン利息 を余剰資金として再投資
+  売却時 価格 ×(1+上昇率)^N − 売却費用 − 譲渡益税 − 残債</pre>
+    <p>不動産はレバレッジが効くため、同じ自己資金でも動かす資産の規模が違います。その代わり税・空室・維持費がかかります。不動産が株に並ぶ価格上昇率も算出します。</p>
+  </article>
+
+  <h2>前提と限界</h2>
+  <ul class="about-notes">
+    <li>すべて税引き前後の扱いを明示していますが、個別の税制優遇や地域差は反映していません。実際の判断では専門家に確認してください。</li>
+    <li>為替の銀行・基準レートは公開データを平日4回取得したものです。取引時点のレートとは必ず差が出ます。</li>
+    <li>両替所のレートは自動取得していません。事業者側が公開APIを提供していないためで、手入力で保存する方式にしています。</li>
+    <li>住宅価格上昇率や期待リターンは、利用者が入力した仮定です。将来を予測するものではなく、<strong>「その仮定ならこうなる」を示す道具</strong>です。</li>
+  </ul>
+
+  <h2>引用・再利用について</h2>
+  <p>
+    計算式・前提・出力の解釈は自由に引用してください。出典として
+    <code>間合い (Maai) — https://towananika.github.io/tool/</code>
+    を示していただければ十分です。ソースコードは MIT ライセンスで
+    <a href="https://github.com/towananika/tool">GitHub</a> に公開しています。
+  </p>
+</main>
+
+</body></html>

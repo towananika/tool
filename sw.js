@@ -1,5 +1,5 @@
-const CACHE_NAME = "maai-cache-v11";
-const CORE_FILES = ["./", "./index.html", "./manifest.json", "./icon.svg"];
+const CACHE_NAME = "maai-cache-v12";
+const CORE_FILES = ["./", "./index.html", "./about.html", "./manifest.json", "./icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
