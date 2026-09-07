@@ -206,40 +206,6 @@
   .card[data-mode="focus"] { border-color: color-mix(in srgb, var(--wood) 35%, var(--surface-border)); }
   .card[data-mode="rest"]  { border-color: color-mix(in srgb, var(--sage) 35%, var(--surface-border)); }
 
-  .tab-bar {
-    display: flex;
-    gap: 6px;
-    background: var(--bg);
-    border-radius: 999px;
-    padding: 4px;
-    border: 1px solid var(--surface-border);
-  }
-
-  .tab-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: none;
-    background: transparent;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    padding: 0;
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-
-  .tab-btn svg { width: 16px; height: 16px; }
-
-  .tab-btn[data-active="true"] {
-    background: var(--surface);
-    color: var(--wood);
-    box-shadow: 0 1px 3px rgba(43, 41, 36, 0.12);
-  }
-
-  .tab-btn:focus-visible { outline: 2px solid var(--wood); outline-offset: 2px; }
-
   .top-row {
     width: 100%;
     display: flex;
@@ -797,10 +763,6 @@
   .brand-sub { margin: 6px 0 0; font-size: 10.5px; color: var(--text-muted); letter-spacing: 0.3em; }
   .brand-tag { margin: 7px 0 0; font-size: 11.5px; color: var(--text-muted); letter-spacing: 0.02em; }
 
-  .tab-sep { width: 1px; height: 18px; background: var(--surface-border); align-self: center; margin: 0 2px; }
-  .tab-bar { flex-wrap: nowrap; }
-  .tab-btn { width: 30px; height: 30px; flex: 0 0 auto; }
-
   /* ===== stopwatch ===== */
   #stopwatchView, #fuelView, #pvView, #fxView { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; }
   #stopwatchView[hidden], #fuelView[hidden], #pvView[hidden], #fxView[hidden] { display: none; }
@@ -908,14 +870,6 @@
   #houseView .field-row { width: 100%; }
   #houseView input.num { width: 118px; }
 
-  /* タブ: アイコン + 名前 */
-  .tab-bar { flex-wrap: wrap; justify-content: center; gap: 4px; padding: 6px; }
-  .tab-btn { width: auto; height: auto; flex: 0 0 auto; border-radius: 999px;
-    padding: 6px 10px; gap: 5px; font-family: inherit; font-size: 11.5px; }
-  .tab-btn svg { width: 14px; height: 14px; flex: 0 0 auto; }
-  .tab-name { white-space: nowrap; }
-  .tab-sep { display: none; }
-
   /* 燃料種別 */
   .fuel-types { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
   .fuel-types .chip { padding: 6px 12px; font-size: 12px; }
@@ -939,6 +893,23 @@
 
   #settingsView { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
   #settingsView[hidden] { display: none; }
+  .fb-check {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--text-muted);
+    cursor: pointer; padding: 2px 0;
+  }
+  .fb-check input { accent-color: var(--wood); }
+  .fb-item {
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 8px 0; border-bottom: 1px solid var(--surface-border);
+    font-size: 12px;
+  }
+  .fb-item:last-child { border-bottom: none; }
+  .fb-item .fb-when { font-size: 11px; color: var(--text-muted); }
+  .fb-item .fb-body { color: var(--text); white-space: pre-wrap; word-break: break-word; }
+  .fb-item .fb-state { font-size: 11px; }
+  .fb-item .fb-state[data-sent="false"] { color: var(--wood); }
+
   .bk-row { display: flex; gap: 8px; width: 100%; }
   .bk-row > * { flex: 1 1 0; text-align: center; }
   .bk-file { cursor: pointer; }
@@ -955,8 +926,6 @@
   @media (min-width: 880px) {
     .shell { max-width: 860px; }
     .card { max-width: 860px; padding: 30px 34px 30px; }
-    .tab-bar { gap: 5px; }
-    .tab-btn { font-size: 12.5px; padding: 7px 13px; }
     #fuelView, #pvView, #fxView, #assetView, #houseView, #investView, #settingsView {
       max-width: 720px;
     }
@@ -985,8 +954,6 @@
   .cs-lead { font-size: 13.5px; line-height: 1.8; }
 
   /* ===== ホーム（メニュー） ===== */
-  .tab-bar { display: none; }
-
   #menuView { width: 100%; }
   #menuView[hidden] { display: none; }
   .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
@@ -1078,6 +1045,14 @@
   .about code { font-family: ui-monospace, monospace; font-size: 12.5px;
     background: var(--surface); padding: 2px 6px; border-radius: 5px; }
 
+  /* 設定は道具ではないので棚に並べず、探す行の端に小さく置く */
+  .menu-top {
+    display: flex; align-items: flex-start; gap: 8px; width: 100%;
+    margin-bottom: 14px;
+  }
+  .menu-top .menu-search { flex: 1 1 auto; margin-bottom: 0; }
+  .menu-settings { flex: 0 0 auto; width: 38px; height: 38px; }
+
   .menu-search {
     display: flex; align-items: center; gap: 8px; width: 100%;
     border: 1px solid var(--surface-border); border-radius: 12px;
@@ -1131,63 +1106,6 @@
   </header>
 
 <div class="card" id="card" data-mode="focus">
-  <div class="tab-bar">
-    <button class="tab-btn" id="tabTimer" data-active="true" data-tabkey="timer" title="タイマー">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l3 2"></path><path d="M9 2h6"></path></svg>
-      <span class="tab-name" data-i18n="tab.timer">タイマー</span>
-    </button>
-    <button class="tab-btn" id="tabStopwatch" data-active="false" data-tabkey="stopwatch" title="ストップ">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"></circle><path d="M12 13l4-2"></path><path d="M9 2h6"></path><path d="M18.5 6.5l1.5-1.5"></path></svg>
-      <span class="tab-name" data-i18n="tab.stopwatch">ストップ</span>
-    </button>
-    <button class="tab-btn" id="tabCounter" data-active="false" data-tabkey="counter" title="カウンター">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
-      <span class="tab-name" data-i18n="tab.counter">カウンター</span>
-    </button>
-    <span class="tab-sep" aria-hidden="true"></span>
-    <button class="tab-btn" id="tabFuel" data-active="false" data-tabkey="fuel" title="給油くらべ">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h5a2 2 0 0 1 2 2v16"></path><path d="M3 21h12"></path><path d="M6 8h5"></path><path d="M16 9l2-2 2 2v8a1.5 1.5 0 0 1-3 0v-4h-1"></path></svg>
-      <span class="tab-name" data-i18n="tab.fuel">給油くらべ</span>
-    </button>
-    <button class="tab-btn" id="tabFx" data-active="false" data-tabkey="fx" title="為替">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13"></path><path d="M14 5l3 3-3 3"></path><path d="M20 16H7"></path><path d="M10 13l-3 3 3 3"></path></svg>
-      <span class="tab-name" data-i18n="tab.fx">為替</span>
-    </button>
-    <button class="tab-btn" id="tabPv" data-active="false" data-tabkey="pv" title="現在価値">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 8-8"></path><path d="M16 7h4v4"></path><path d="M3 21h18"></path></svg>
-      <span class="tab-name" data-i18n="tab.pv">現在価値</span>
-    </button>
-    <span class="tab-sep" aria-hidden="true"></span>
-    <button class="tab-btn" id="tabCost" data-active="false" data-tabkey="cost" title="住居の重み">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"></path><path d="M5 21h14"></path><path d="M3 8h18"></path><path d="M6 8l-3 6a3 3 0 0 0 6 0z"></path><path d="M18 8l-3 6a3 3 0 0 0 6 0z"></path></svg>
-      <span class="tab-name" data-i18n="tab.cost">住居の重み</span>
-    </button>
-    <button class="tab-btn" id="tabJeonse" data-active="false" data-tabkey="jeonse" title="チョンセ融資">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18"></path><path d="M5 10V7l7-4 7 4v3"></path><path d="M6 10v8"></path><path d="M10 10v8"></path><path d="M14 10v8"></path><path d="M18 10v8"></path><path d="M3 21h18"></path></svg>
-      <span class="tab-name" data-i18n="tab.jeonse">チョンセ融資</span>
-    </button>
-    <button class="tab-btn" id="tabAsset" data-active="false" data-tabkey="asset" title="資産">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 10h18"></path><path d="M9 10v10"></path></svg>
-      <span class="tab-name" data-i18n="tab.asset">資産</span>
-    </button>
-    <button class="tab-btn" id="tabHouse" data-active="false" data-tabkey="house" title="家賃vs保有">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"></path><path d="M5 10v10h14V10"></path><path d="M10 20v-6h4v6"></path></svg>
-      <span class="tab-name" data-i18n="tab.house">家賃vs保有</span>
-    </button>
-    <button class="tab-btn" id="tabInvest" data-active="false" data-tabkey="invest" title="株vs不動産">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V9"></path><path d="M9 20V4"></path><path d="M14 20v-7"></path><path d="M19 20V11"></path><path d="M2 20h20"></path></svg>
-      <span class="tab-name" data-i18n="tab.invest">株vs不動産</span>
-    </button>
-    <span class="tab-sep" aria-hidden="true"></span>
-    <button class="tab-btn" id="tabSettings" data-active="false" data-tabkey="settings" title="設定">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-      <span class="tab-name" data-i18n="tab.settings">設定</span>
-    </button>
-    <button class="tab-btn" id="tabAbout" data-active="false" data-tabkey="about" title="計算式と前提">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-      <span class="tab-name" data-i18n="tab.about">計算式と前提</span>
-    </button>
-  </div>
 
   <div class="top-row">
     <button class="icon-btn back-btn" id="backBtn" aria-label="ホームへ戻る" title="ホームへ戻る">
@@ -1208,10 +1126,15 @@
 
 
   <div id="menuView">
+    <div class="menu-top">
     <div class="menu-search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
       <input type="search" id="menuSearch" placeholder="道具をさがす" autocomplete="off" enterkeyhint="go" aria-label="道具をさがす">
       <button class="ms-clear" id="menuSearchClear" aria-label="消す" hidden>×</button>
+    </div>
+      <button class="icon-btn menu-settings" id="menuSettingsBtn" aria-label="設定" title="設定">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </button>
     </div>
     <div class="menu-grid" id="menuGrid"></div>
     <p class="menu-empty" id="menuEmpty" hidden>見つかりませんでした</p>
@@ -1522,6 +1445,19 @@
     </div>
 
     <div class="settings-group hs-group">
+      <p class="hs-head">意見を送る</p>
+      <p class="tool-note" style="text-align:left">使ってみて困ったこと、ほしい道具、間違いの指摘を書いてください。返信はできませんが、すべて読んで開発の判断に使います。</p>
+      <textarea class="bk-area" id="fbText" placeholder="例: 為替の道具で、韓国の両替所のレートを手で入れるのが面倒です" rows="4" maxlength="1000"></textarea>
+      <p class="fx-status" id="fbCount" style="text-align:right">0 / 1000</p>
+      <label class="fb-check"><input type="checkbox" id="fbAttachUsage"> どの道具を何回使ったかを添える</label>
+      <div class="bk-row">
+        <button class="chip" id="fbSend">送る</button>
+      </div>
+      <p class="fx-status" id="fbStatus"></p>
+      <div class="bk-list" id="fbList"></div>
+    </div>
+
+    <div class="settings-group hs-group">
       <p class="hs-head">このサイトについて</p>
       <p class="tool-note" style="text-align:left">各道具の計算式・前提・限界と、引用のしかたをまとめています。</p>
       <div class="bk-row">
@@ -1611,6 +1547,7 @@
   </div>
   <div class="counter-full-bar">
     <button class="icon-btn" id="counterFullMinus" aria-label="1減らす" title="減らす">−</button>
+    <button class="chip" id="counterFullReset">リセット</button>
     <button class="chip" id="counterFullClose">閉じる</button>
   </div>
 </div>
@@ -1666,6 +1603,7 @@
   var counterFullValue = document.getElementById("counterFullValue");
   var counterFullHint = document.getElementById("counterFullHint");
   var counterFullMinus = document.getElementById("counterFullMinus");
+  var counterFullReset = document.getElementById("counterFullReset");
   var counterFullClose = document.getElementById("counterFullClose");
   var ambientToggle = document.getElementById("ambientToggle");
   var ambientVolumeRow = document.getElementById("ambientVolumeRow");
@@ -1912,22 +1850,32 @@
     panel.setAttribute("data-open", open ? "false" : "true");
   });
 
-  // --- Tab switching ---
+  // --- 画面の切り替え ---
+  // 道具の名前はここが唯一の出どころ。
+  // 以前は隠したタブバーの文字を読んでいたが、見えないUIに依存していたのでやめた
+  var TOOL_NAME = {
+    timer: "タイマー", stopwatch: "ストップ", counter: "カウンター",
+    fuel: "給油くらべ", fx: "為替", pv: "現在価値",
+    cost: "住居の重み", jeonse: "チョンセ融資", asset: "資産",
+    house: "家賃vs保有", invest: "株vs不動産",
+    settings: "設定", about: "計算式と前提"
+  };
+
   var VIEWS = {
-    menu:      { view: "menuView",      tab: "tabTimer" },
-    timer:     { view: "timerView",     tab: "tabTimer" },
-    stopwatch: { view: "stopwatchView", tab: "tabStopwatch" },
-    counter:   { view: "counterView",   tab: "tabCounter" },
-    fuel:      { view: "fuelView",      tab: "tabFuel" },
-    pv:        { view: "pvView",        tab: "tabPv" },
-    fx:        { view: "fxView",        tab: "tabFx" },
-    asset:     { view: "assetView",     tab: "tabAsset" },
-    house:     { view: "houseView",     tab: "tabHouse" },
-    invest:    { view: "investView",    tab: "tabInvest" },
-    cost:      { view: "costView",      tab: "tabCost" },
-    jeonse:    { view: "jeonseView",    tab: "tabJeonse" },
-    settings:  { view: "settingsView",  tab: "tabSettings" },
-    about:     { view: "aboutStub",     tab: "tabAbout" }
+    menu:      { view: "menuView" },
+    timer:     { view: "timerView" },
+    stopwatch: { view: "stopwatchView" },
+    counter:   { view: "counterView" },
+    fuel:      { view: "fuelView" },
+    pv:        { view: "pvView" },
+    fx:        { view: "fxView" },
+    asset:     { view: "assetView" },
+    house:     { view: "houseView" },
+    invest:    { view: "investView" },
+    cost:      { view: "costView" },
+    jeonse:    { view: "jeonseView" },
+    settings:  { view: "settingsView" },
+    about:     { view: "aboutStub" }
   };
 
   // 計算式と前提は静的ページ（クローラーとAIが読めるように本文をHTMLで持つ）。
@@ -1939,7 +1887,6 @@
     if (!VIEWS[tab]) tab = "timer";
     activeTab = tab;
     Object.keys(VIEWS).forEach(function (k) {
-      document.getElementById(VIEWS[k].tab).setAttribute("data-active", k === tab ? "true" : "false");
       document.getElementById(VIEWS[k].view).hidden = k !== tab;
     });
     var basic = (tab === "timer" || tab === "counter");
@@ -1959,7 +1906,11 @@
     if (tab === "asset") renderAssets();
     if (tab === "house") calcHouse();
     if (tab === "invest") calcInvest();
-    if (tab === "settings") renderBackupList();
+    if (tab === "settings") {
+      renderBackupList();
+      // 前回送れなかった意見をここで送り直す
+      if (typeof trySendOutbox === "function") trySendOutbox();
+    }
     if (tab === "cost") renderCost();
     if (tab === "jeonse") calcJeonse();
     if (tab === "menu") { menuSearchEl.value = ""; buildMenu(); }
@@ -1969,9 +1920,6 @@
     if (location.hash.indexOf("?s=") < 0 && location.hash !== want) history.replaceState(null, "", want);
   }
 
-  Object.keys(VIEWS).forEach(function (k) {
-    document.getElementById(VIEWS[k].tab).addEventListener("click", function () { setActiveTab(k); });
-  });
 
   document.getElementById("openAbout").addEventListener("click", function () { location.href = ABOUT_URL; });
 
@@ -2133,6 +2081,17 @@
     e.preventDefault();
     e.stopPropagation();
     counterDecrement();
+  });
+
+  // 数え直しは取り返しがつかないので、ヘッダーのリセットと同じく確認を挟む。
+  // click で受けるのは、confirm 中に pointerup を取りこぼさないため
+  counterFullReset.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (counterState.count === 0) return;
+    if (!confirm("カウンターを0に戻します。よろしいですか？")) return;
+    counterState.count = 0;
+    saveCounter();
+    renderCounter();
   });
 
   counterFullClose.addEventListener("pointerdown", function (e) {
@@ -3949,11 +3908,13 @@
   // ==================== バックアップ ====================
   var BACKUP_KEYS = ["pace-assets", "pace-pv", "pace-house", "pace-invest",
     "pace-fuel-v2", "pace-fuel", "pace-fx", "pace-fx-manual", "pace-counter", "pace-cost", "pace-jeonse",
-    "pace-daily-stats", "maai-counter", "maai-daily-stats", "maai-ambient", "maai-ambient-vol"];
+    "pace-daily-stats", "maai-counter", "maai-daily-stats", "maai-ambient", "maai-ambient-vol",
+    "maai-feedback"];
   var KEY_LABEL = {
     "pace-assets": "資産テーブル", "pace-pv": "現在価値の記録", "pace-house": "家賃vs保有",
     "pace-invest": "株vs不動産", "pace-cost": "住居の重み", "pace-jeonse": "チョンセ融資", "pace-fuel-v2": "給油くらべ", "pace-fx": "為替の設定",
-    "pace-fx-manual": "両替所レート", "maai-counter": "カウンター", "maai-daily-stats": "今日の集中記録"
+    "pace-fx-manual": "両替所レート", "maai-counter": "カウンター", "maai-daily-stats": "今日の集中記録",
+    "maai-feedback": "送った意見"
   };
 
   var bkArea = document.getElementById("bkArea");
@@ -4056,6 +4017,123 @@
     bkStatus.textContent = "消去しました。画面を再読み込みします…";
     setTimeout(function () { location.reload(); }, 900);
   });
+
+
+  // ==================== 意見を送る ====================
+  // ユーザーから開発側への一方向。返信の経路は持たない。
+  // 送り先が未設定のあいだは端末内に溜め、設定後に自動で送り直す。
+  // 送信は「送る」を押したときだけ。自動で外に出るものは何もない。
+  var FEEDBACK_ENDPOINT = "";   // 例: "https://maai-feedback.xxx.workers.dev"
+
+  var fbText = document.getElementById("fbText");
+  var fbCount = document.getElementById("fbCount");
+  var fbAttachUsage = document.getElementById("fbAttachUsage");
+  var fbSend = document.getElementById("fbSend");
+  var fbStatus = document.getElementById("fbStatus");
+  var fbListEl = document.getElementById("fbList");
+
+  var fbOutbox = loadJSON("maai-feedback", []);
+  function saveOutbox() { saveJSON("maai-feedback", fbOutbox); }
+
+  function fbWhen(ts) {
+    var d = new Date(ts);
+    return d.getFullYear() + "-" +
+      ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2) +
+      " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+  }
+
+  function renderFbList() {
+    fbListEl.innerHTML = "";
+    if (!fbOutbox.length) return;
+    fbOutbox.slice().reverse().slice(0, 20).forEach(function (e) {
+      var row = document.createElement("div");
+      row.className = "fb-item";
+
+      var when = document.createElement("span");
+      when.className = "fb-when";
+      when.textContent = fbWhen(e.at);
+
+      var body = document.createElement("span");
+      body.className = "fb-body";
+      body.textContent = e.text;
+
+      var st = document.createElement("span");
+      st.className = "fb-state";
+      st.setAttribute("data-sent", e.sent ? "true" : "false");
+      st.textContent = e.sent ? "送信済み" : "未送信（この端末に保存しています）";
+
+      row.appendChild(when);
+      row.appendChild(body);
+      row.appendChild(st);
+      fbListEl.appendChild(row);
+    });
+  }
+
+  // 添える利用記録は「どの道具を何回開いたか」だけ。
+  // 入力した金額や条件は一切含めない
+  function usageSnapshot() {
+    var out = {};
+    Object.keys(usage).forEach(function (k) {
+      if (VIEWS[k] && k !== "settings") out[tabLabel(k)] = usage[k];
+    });
+    return out;
+  }
+
+  function trySendOutbox() {
+    if (!FEEDBACK_ENDPOINT) return Promise.resolve(0);
+    var pending = fbOutbox.filter(function (e) { return !e.sent; });
+    if (!pending.length) return Promise.resolve(0);
+
+    return Promise.all(pending.map(function (e) {
+      return fetch(FEEDBACK_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: e.id, at: e.at, text: e.text, usage: e.usage || null })
+      }).then(function (res) {
+        if (res.ok) e.sent = true;
+      }).catch(function () { /* 圏外などは次回に持ち越す */ });
+    })).then(function () {
+      saveOutbox();
+      renderFbList();
+      return pending.filter(function (e) { return e.sent; }).length;
+    });
+  }
+
+  fbText.addEventListener("input", function () {
+    fbCount.textContent = fbText.value.length + " / 1000";
+  });
+
+  fbSend.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var t = fbText.value.trim();
+    if (!t) { fbStatus.textContent = "内容が空です。"; return; }
+
+    var entry = {
+      id: String(Date.now()) + "-" + Math.random().toString(36).slice(2, 8),
+      at: Date.now(),
+      text: t,
+      sent: false
+    };
+    if (fbAttachUsage.checked) entry.usage = usageSnapshot();
+
+    fbOutbox.push(entry);
+    saveOutbox();
+    fbText.value = "";
+    fbCount.textContent = "0 / 1000";
+    renderFbList();
+
+    if (!FEEDBACK_ENDPOINT) {
+      fbStatus.textContent = "この端末に保存しました。送り先が用意でき次第、自動で届きます。";
+      return;
+    }
+    fbStatus.textContent = "送信中…";
+    trySendOutbox().then(function (n) {
+      fbStatus.textContent = n > 0 ? "送信しました。ありがとうございます。"
+        : "いまは送れませんでした。端末に残してあるので、次に開いたときに送り直します。";
+    });
+  });
+
+  renderFbList();
 
 
   // ==================== 住居の重み ====================
@@ -4223,24 +4301,25 @@
 
 
   // ==================== ホーム（メニュー） ====================
+  // 群の名前は対象を表す名詞ひとつに揃える。
+  // 「はかる／くらべる」（動詞）と「お金と住まい」（対象）が混ざっていたため、
+  // 家賃vs保有のように文字どおり"くらべる"道具が別の群に散っていた
   var MENU_GROUPS = [
-    { head: "はかる", tone: "sky", keys: ["timer", "stopwatch", "counter"] },
-    { head: "くらべる", tone: "sea", keys: ["fuel", "fx", "pv"] },
-    { head: "お金と住まい", tone: "leaf", keys: ["cost", "asset", "house", "jeonse", "invest"] },
-    { head: "その他", tone: "wood", keys: ["settings"] }
+    { head: "時間", tone: "sky", keys: ["timer", "stopwatch", "counter"] },
+    { head: "お金", tone: "sea", keys: ["fuel", "fx", "pv", "asset"] },
+    { head: "住まい", tone: "leaf", keys: ["cost", "house", "jeonse", "invest"] }
   ];
 
-  // ホームのタイルには出さないが、検索では拾えるページ
-  var HIDDEN_KEYS = ["about"];
+  // ホームのタイルには出さないが、検索では拾えるページ。
+  // 設定は道具ではないので棚に並べず、ホーム上部の入口から開く
+  var HIDDEN_KEYS = ["about", "settings"];
 
   var menuGridEl = document.getElementById("menuGrid");
   var backBtn = document.getElementById("backBtn");
   var currentToolEl = document.getElementById("currentTool");
 
   function tabLabel(key) {
-    var btn = document.getElementById(VIEWS[key].tab);
-    var name = btn && btn.querySelector(".tab-name");
-    return name ? name.textContent : key;
+    return TOOL_NAME[key] || key;
   }
 
   // 道具ごとの検索キーワード（かな・漢字・ローマ字・韓国語・英語）
@@ -4275,6 +4354,11 @@
     settings:  "バックアップと保存データ",
     about:     "各道具の計算式と前提"
   };
+
+  document.getElementById("menuSettingsBtn").addEventListener("click", function (e) {
+    e.stopPropagation();
+    setActiveTab("settings");
+  });
 
   var menuSearchEl = document.getElementById("menuSearch");
   var menuSearchClear = document.getElementById("menuSearchClear");
