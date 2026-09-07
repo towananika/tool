@@ -422,6 +422,73 @@
     font-size: 22px;
   }
 
+  /* 全体モード — 画面ぜんぶを数える面にする。
+     押す場所を狙わなくていいので、手元を見ずに数え続けられる */
+  .counter-full[hidden] { display: none; }
+
+  .counter-full {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .counter-full-tap {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    cursor: pointer;
+    transition: background 0.12s ease;
+  }
+
+  .counter-full-tap[data-hit="true"] { background: var(--wood-soft); }
+
+  .counter-full-value {
+    font-size: 26vmin;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--wood);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    transition: transform 0.12s ease;
+  }
+
+  .counter-full-value[data-bump="true"] { transform: scale(1.04); }
+
+  .counter-full-hint {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .counter-full-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 20px 22px;
+  }
+
+  .counter-full-bar .icon-btn {
+    width: 52px;
+    height: 52px;
+    font-size: 24px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .counter-full-value, .counter-full-tap { transition: none; }
+  }
+
   .break-hint {
     min-height: 28px;
     font-size: 13px;
@@ -676,7 +743,7 @@
   .brightness-overlay {
     position: absolute;
     inset: 0;
-    background: #0c0e18;
+    background: #070a12;
     opacity: 0;
     transition: opacity 3s ease;
     pointer-events: none;
@@ -689,7 +756,19 @@
     color: var(--sc-text, var(--text));
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.02em;
-    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+    transition: color 3s ease;
+  }
+
+  /* タイマー作動中は残り時間を主役にする */
+  .sc-sub {
+    position: relative;
+    margin: 0;
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    color: var(--sc-text, var(--text-muted));
+    opacity: 0.75;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.3);
     transition: color 3s ease;
   }
 
@@ -1217,7 +1296,7 @@
               <input type="number" id="lonInput" step="0.01" inputmode="decimal">
             </div>
           </div>
-          <button class="chip" id="screensaverBtn">全体表示（スクリーンセーバー）</button>
+          <button class="chip" id="screensaverBtn">全体モード</button>
         </div>
       </div>
     </div>
@@ -1243,6 +1322,9 @@
           <input type="number" id="counterStep" value="1" min="1" max="1000" inputmode="numeric">
           <button data-step="1" data-target="counterStep" aria-label="増減幅を増やす">＋</button>
         </div>
+      </div>
+      <div class="field-row">
+        <button class="chip" id="counterFullBtn">全体モード</button>
       </div>
     </div>
   </div>
@@ -1522,6 +1604,17 @@
   <a href="about.html">計算式と前提</a>
 </footer>
 
+<div class="counter-full" id="counterFull" hidden>
+  <div class="counter-full-tap" id="counterFullTap" data-hit="false">
+    <span class="counter-full-value" id="counterFullValue" data-bump="false">0</span>
+    <p class="counter-full-hint" id="counterFullHint">画面のどこでもタップして数える</p>
+  </div>
+  <div class="counter-full-bar">
+    <button class="icon-btn" id="counterFullMinus" aria-label="1減らす" title="減らす">−</button>
+    <button class="chip" id="counterFullClose">閉じる</button>
+  </div>
+</div>
+
 <div class="screensaver" id="screensaver" hidden>
   <div class="landscape">
     <svg viewBox="0 0 400 160" preserveAspectRatio="none">
@@ -1532,6 +1625,7 @@
   </div>
   <div class="brightness-overlay" id="brightnessOverlay"></div>
   <div class="clock" id="screensaverClock">--:--</div>
+  <p class="sc-sub" id="screensaverSub" hidden></p>
   <p class="screensaver-hint">タップで戻る</p>
 </div>
 
@@ -1566,6 +1660,13 @@
   var counterMinus = document.getElementById("counterMinus");
   var counterSettings = document.getElementById("counterSettings");
   var counterStepInput = document.getElementById("counterStep");
+  var counterFullBtn = document.getElementById("counterFullBtn");
+  var counterFull = document.getElementById("counterFull");
+  var counterFullTap = document.getElementById("counterFullTap");
+  var counterFullValue = document.getElementById("counterFullValue");
+  var counterFullHint = document.getElementById("counterFullHint");
+  var counterFullMinus = document.getElementById("counterFullMinus");
+  var counterFullClose = document.getElementById("counterFullClose");
   var ambientToggle = document.getElementById("ambientToggle");
   var ambientVolumeRow = document.getElementById("ambientVolumeRow");
   var ambientVolumeInput = document.getElementById("ambientVolume");
@@ -1578,6 +1679,7 @@
   var screensaverEl = document.getElementById("screensaver");
   var brightnessOverlay = document.getElementById("brightnessOverlay");
   var screensaverClock = document.getElementById("screensaverClock");
+  var screensaverSub = document.getElementById("screensaverSub");
 
   ringProgress.style.strokeDasharray = CIRC;
 
@@ -1875,8 +1977,18 @@
 
 
   // --- Counter ---
+  var counterBumpTimer = null;
+
   function renderCounter() {
-    counterValue.textContent = String(counterState.count);
+    var text = String(counterState.count);
+    counterValue.textContent = text;
+    if (!counterFullValue) return;
+    counterFullValue.textContent = text;
+    counterFullValue.setAttribute("data-bump", "true");
+    clearTimeout(counterBumpTimer);
+    counterBumpTimer = setTimeout(function () {
+      counterFullValue.setAttribute("data-bump", "false");
+    }, 120);
   }
 
   var SPARKLE_ICONS = ["✨", "⭐", "🌸", "🍀", "💫", "🎯", "🔥", "⚡"];
@@ -1901,13 +2013,20 @@
     try { if (navigator.vibrate) navigator.vibrate(ms); } catch (e) {}
   }
 
+  // 10 の区切りをまたいだかどうかで判定する。
+  // count % 10 では、増減幅が 3 のときに 10 の倍数を踏まないので一度も鳴らない
+  function crossedTen(before, after) {
+    return Math.floor(before / 10) !== Math.floor(after / 10);
+  }
+
   function counterIncrement() {
+    var before = counterState.count;
     counterState.count += counterState.step;
     saveCounter();
     renderCounter();
     spawnSparkle();
     vibrate(10);
-    if (counterState.count !== 0 && counterState.count % 10 === 0) {
+    if (crossedTen(before, counterState.count)) {
       playMilestone();
     } else {
       playClick(true);
@@ -1915,11 +2034,12 @@
   }
 
   function counterDecrement() {
+    var before = counterState.count;
     counterState.count -= counterState.step;
     saveCounter();
     renderCounter();
     vibrate(10);
-    if (counterState.count !== 0 && counterState.count % 10 === 0) {
+    if (crossedTen(before, counterState.count)) {
       playMilestone();
     } else {
       playClick(false);
@@ -1955,6 +2075,84 @@
   });
 
   counterStepInput.addEventListener("click", function (e) { e.stopPropagation(); });
+
+  // --- 全体モード ---
+  // 画面ぜんぶを数える面にする。押す場所を探さなくていいので、
+  // 手元を見ずに数え続けられる（モバイルの数取器としての使い方）
+  var counterWakeLock = null;
+
+  // 数えている間は画面を消さない。消えると数え直しになるため
+  function counterKeepAwake() {
+    try {
+      if (!("wakeLock" in navigator)) return;
+      navigator.wakeLock.request("screen").then(function (lock) {
+        counterWakeLock = lock;
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function counterReleaseAwake() {
+    try { if (counterWakeLock) counterWakeLock.release(); } catch (e) {}
+    counterWakeLock = null;
+  }
+
+  function openCounterFull() {
+    counterFullHint.textContent = counterState.step === 1
+      ? "画面のどこでもタップして数える"
+      : "画面のどこでもタップして ＋" + counterState.step;
+    counterFull.hidden = false;
+    renderCounter();
+    counterKeepAwake();
+  }
+
+  function closeCounterFull() {
+    counterFull.hidden = true;
+    counterReleaseAwake();
+  }
+
+  counterFullBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    openCounterFull();
+  });
+
+  counterFullTap.addEventListener("pointerdown", function (e) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    e.preventDefault();
+    counterFullTap.setAttribute("data-hit", "true");
+    counterIncrement();
+  });
+
+  ["pointerup", "pointercancel", "pointerleave"].forEach(function (ev) {
+    counterFullTap.addEventListener(ev, function () {
+      counterFullTap.setAttribute("data-hit", "false");
+    });
+  });
+
+  counterFullMinus.addEventListener("pointerdown", function (e) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    counterDecrement();
+  });
+
+  counterFullClose.addEventListener("pointerdown", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    closeCounterFull();
+  });
+
+  // 画面が戻ってきたら wake lock を取り直す（OS が自動で解放するため）
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState !== "visible") return;
+    if (!counterFull.hidden && !counterWakeLock) counterKeepAwake();
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (!counterFull.hidden && e.key === "Escape") {
+      e.preventDefault();
+      closeCounterFull();
+    }
+  });
 
   document.addEventListener("keydown", function (e) {
     if (activeTab !== "counter") return;
@@ -2575,7 +2773,7 @@
     var phaseLabel = { dawn: "朝焼け", day: "昼", dusk: "夕焼け", night: "夜" }[sky.phase];
     daylightStatus.textContent = daylightState.source + " ／ 今: " + phaseLabel +
       "（日の出 " + formatClock2(sky.sun.sunrise) + " ・ 日の入り " + formatClock2(sky.sun.sunset) + "）";
-    renderScreensaver(sky);
+    renderScreensaver();
   }
 
   function formatClock2(d) {
@@ -2583,14 +2781,79 @@
     return (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m);
   }
 
-  function renderScreensaver(sky) {
+  // ==================== 全体モードの風景 ====================
+  // 空・太陽・稜線を1枚のSVGで描き、時刻に応じて「色だけ」を差し替える。
+  // 形を作り直さないので、1秒ごとに更新しても負荷がほとんどない。
+
+  // 位置情報があれば実際の日の出・日の入りを、無ければ端末の時刻から推定した
+  // 6:30 / 18:30 を使う。どちらでも同じ形の { phase, brightness, sun } を返す
+  function skyPhaseAt(t, sunrise, sunset) {
+    var twilight = 40 * 60 * 1000;
+    var phase, brightness;
+    if (t >= sunrise - twilight && t < sunrise + twilight) phase = "dawn";
+    else if (t >= sunrise + twilight && t < sunset - twilight) phase = "day";
+    else if (t >= sunset - twilight && t < sunset + twilight) phase = "dusk";
+    else phase = "night";
+
+    if (t <= sunrise - twilight || t >= sunset + twilight) brightness = 0;
+    else if (t < sunrise + twilight) brightness = (t - (sunrise - twilight)) / (twilight * 2);
+    else if (t <= sunset - twilight) brightness = 1;
+    else brightness = 1 - (t - (sunset - twilight)) / (twilight * 2);
+
+    return { phase: phase, brightness: Math.max(0, Math.min(1, brightness)) };
+  }
+
+  function currentSky() {
+    var now = new Date();
+    if (daylightState.lat !== null) {
+      var sky = computeSky(now, daylightState.lat, daylightState.lon);
+      sky.estimated = false;
+      return sky;
+    }
+    var sunrise = new Date(now); sunrise.setHours(6, 30, 0, 0);
+    var sunset = new Date(now); sunset.setHours(18, 30, 0, 0);
+    var s = skyPhaseAt(now.getTime(), sunrise.getTime(), sunset.getTime());
+    return {
+      phase: s.phase, brightness: s.brightness,
+      sun: { sunrise: sunrise, sunset: sunset }, estimated: true
+    };
+  }
+
+  // 位置情報がある場合は computeSky が色を持っている。
+  // 無い場合はここで同じ配色から作る（昼夜の中間色では朝夕の赤が出ないので薄明色を別に混ぜる）
+  function skyColorFor(sky) {
+    if (sky.color) return sky.color;
+    var b = sky.brightness;
+    var warm = Math.max(0, 1 - Math.abs(b - 0.5) * 2) * 0.9;
+    var base = [
+      Math.round(SKY_NIGHT[0] + (SKY_DAY[0] - SKY_NIGHT[0]) * b),
+      Math.round(SKY_NIGHT[1] + (SKY_DAY[1] - SKY_NIGHT[1]) * b),
+      Math.round(SKY_NIGHT[2] + (SKY_DAY[2] - SKY_NIGHT[2]) * b)
+    ];
+    var twi = sky.phase === "dawn" ? SKY_DAWN : SKY_DUSK;
+    return mixColor(base, twi, warm);
+  }
+
+
+  function renderScreensaver() {
     if (screensaverEl.hidden) return;
-    // brightness 1 (noon) -> 0 (deep night): darken the whole view accordingly
-    var darkness = (1 - sky.brightness) * 0.82;
-    brightnessOverlay.style.opacity = darkness;
-    var isDark = sky.brightness < 0.45;
-    document.documentElement.style.setProperty("--sc-text", isDark ? "#f2ede2" : "#2b2924");
-    screensaverClock.textContent = formatClock2(new Date());
+    var sky = currentSky();
+
+    // 背景は一色。絵は置かず、時刻に応じた明るさの変化だけで時間を表す
+    screensaverEl.style.background = skyColorFor(sky);
+    brightnessOverlay.style.opacity = ((1 - sky.brightness) * 0.5).toFixed(3);
+    document.documentElement.style.setProperty("--sc-text", sky.brightness < 0.5 ? "#f2ede2" : "#2b2924");
+
+    // タイマー作動中は残り時間、そうでなければ時計
+    if (state.started) {
+      screensaverClock.textContent = formatClock(state.remaining);
+      screensaverSub.hidden = false;
+      screensaverSub.textContent = state.mode === "focus" ? "集中" : "休憩";
+    } else {
+      screensaverClock.textContent = formatClock2(new Date());
+      screensaverSub.hidden = true;
+    }
+
   }
 
   function startDaylightLoop() {
@@ -2658,18 +2921,30 @@
   latInput.addEventListener("click", function (e) { e.stopPropagation(); });
   lonInput.addEventListener("click", function (e) { e.stopPropagation(); });
 
+  // 位置情報がなくても開ける。その場合は端末の時刻から日照を推定する
+  var screensaverWakeLock = null;
+
   function openScreensaver() {
-    if (daylightState.lat === null) return;
     screensaverEl.hidden = false;
-    applyDaylight();
-    daylightState.screensaverIntervalId = setInterval(applyDaylight, 1000);
+    renderScreensaver();
+    daylightState.screensaverIntervalId = setInterval(renderScreensaver, 1000);
+    try {
+      if ("wakeLock" in navigator) {
+        navigator.wakeLock.request("screen").then(function (lock) {
+          screensaverWakeLock = lock;
+        }).catch(function () {});
+      }
+    } catch (e) {}
   }
 
   function closeScreensaver() {
     screensaverEl.hidden = true;
     if (daylightState.screensaverIntervalId) clearInterval(daylightState.screensaverIntervalId);
     daylightState.screensaverIntervalId = null;
+    try { if (screensaverWakeLock) screensaverWakeLock.release(); } catch (e) {}
+    screensaverWakeLock = null;
   }
+
 
   screensaverBtn.addEventListener("click", function (e) {
     e.stopPropagation();
