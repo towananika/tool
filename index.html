@@ -1,13 +1,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>間合い — 暮らしの判断を数字にする道具箱</title>
-<meta name="description" content="タイマー・ストップウォッチ・カウンターに加え、給油所の比較、為替の3層比較、現在価値、資産の棚卸し、家賃と持ち家の比較、株と不動産の比較、韓国の청년 전세대출の損得計算までを1枚のページにまとめた無料の計算道具。計算式と前提はすべて公開。データは端末内にのみ保存。">
+<meta name="description" content="タイマー・ストップウォッチ・カウンターに加え、給油所の比較、為替の3層比較、現在価値、資産の棚卸し、家賃と持ち家の比較、株と不動産の比較、韓国の청년 전세대출の損得計算までを1枚のページにまとめた無料の計算道具。計算式と前提はすべて公開。計算データは端末内にのみ保存し、外に出るのは自分で書いて送った意見だけ。">
 <meta name="author" content="towananika">
 <link rel="canonical" href="https://towananika.github.io/tool/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="間合い / Maai">
 <meta property="og:title" content="間合い — 暮らしの判断を数字にする道具箱">
-<meta property="og:description" content="家賃と持ち家、株と不動産、給油所の遠近、両替所と銀行。迷う場面を数字で比べる11の道具。計算式は全公開、データは端末内のみ。">
+<meta property="og:description" content="家賃と持ち家、株と不動産、給油所の遠近、両替所と銀行。迷う場面を数字で比べる11の道具。計算式は全公開。計算データは端末内のみ、送信は意見を送ったときだけ。">
 <meta property="og:url" content="https://towananika.github.io/tool/">
 <meta property="og:locale" content="ja_JP">
 <meta name="twitter:card" content="summary">
@@ -30,7 +30,7 @@
       "isAccessibleForFree": true,
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" },
       "license": "https://opensource.org/licenses/MIT",
-      "description": "暮らしの判断を数字で比べるための計算道具。計算式と前提を公開し、入力データは利用者の端末内にのみ保存する。",
+      "description": "暮らしの判断を数字で比べるための計算道具。計算式と前提を公開し、入力した計算データは利用者の端末内にのみ保存する。外部に送信されるのは、利用者が自ら書いて送信した意見だけである。",
       "featureList": [
         "ポモドーロタイマー（集中と休憩の切り替え、アンビエントノイズ、日照連動）",
         "ストップウォッチ（ラップ計測）",
@@ -4023,7 +4023,7 @@
   // ユーザーから開発側への一方向。返信の経路は持たない。
   // 送り先が未設定のあいだは端末内に溜め、設定後に自動で送り直す。
   // 送信は「送る」を押したときだけ。自動で外に出るものは何もない。
-  var FEEDBACK_ENDPOINT = "";   // 例: "https://maai-feedback.xxx.workers.dev"
+  var FEEDBACK_ENDPOINT = "https://maai-feedback.jaykim-can.workers.dev";
 
   var fbText = document.getElementById("fbText");
   var fbCount = document.getElementById("fbCount");

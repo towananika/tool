@@ -32,6 +32,11 @@ export default {
       return adminList(request, env);
     }
 
+    // ブラウザでURLを開いたときに、動いているかどうかだけ分かるようにする
+    if (request.method === "GET") {
+      return json({ ok: true, service: "maai-feedback" }, 200);
+    }
+
     if (request.method !== "POST") {
       return json({ error: "not found" }, 404);
     }
@@ -60,9 +65,10 @@ async function receive(request, env) {
   if (!text) return json({ error: "empty" }, 400);
   if (text.length > MAX_TEXT) return json({ error: "too long" }, 400);
 
-  // 同じ投稿が二重に届いても1件として扱う（圏外からの送り直しがあるため）
+  // 同じ投稿が二重に届いても1件として扱う（圏外からの送り直しがあるため）。
+  // 鍵に日付を含めると、日をまたいだ再送が別件になってしまうのでidだけで引く
   const id = String(body.id || "").slice(0, 64) || crypto.randomUUID();
-  const key = "fb:" + new Date().toISOString().slice(0, 10) + ":" + id;
+  const key = "fb:" + id;
 
   const record = {
     id,
