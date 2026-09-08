@@ -680,6 +680,10 @@
 
   .screensaver[hidden] { display: none; }
 
+  /* 全体モードは画面を覆うだけで、背後のページはスクロールできる状態のまま。
+     そのままだと右端にスクロールバーが残るので、開いている間は止める */
+  body[data-full="true"] { overflow: hidden; }
+
   .screensaver {
     position: fixed;
     inset: 0;
@@ -2172,12 +2176,14 @@
       ? "画面のどこでもタップして数える"
       : "画面のどこでもタップして ＋" + counterState.step;
     counterFull.hidden = false;
+    syncScrollLock();
     renderCounter();
     counterKeepAwake();
   }
 
   function closeCounterFull() {
     counterFull.hidden = true;
+    syncScrollLock();
     counterReleaseAwake();
   }
 
@@ -3064,8 +3070,16 @@
   // 位置情報がなくても開ける。その場合は端末の時刻から日照を推定する
   var screensaverWakeLock = null;
 
+  // 全体モード（タイマー・カウンター）のどちらかが開いている間は、背後のスクロールを止める
+  function syncScrollLock() {
+    var open = !screensaverEl.hidden || !counterFull.hidden;
+    if (open) document.body.setAttribute("data-full", "true");
+    else document.body.removeAttribute("data-full");
+  }
+
   function openScreensaver() {
     screensaverEl.hidden = false;
+    syncScrollLock();
     renderScreensaver();
     daylightState.screensaverIntervalId = setInterval(renderScreensaver, 1000);
     try {
@@ -3079,6 +3093,7 @@
 
   function closeScreensaver() {
     screensaverEl.hidden = true;
+    syncScrollLock();
     if (daylightState.screensaverIntervalId) clearInterval(daylightState.screensaverIntervalId);
     daylightState.screensaverIntervalId = null;
     try { if (screensaverWakeLock) screensaverWakeLock.release(); } catch (e) {}
