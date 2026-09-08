@@ -3559,19 +3559,30 @@
         ? "銀行の現金レートで受け取る額 ／ 両替所レートは詳細から入力"
         : "基準レートで受け取る額 ／ 実際の窓口はこれより不利になる";
 
-    // 比較行
-    if (primary.key === "manual") {
-      var bank = candidates[1], base = candidates[0];
-      function pct(a, b) { return ((a - b) / b) * 100; }   // 受取額ベース（多いほど得）
-      var vsBank = pct(primary.out, bank.out);
-      var vsBase = pct(primary.out, base.out);
-      var good = vsBank >= 0;
+    // 比較行。基準との差を「金額」で出す。%だけだと損の大きさが実感できない
+    var baseRow = candidates[0];
+    var bankRow = candidates.filter(function (c) { return c.key === "bank"; })[0];
+    function pct(a, b) { return ((a - b) / b) * 100; }   // 受取額ベース（多いほど得）
+    function diffText(row, label) {
+      var d = primary.out - row.out;                     // + なら得、- なら損
+      var unit = fxBuyingForeign() ? fxForeign() : "KRW";
+      var body = fmt(Math.abs(d), fxDigits()) + " " + unit +
+                 (d >= 0 ? " 多い" : " 少ない") +
+                 "（" + (d >= 0 ? "+" : "−") + Math.abs(pct(primary.out, row.out)).toFixed(2) + "%）";
       var span = document.createElement("span");
-      span.innerHTML = '銀行より <b class="d1"></b> ／ 基準より <span class="d2"></span>';
-      span.querySelector(".d1").textContent = (vsBank >= 0 ? "+" : "") + vsBank.toFixed(2) + "%";
-      span.querySelector(".d1").style.color = good ? "var(--sage)" : "var(--wood)";
-      span.querySelector(".d2").textContent = (vsBase >= 0 ? "+" : "") + vsBase.toFixed(2) + "%";
-      fxCompareLine.appendChild(span);
+      span.textContent = label + "より " + body;
+      span.style.color = d >= 0 ? "var(--sage)" : "var(--wood)";
+      return span;
+    }
+    if (primary.key !== "base") {
+      fxCompareLine.appendChild(diffText(baseRow, "基準"));
+      if (primary.key === "manual" && bankRow) {
+        var sep = document.createElement("span");
+        sep.textContent = " ／ ";
+        sep.style.color = "var(--muted)";
+        fxCompareLine.appendChild(sep);
+        fxCompareLine.appendChild(diffText(bankRow, "銀行"));
+      }
     }
 
     // 詳細テーブル

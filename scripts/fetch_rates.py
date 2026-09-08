@@ -32,7 +32,9 @@ DUNAMU = "https://quotation-api-cdn.dunamu.com/v1/forex/recent?codes=" + ",".joi
 ERAPI = "https://open.er-api.com/v6/latest/KRW"
 
 KST = timezone(timedelta(hours=9))
-OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "rates.json")
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT = os.path.join(ROOT, "rates.json")
+HIST_DAYS = 180   # 半年ぶん。「この数ヶ月で高いか安いか」が言えれば足りる
 
 
 def get(url):
@@ -89,6 +91,29 @@ def from_erapi():
     return rates or None
 
 
+def merged_history(prev, rates, day):
+    """1日1件、通貨ごとの基準レートだけを積む。同じ日は最後の取得で上書きする。
+
+    履歴は rates.json の中に入れる。ファイルを分けると Actions 側の
+    コミット対象を増やす必要があり、そこは触れる権限がないため。
+    """
+    days = [d for d in (prev.get("history") or []) if d.get("date") != day]
+    days.append({
+        "date": day,
+        "base": {cur: r["base"] for cur, r in rates.items() if r.get("base")},
+    })
+    days.sort(key=lambda d: d["date"])
+    return days[-HIST_DAYS:]
+
+
+def read_prev():
+    try:
+        with open(OUT, encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
 SOURCES = [
     ("dunamu quotation api", from_dunamu),
     ("open.er-api.com", from_erapi),
@@ -107,6 +132,8 @@ def main():
             errors.append(label + ": レートが1件も取れなかった")
             continue
 
+        prev = read_prev()
+        history = merged_history(prev, rates, datetime.now(KST).strftime("%Y-%m-%d"))
         has_cash = any(r.get("cashBuy") for r in rates.values())
         out = {
             "updated": datetime.now(KST).isoformat(timespec="seconds"),
@@ -116,6 +143,7 @@ def main():
                     + ("cashBuy=현찰 살 때, cashSell=현찰 팔 때"
                        if has_cash else "この取得元では基準レートのみ。現金の売買レートは入らない。"),
             "rates": rates,
+            "history": history,
         }
         with open(OUT, "w", encoding="utf-8") as f:
             json.dump(out, f, ensure_ascii=False, indent=2)
@@ -124,6 +152,7 @@ def main():
         for line in errors:
             print("skipped:", line, file=sys.stderr)
         print("wrote", OUT, "/ source:", label, "/", ", ".join(sorted(rates)))
+        print("history:", len(history), "days")
         return 0
 
     for line in errors:
