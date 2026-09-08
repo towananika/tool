@@ -390,6 +390,18 @@
 
   /* 全体モード — 画面ぜんぶを数える面にする。
      押す場所を狙わなくていいので、手元を見ずに数え続けられる */
+  .count-log { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+  .count-log-head { margin: 0 0 8px; font-size: 12px; color: var(--muted); letter-spacing: .04em; }
+  .count-log-list { list-style: none; margin: 0; padding: 0; }
+  .count-log-list li {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 5px 0; font-size: 13px; border-bottom: 1px solid var(--line);
+  }
+  .count-log-list li:last-child { border-bottom: 0; }
+  .count-log-list .when { color: var(--muted); font-size: 12px; }
+  .count-log-list .num { font-variant-numeric: tabular-nums; }
+  .count-log-bar { display: flex; gap: 8px; margin-top: 10px; }
+
   .counter-full[hidden] { display: none; }
 
   .counter-full {
@@ -1359,6 +1371,14 @@
       <div class="field-row">
         <button class="chip" id="counterFullBtn">全体モード</button>
       </div>
+      <div class="count-log" id="countLog" hidden>
+        <p class="count-log-head">数え終わった記録</p>
+        <ul class="count-log-list" id="countLogList"></ul>
+        <div class="count-log-bar">
+          <button class="chip" id="countLogCopy">写す</button>
+          <button class="chip" id="countLogClear">消す</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -2238,9 +2258,65 @@
     clearTimeout(undoTimer);
   }
 
+  // ==================== 数え終わった記録 ====================
+  // 毎日使う道具なので、0に戻した瞬間が「1回ぶん数え終わった」時点になる。
+  // ここを捨てていたため、昨日いくつだったかが分からなかった。
+  var COUNT_LOG_MAX = 60;
+  var countLog = [];
+  var countLogEl = document.getElementById("countLog");
+  var countLogList = document.getElementById("countLogList");
+
+  function loadCountLog() {
+    try {
+      var raw = JSON.parse(localStorage.getItem("maai-counter-log") || "[]");
+      if (Array.isArray(raw)) countLog = raw.filter(function (r) { return r && r.count; });
+    } catch (e) {}
+  }
+  function saveCountLog() {
+    try { localStorage.setItem("maai-counter-log", JSON.stringify(countLog)); } catch (e) {}
+  }
+  function countLogText() {
+    return countLog.map(function (r) { return r.at + String.fromCharCode(9) + r.count; })
+      .join(String.fromCharCode(10));
+  }
+  function renderCountLog() {
+    countLogEl.hidden = countLog.length === 0;
+    countLogList.innerHTML = "";
+    countLog.slice(0, 7).forEach(function (r) {
+      var li = document.createElement("li");
+      var w = document.createElement("span"); w.className = "when"; w.textContent = r.at;
+      var n = document.createElement("span"); n.className = "num"; n.textContent = r.count.toLocaleString();
+      li.appendChild(w); li.appendChild(n);
+      countLogList.appendChild(li);
+    });
+  }
+  document.getElementById("countLogCopy").addEventListener("click", function (e) {
+    e.stopPropagation();
+    var btn = e.currentTarget, text = countLogText();
+    function done(ok) { btn.textContent = ok ? "写した" : "写せない"; setTimeout(function () { btn.textContent = "写す"; }, 1600); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+    } else { done(false); }
+  });
+  document.getElementById("countLogClear").addEventListener("click", function (e) {
+    e.stopPropagation();
+    countLog = [];
+    saveCountLog();
+    renderCountLog();
+  });
+
   function resetCounter() {
     if (counterState.count === 0) return;
     undoValue = counterState.count;
+    var d = new Date();
+    function p2(n) { return n < 10 ? "0" + n : "" + n; }
+    countLog.unshift({
+      at: (d.getMonth() + 1) + "/" + d.getDate() + " " + p2(d.getHours()) + ":" + p2(d.getMinutes()),
+      count: counterState.count
+    });
+    countLog = countLog.slice(0, COUNT_LOG_MAX);
+    saveCountLog();
+    renderCountLog();
     counterState.count = 0;
     saveCounter();
     renderCounter();
@@ -2258,6 +2334,9 @@
     e.stopPropagation();
     if (undoValue === null) return;
     counterState.count = undoValue;
+    countLog.shift();          // 戻したなら記録も残さない
+    saveCountLog();
+    renderCountLog();
     saveCounter();
     renderCounter();
     hideUndo();
@@ -3152,6 +3231,8 @@
     saveDaylightPrefs({ enabled: daylightToggle.checked });
   });
 
+  loadCountLog();
+  renderCountLog();
   counterStepInput.value = counterState.step;
   renderCounter();
 
@@ -4148,12 +4229,12 @@
   // ==================== バックアップ ====================
   var BACKUP_KEYS = ["pace-assets", "pace-pv", "pace-house", "pace-invest",
     "pace-fuel-v2", "pace-fuel", "pace-fx", "pace-fx-manual", "pace-counter", "pace-cost", "pace-jeonse",
-    "pace-daily-stats", "maai-counter", "maai-daily-stats", "maai-ambient", "maai-ambient-vol",
+    "pace-daily-stats", "maai-counter", "maai-counter-log", "maai-daily-stats", "maai-ambient", "maai-ambient-vol",
     "maai-feedback", "maai-alarm"];
   var KEY_LABEL = {
     "pace-assets": "資産テーブル", "pace-pv": "現在価値の記録", "pace-house": "家賃vs保有",
     "pace-invest": "株vs不動産", "pace-cost": "住居の重み", "pace-jeonse": "チョンセ融資", "pace-fuel-v2": "給油くらべ", "pace-fx": "為替の設定",
-    "pace-fx-manual": "両替所レート", "maai-counter": "カウンター", "maai-daily-stats": "今日の集中記録",
+    "pace-fx-manual": "両替所レート", "maai-counter": "カウンター", "maai-counter-log": "数えた記録", "maai-daily-stats": "今日の集中記録",
     "maai-feedback": "送った意見", "maai-alarm": "アラーム"
   };
 
