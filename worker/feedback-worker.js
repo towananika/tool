@@ -86,10 +86,37 @@ async function receive(request, env) {
   return json({ ok: true }, 200);
 }
 
+// 合言葉の総当たりを防ぐ。短い合言葉を使ってしまった場合の保険でもある
+const ADMIN_TRIES = 10;           // 同一IPから1時間に10回まで
+const ADMIN_WINDOW = 60 * 60;
+
+// 文字を1つずつ比べて途中で抜けると、一致した文字数が応答時間に出る。
+// 長さに関わらず最後まで比べることで、その手がかりを消す
+function safeEqual(a, b) {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 async function adminList(request, env) {
+  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const tryKey = "admintry:" + (await sha256(ip));
+  const tries = parseInt((await env.FEEDBACK.get(tryKey)) || "0", 10);
+  if (tries >= ADMIN_TRIES) {
+    return json({ error: "too many attempts" }, 429);
+  }
+
   const auth = request.headers.get("Authorization") || "";
   const token = auth.replace(/^Bearer\s+/i, "");
-  if (!env.ADMIN_TOKEN || token !== env.ADMIN_TOKEN) {
+
+  if (!env.ADMIN_TOKEN || !safeEqual(token, env.ADMIN_TOKEN)) {
+    // 失敗した回数だけ数える。成功しても消さないのは、
+    // 正しい合言葉を持っていても大量に叩く理由がないため
+    await env.FEEDBACK.put(tryKey, String(tries + 1), { expirationTtl: ADMIN_WINDOW });
+    // 総当たりの速度そのものを落とす
+    await new Promise((r) => setTimeout(r, 700));
     return json({ error: "unauthorized" }, 401);
   }
 

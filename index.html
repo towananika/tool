@@ -695,17 +695,6 @@
     overflow: hidden;
   }
 
-  .landscape {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    height: 46%;
-    pointer-events: none;
-  }
-
-  .landscape svg { width: 100%; height: 100%; display: block; }
-
   .brightness-overlay {
     position: absolute;
     inset: 0;
@@ -715,37 +704,55 @@
     pointer-events: none;
   }
 
+  /* 影と太字をやめ、細く大きく、字間を開ける。
+     光を遮るものが無いほうが、時間が澄んで見える */
   .clock {
     position: relative;
-    font-size: 15vmin;
-    font-weight: 700;
+    font-size: clamp(4rem, 17vmin, 13rem);
+    font-weight: 200;
+    line-height: 1;
     color: var(--sc-text, var(--text));
     font-variant-numeric: tabular-nums;
-    letter-spacing: 0.02em;
-    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+    letter-spacing: 0.06em;
+    text-indent: 0.06em;
     transition: color 3s ease;
   }
 
-  /* タイマー作動中は残り時間を主役にする */
+  /* タイマー作動中の「集中／休憩」。主役の邪魔をしない大きさに留める */
   .sc-sub {
     position: relative;
-    margin: 0;
-    font-size: 13px;
-    letter-spacing: 0.18em;
+    margin: 18px 0 0;
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.42em;
+    text-indent: 0.42em;
     color: var(--sc-text, var(--text-muted));
-    opacity: 0.75;
-    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.3);
+    opacity: 0.5;
     transition: color 3s ease;
   }
 
   .screensaver-hint {
-    position: relative;
+    position: absolute;
+    left: 0; right: 0; bottom: 30px;
     margin: 0;
-    font-size: 13px;
+    text-align: center;
+    font-size: 11.5px;
+    letter-spacing: 0.12em;
     color: var(--sc-text, var(--text-muted));
-    opacity: 0.6;
-    transition: color 3s ease;
+    opacity: 0.32;
+    transition: color 3s ease, opacity .4s ease;
   }
+
+  /* 残り時間の細い線。数字を読まなくても進み具合が分かる */
+  .sc-bar {
+    position: absolute;
+    left: 0; bottom: 0; height: 1px;
+    background: var(--sc-text, var(--text));
+    opacity: 0.22;
+    width: 0;
+    transition: width 1s linear, opacity 3s ease;
+  }
+  .sc-bar[hidden] { display: none; }
 
   @media (prefers-reduced-motion: reduce) {
     body, .screensaver { transition: none; }
@@ -1096,6 +1103,93 @@
     box-shadow: 0 6px 20px rgba(0,0,0,.22); max-width: 88vw; text-align: center;
   }
   .share-toast[hidden] { display: none; }
+
+  /* 取り消せる操作の受け皿。
+     確認ダイアログで止めるより、まず実行して戻せる方が速く、事故も減る */
+  .undo-bar {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 14px;
+    background: var(--text); color: var(--surface);
+    font-size: 12.5px; padding: 8px 10px 8px 18px;
+    border-radius: 999px; z-index: 300;
+    box-shadow: 0 6px 20px rgba(0,0,0,.22); max-width: 92vw;
+  }
+  .undo-bar[hidden] { display: none; }
+
+  /* ===== アラーム ===== */
+  .al-list { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+
+  /* 1行に詰めるとスマホで窮屈なので、時刻の行と設定の行に分ける */
+  .al-row {
+    display: flex; flex-direction: column; gap: 6px;
+    background: var(--surface); border: 1px solid var(--surface-border);
+    border-radius: 12px; padding: 10px 12px;
+  }
+  .al-row[data-on="false"] { opacity: .5; }
+  .al-top { display: flex; align-items: center; gap: 10px; }
+  .al-bottom { display: flex; align-items: center; gap: 8px; }
+  .al-when { flex: 1 1 auto; font-size: 11.5px; color: var(--text-muted); }
+
+  .al-rep {
+    flex: 0 0 auto;
+    border: 1px solid var(--surface-border); border-radius: 8px;
+    background: var(--bg); color: var(--text);
+    font-family: inherit; font-size: 12px; padding: 3px 6px; outline: none;
+  }
+  .al-rep:focus { border-color: var(--wood); }
+
+  .al-time {
+    flex: 0 0 auto;
+    border: none; background: transparent; color: var(--text);
+    font-family: inherit; font-size: 21px; font-weight: 700;
+    font-variant-numeric: tabular-nums; padding: 0; outline: none;
+  }
+  .al-time:focus { color: var(--wood); }
+
+  .al-label {
+    flex: 1 1 auto; min-width: 0;
+    border: none; background: transparent; color: var(--text-muted);
+    font-family: inherit; font-size: 12.5px; padding: 2px 0; outline: none;
+  }
+  .al-label:focus { color: var(--text); }
+
+  .al-del {
+    flex: 0 0 auto; width: 24px; height: 24px;
+    border: none; background: transparent; color: var(--text-muted);
+    font-size: 15px; cursor: pointer; border-radius: 8px;
+  }
+
+  /* 鳴っている間の帯。止めるまで消えない */
+  .al-ring {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 14px;
+    background: var(--wood); color: #fffdf9;
+    font-size: 13px; padding: 10px 12px 10px 20px;
+    border-radius: 999px; z-index: 320; max-width: 92vw;
+    box-shadow: 0 6px 24px rgba(0,0,0,.25);
+  }
+  .al-ring[hidden] { display: none; }
+  .al-ring span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .al-ring button {
+    flex: 0 0 auto; border: none; border-radius: 999px;
+    background: #fffdf9; color: var(--wood);
+    font-family: inherit; font-size: 13px; font-weight: 700;
+    padding: 6px 18px; cursor: pointer;
+  }
+  .undo-bar span { white-space: nowrap; }
+  /* 全体モードでは下に操作帯があるので、その上に出す */
+  .undo-bar[data-in-full="true"] { bottom: 96px; }
+  .undo-bar button {
+    flex: 0 0 auto;
+    border: none; border-radius: 999px;
+    background: var(--surface); color: var(--text);
+    font-family: inherit; font-size: 12.5px; font-weight: 700;
+    padding: 6px 14px; cursor: pointer;
+  }
+  .undo-bar button:active { transform: scale(.96); }
+
+  /* 押しても何も起きないボタンは、押せないことが見えているほうがよい */
+  .chip[data-idle="true"] { opacity: .38; cursor: default; }
 </style>
 
 <div class="shell">
@@ -1420,6 +1514,21 @@
     <div class="result-box" id="ivBreakeven"></div>
   </div>
 
+  <div id="alarmView" hidden>
+    <p class="tool-title">アラーム</p>
+    <p class="tool-note">決めた時刻にベルが鳴ります。ブラウザがこのページを開いている間だけ動きます。閉じると鳴りません。</p>
+
+    <div class="result-box" id="alNext">まだ設定がありません</div>
+
+    <div class="al-list" id="alList"></div>
+    <div class="bk-row">
+      <button class="chip" id="alAdd">＋ 時刻を足す</button>
+      <button class="chip" id="alTest">ベルを試す</button>
+    </div>
+
+    <p class="tool-note" style="margin-top:14px">ベルの種類はタイマーの設定と共通です。設定は端末の中だけに保存されます。</p>
+  </div>
+
   <div id="settingsView" hidden>
     <p class="tool-title">設定</p>
 
@@ -1540,6 +1649,17 @@
   <a href="about.html">計算式と前提</a>
 </footer>
 
+<div class="al-ring" id="alRing" hidden>
+  <span id="alRingText"></span>
+  <button type="button" id="alSnooze">5分後</button>
+  <button type="button" id="alStop">止める</button>
+</div>
+
+<div class="undo-bar" id="undoBar" hidden>
+  <span id="undoText"></span>
+  <button type="button" id="undoBtn">元に戻す</button>
+</div>
+
 <div class="counter-full" id="counterFull" hidden>
   <div class="counter-full-tap" id="counterFullTap" data-hit="false">
     <span class="counter-full-value" id="counterFullValue" data-bump="false">0</span>
@@ -1553,17 +1673,11 @@
 </div>
 
 <div class="screensaver" id="screensaver" hidden>
-  <div class="landscape">
-    <svg viewBox="0 0 400 160" preserveAspectRatio="none">
-      <path d="M0 160 L0 100 Q60 60 130 88 T260 78 Q320 62 400 92 L400 160 Z" fill="#a9987f" opacity="0.35"></path>
-      <path d="M0 160 L0 122 Q90 84 180 112 T400 104 L400 160 Z" fill="#8a7455" opacity="0.5"></path>
-      <path d="M0 160 L0 140 Q120 116 220 138 T400 128 L400 160 Z" fill="#5f4c37" opacity="0.65"></path>
-    </svg>
-  </div>
   <div class="brightness-overlay" id="brightnessOverlay"></div>
   <div class="clock" id="screensaverClock">--:--</div>
   <p class="sc-sub" id="screensaverSub" hidden></p>
   <p class="screensaver-hint">タップで戻る</p>
+  <div class="sc-bar" id="scBar" hidden></div>
 </div>
 
 <script>
@@ -1618,6 +1732,7 @@
   var brightnessOverlay = document.getElementById("brightnessOverlay");
   var screensaverClock = document.getElementById("screensaverClock");
   var screensaverSub = document.getElementById("screensaverSub");
+  var scBar = document.getElementById("scBar");
 
   ringProgress.style.strokeDasharray = CIRC;
 
@@ -1831,11 +1946,8 @@
   resetBtn.addEventListener("click", function (e) {
     e.stopPropagation();
     if (activeTab === "counter") {
-      if (counterState.count === 0) return;
-      if (!confirm("カウンターを0に戻します。よろしいですか？")) return;
-      counterState.count = 0;
-      saveCounter();
-      renderCounter();
+      // カウンターは戻せるので確認を出さない（タイマーは進行中の時間が消えるので出す）
+      resetCounter();
     } else {
       if (!state.started) return;
       if (!confirm("タイマーをリセットします。進行中の時間は失われます。よろしいですか？")) return;
@@ -1854,7 +1966,7 @@
   // 道具の名前はここが唯一の出どころ。
   // 以前は隠したタブバーの文字を読んでいたが、見えないUIに依存していたのでやめた
   var TOOL_NAME = {
-    timer: "タイマー", stopwatch: "ストップ", counter: "カウンター",
+    timer: "タイマー", stopwatch: "ストップ", counter: "カウンター", alarm: "アラーム",
     fuel: "給油くらべ", fx: "為替", pv: "現在価値",
     cost: "住居の重み", jeonse: "チョンセ融資", asset: "資産",
     house: "家賃vs保有", invest: "株vs不動産",
@@ -1866,6 +1978,7 @@
     timer:     { view: "timerView" },
     stopwatch: { view: "stopwatchView" },
     counter:   { view: "counterView" },
+    alarm:     { view: "alarmView" },
     fuel:      { view: "fuelView" },
     pv:        { view: "pvView" },
     fx:        { view: "fxView" },
@@ -1899,6 +2012,8 @@
     document.querySelector(".top-row").hidden = (tab === "menu");
     settingsPanel.setAttribute("data-open", "false");
     counterSettings.setAttribute("data-open", "false");
+    if (typeof hideUndo === "function") hideUndo();   // 別の画面へ移ったら取り消しは締める
+    if (tab === "alarm") renderAlarms();
     if (tab === "counter") renderCounter();
     if (tab === "fuel") renderFuel();
     if (tab === "pv") renderPv();
@@ -1937,6 +2052,11 @@
     counterBumpTimer = setTimeout(function () {
       counterFullValue.setAttribute("data-bump", "false");
     }, 120);
+
+    // 0のときリセットは何も起こさないので、押せないことを見た目で示す
+    if (counterFullReset) {
+      counterFullReset.setAttribute("data-idle", counterState.count === 0 ? "true" : "false");
+    }
   }
 
   var SPARKLE_ICONS = ["✨", "⭐", "🌸", "🍀", "💫", "🎯", "🔥", "⚡"];
@@ -1973,11 +2093,14 @@
     saveCounter();
     renderCounter();
     spawnSparkle();
-    vibrate(10);
     if (crossedTen(before, counterState.count)) {
       playMilestone();
+      // 桁送りは音も3打なので、触覚も同じ形にする。
+      // スピーカーが鳴らせない低音の代わりを、手のひらが受け持つ
+      vibrate([14, 34, 12, 26, 10]);
     } else {
       playClick(true);
+      vibrate(10);
     }
   }
 
@@ -2083,15 +2206,48 @@
     counterDecrement();
   });
 
-  // 数え直しは取り返しがつかないので、ヘッダーのリセットと同じく確認を挟む。
-  // click で受けるのは、confirm 中に pointerup を取りこぼさないため
-  counterFullReset.addEventListener("click", function (e) {
-    e.stopPropagation();
+  // --- 取り消せるリセット ---
+  // 確認ダイアログで止めると、数えている流れが切れるうえ、
+  // 「はい」を押す癖がつくと結局は守りにならない。
+  // 先に実行して、しばらく戻せるようにするほうが速く、事故からも回復できる
+  var undoBar = document.getElementById("undoBar");
+  var undoText = document.getElementById("undoText");
+  var undoBtn = document.getElementById("undoBtn");
+  var undoValue = null, undoTimer = null;
+
+  function hideUndo() {
+    undoBar.hidden = true;
+    undoValue = null;
+    clearTimeout(undoTimer);
+  }
+
+  function resetCounter() {
     if (counterState.count === 0) return;
-    if (!confirm("カウンターを0に戻します。よろしいですか？")) return;
+    undoValue = counterState.count;
     counterState.count = 0;
     saveCounter();
     renderCounter();
+    vibrate(18);
+
+    undoText.textContent = undoValue.toLocaleString() + " を 0 に戻しました";
+    undoBar.setAttribute("data-in-full", counterFull.hidden ? "false" : "true");
+    undoBar.hidden = false;
+    clearTimeout(undoTimer);
+    undoTimer = setTimeout(hideUndo, 9000);   // 気づいて押すには10秒近く要る
+  }
+
+  undoBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (undoValue === null) return;
+    counterState.count = undoValue;
+    saveCounter();
+    renderCounter();
+    hideUndo();
+  });
+
+  counterFullReset.addEventListener("click", function (e) {
+    e.stopPropagation();
+    resetCounter();
   });
 
   counterFullClose.addEventListener("pointerdown", function (e) {
@@ -2396,19 +2552,33 @@
     src.stop(at + dur + 0.01);
   }
 
-  // 筐体の胴鳴り（この低域が「機械らしさ」の正体）
+  // 筐体の胴鳴り（この低域が「機械らしさ」の正体）。
+  //
+  // ただしスマホの内蔵スピーカーは、およそ500Hz以下をほとんど鳴らせない。
+  // 190Hz の胴鳴りは実機では丸ごと消え、高い「チッ」だけが残って安っぽく聞こえていた。
+  // そこで基音に加えて2倍・3倍の音を重ねる。低音そのものが再生されなくても、
+  // 倍音の並びから脳が基音を補って聞く（missing fundamental）。
+  // イヤホンやPCでは基音も鳴るので、どちらの環境でも厚みが出る。
+  var BODY_PARTS = [
+    { mult: 1, gain: 1.00 },   // イヤホン・PC でだけ鳴る
+    { mult: 2, gain: 0.58 },   // スマホで実際に聞こえるのはここから
+    { mult: 3, gain: 0.30 }
+  ];
+
   function clickBody(ctx, at, freq, peak, dur) {
-    var osc = ctx.createOscillator();
-    var g = ctx.createGain();
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(freq, at);
-    osc.frequency.exponentialRampToValueAtTime(freq * 0.6, at + dur);
-    g.gain.setValueAtTime(0.0001, at);
-    g.gain.linearRampToValueAtTime(peak, at + 0.002);
-    g.gain.exponentialRampToValueAtTime(0.0004, at + dur);
-    osc.connect(g).connect(ctx.destination);
-    osc.start(at);
-    osc.stop(at + dur + 0.01);
+    BODY_PARTS.forEach(function (p) {
+      var osc = ctx.createOscillator();
+      var g = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq * p.mult, at);
+      osc.frequency.exponentialRampToValueAtTime(freq * p.mult * 0.6, at + dur);
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.linearRampToValueAtTime(peak * p.gain, at + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.0004, at + dur);
+      osc.connect(g).connect(ctx.destination);
+      osc.start(at);
+      osc.stop(at + dur + 0.01);
+    });
   }
 
   function playClick(up) {
@@ -2420,10 +2590,11 @@
 
       // ① レバーを押し込む硬いアタック
       noiseBurst(ctx, now, 0.006, "bandpass", 2600 * pitch, 0.42, 0.009);
-      noiseBurst(ctx, now, 0.003, "highpass", 6000, 0.12, 0.004);
+      noiseBurst(ctx, now, 0.003, "highpass", 6000, 0.07, 0.004);
 
-      // ② 金属の共振
-      metalRing(ctx, now, 3200 * pitch, 0.018, 0.16);
+      // ② 金属の共振（3200Hz付近はスマホでよく鳴る帯域なので控えめにする。
+      //    ここを強くすると「チッ」だけが目立って安っぽくなる）
+      metalRing(ctx, now, 3200 * pitch, 0.018, 0.12);
 
       // ③ 数ミリ秒後、爪が次の歯に落ちる二段目の「カチ」
       noiseBurst(ctx, now + 0.011 + Math.random() * 0.004, 0.005, "bandpass", 1500 * pitch, 0.28, 0.01);
@@ -2798,19 +2969,29 @@
     if (screensaverEl.hidden) return;
     var sky = currentSky();
 
-    // 背景は一色。絵は置かず、時刻に応じた明るさの変化だけで時間を表す
-    screensaverEl.style.background = skyColorFor(sky);
-    brightnessOverlay.style.opacity = ((1 - sky.brightness) * 0.5).toFixed(3);
-    document.documentElement.style.setProperty("--sc-text", sky.brightness < 0.5 ? "#f2ede2" : "#2b2924");
+    // 絵は置かない。上に光を薄くのせて、面ではなく空気に見せる
+    var base = skyColorFor(sky);
+    var tint = sky.brightness > 0.5
+      ? "rgba(255,255,255,0.62)"          // 昼は白に抜く
+      : "rgba(128,158,196,0.14)";         // 夜は青を差す
+    screensaverEl.style.background =
+      "linear-gradient(180deg," + tint + " 0%, rgba(255,255,255,0) 58%), " + base;
+
+    brightnessOverlay.style.opacity = ((1 - sky.brightness) * 0.42).toFixed(3);
+    document.documentElement.style.setProperty("--sc-text", sky.brightness < 0.5 ? "#f4f1ea" : "#2b2924");
 
     // タイマー作動中は残り時間、そうでなければ時計
     if (state.started) {
       screensaverClock.textContent = formatClock(state.remaining);
       screensaverSub.hidden = false;
       screensaverSub.textContent = state.mode === "focus" ? "集中" : "休憩";
+      scBar.hidden = false;
+      var done = state.total > 0 ? 1 - state.remaining / state.total : 0;
+      scBar.style.width = (Math.max(0, Math.min(1, done)) * 100).toFixed(2) + "%";
     } else {
       screensaverClock.textContent = formatClock2(new Date());
       screensaverSub.hidden = true;
+      scBar.hidden = true;
     }
 
   }
@@ -3909,12 +4090,12 @@
   var BACKUP_KEYS = ["pace-assets", "pace-pv", "pace-house", "pace-invest",
     "pace-fuel-v2", "pace-fuel", "pace-fx", "pace-fx-manual", "pace-counter", "pace-cost", "pace-jeonse",
     "pace-daily-stats", "maai-counter", "maai-daily-stats", "maai-ambient", "maai-ambient-vol",
-    "maai-feedback"];
+    "maai-feedback", "maai-alarm"];
   var KEY_LABEL = {
     "pace-assets": "資産テーブル", "pace-pv": "現在価値の記録", "pace-house": "家賃vs保有",
     "pace-invest": "株vs不動産", "pace-cost": "住居の重み", "pace-jeonse": "チョンセ融資", "pace-fuel-v2": "給油くらべ", "pace-fx": "為替の設定",
     "pace-fx-manual": "両替所レート", "maai-counter": "カウンター", "maai-daily-stats": "今日の集中記録",
-    "maai-feedback": "送った意見"
+    "maai-feedback": "送った意見", "maai-alarm": "アラーム"
   };
 
   var bkArea = document.getElementById("bkArea");
@@ -4017,6 +4198,248 @@
     bkStatus.textContent = "消去しました。画面を再読み込みします…";
     setTimeout(function () { location.reload(); }, 900);
   });
+
+
+  // ==================== アラーム ====================
+  // ブラウザがこのページを開いている間だけ動く。
+  // 背景タブでは時計の刻みが間引かれるので、経過ではなく「現在時刻」で判定する。
+  // そうすれば刻みが飛んでも、次に動いたときに鳴らし損ねを拾える。
+  var alListEl = document.getElementById("alList");
+  var alNextEl = document.getElementById("alNext");
+  var alRing = document.getElementById("alRing");
+  var alRingText = document.getElementById("alRingText");
+
+  var alarmState = loadJSON("maai-alarm", { items: [] });
+  function saveAlarms() { saveJSON("maai-alarm", alarmState); }
+
+  function todayKey() {
+    var d = new Date();
+    return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+  }
+
+  function hhmm(d) {
+    return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+  }
+
+  var REPEAT_LABEL = { daily: "毎日", weekday: "平日", weekend: "週末", once: "一度だけ" };
+
+  function dayAllowed(rep, day) {          // day: 0=日 … 6=土
+    if (rep === "weekday") return day >= 1 && day <= 5;
+    if (rep === "weekend") return day === 0 || day === 6;
+    return true;                            // daily / once
+  }
+
+  // 次に鳴る日時。今日の分を過ぎていたら、条件に合う次の日を探す
+  function nextFire(a) {
+    if (!a.on || !a.time) return null;
+    var p = a.time.split(":"), now = new Date();
+    for (var i = 0; i < 8; i++) {
+      var t = new Date(now);
+      t.setDate(t.getDate() + i);
+      t.setHours(+p[0], +p[1], 0, 0);
+      if (t <= now) continue;
+      if (dayAllowed(a.repeat || "daily", t.getDay())) return t;
+    }
+    return null;
+  }
+
+  function untilText(t) {
+    var m = Math.round((t - new Date()) / 60000);
+    var h = Math.floor(m / 60);
+    if (h >= 24) return "あと " + Math.floor(h / 24) + "日" + (h % 24) + "時間";
+    return h > 0 ? "あと " + h + "時間" + (m % 60) + "分" : "あと " + Math.max(0, m) + "分";
+  }
+
+  function renderAlarmNext() {
+    var cands = [];
+    if (snoozeAt) cands.push({ at: new Date(snoozeAt), text: "スヌーズ", label: snoozeLabel });
+    alarmState.items.forEach(function (a) {
+      var t = nextFire(a);
+      if (t) cands.push({ at: t, text: a.time, label: a.label });
+    });
+    if (!cands.length) { alNextEl.textContent = "まだ設定がありません"; return; }
+    cands.sort(function (x, y) { return x.at - y.at; });
+    var c = cands[0];
+    alNextEl.textContent = "次は " + c.text + "（" + untilText(c.at) + "）"
+      + (c.label ? " ／ " + c.label : "");
+  }
+
+  function renderAlarms() {
+    alListEl.innerHTML = "";
+    // 時刻順に並べる。設定した順より、朝から並ぶほうが探しやすい
+    alarmState.items.sort(function (x, y) { return (x.time || "").localeCompare(y.time || ""); });
+
+    alarmState.items.forEach(function (a) {
+      var row = document.createElement("div");
+      row.className = "al-row";
+      row.setAttribute("data-on", a.on ? "true" : "false");
+
+      var top = document.createElement("div");
+      top.className = "al-top";
+
+      var time = document.createElement("input");
+      time.className = "al-time";
+      time.type = "time";
+      time.value = a.time || "07:00";
+      time.addEventListener("change", function () {
+        a.time = time.value; a.firedOn = null; saveAlarms(); renderAlarms();
+      });
+
+      var label = document.createElement("input");
+      label.className = "al-label";
+      label.type = "text";
+      label.value = a.label || "";
+      label.placeholder = "なんのため（任意）";
+      label.addEventListener("change", function () { a.label = label.value; saveAlarms(); });
+
+      var sw = document.createElement("label");
+      sw.className = "switch";
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = !!a.on;
+      cb.addEventListener("change", function () {
+        a.on = cb.checked;
+        a.firedOn = null;          // 入れ直したら、その日の分をまた鳴らす
+        saveAlarms(); renderAlarms();
+      });
+      var track = document.createElement("span");
+      track.className = "switch-track";
+      sw.appendChild(cb); sw.appendChild(track);
+
+      var del = document.createElement("button");
+      del.className = "al-del";
+      del.type = "button";
+      del.textContent = "×";
+      del.setAttribute("aria-label", "消す");
+      del.addEventListener("click", function () {
+        alarmState.items = alarmState.items.filter(function (x) { return x.id !== a.id; });
+        saveAlarms(); renderAlarms();
+      });
+
+      top.appendChild(time); top.appendChild(label); top.appendChild(sw); top.appendChild(del);
+
+      var bottom = document.createElement("div");
+      bottom.className = "al-bottom";
+
+      var rep = document.createElement("select");
+      rep.className = "al-rep";
+      ["daily", "weekday", "weekend", "once"].forEach(function (k) {
+        var o = document.createElement("option");
+        o.value = k; o.textContent = REPEAT_LABEL[k];
+        if ((a.repeat || "daily") === k) o.selected = true;
+        rep.appendChild(o);
+      });
+      rep.addEventListener("change", function () {
+        a.repeat = rep.value; a.firedOn = null; saveAlarms(); renderAlarms();
+      });
+
+      // 「いつ鳴るか」を各行にも出す。次の1件だけでは他が読めないため
+      var when = document.createElement("span");
+      when.className = "al-when";
+      var t = nextFire(a);
+      when.textContent = a.on ? (t ? untilText(t) : "") : "止めている";
+
+      bottom.appendChild(rep); bottom.appendChild(when);
+
+      row.appendChild(top); row.appendChild(bottom);
+      alListEl.appendChild(row);
+    });
+    renderAlarmNext();
+  }
+
+  document.getElementById("alAdd").addEventListener("click", function () {
+    alarmState.items.push({
+      id: String(Date.now()) + "-" + Math.random().toString(36).slice(2, 6),
+      time: "07:00", label: "", on: true, repeat: "daily", firedOn: null
+    });
+    saveAlarms(); renderAlarms();
+    // 足した直後は必ず時刻を直すので、その場でピッカーを開く
+    var rows = alListEl.querySelectorAll(".al-time");
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].value === "07:00") {
+        rows[i].focus();
+        try { if (rows[i].showPicker) rows[i].showPicker(); } catch (e) {}
+        break;
+      }
+    }
+  });
+
+  document.getElementById("alTest").addEventListener("click", function (e) {
+    e.stopPropagation();
+    playBell(true);
+  });
+
+  // --- 鳴らす ---
+  var ringTimer = null, ringStopAt = 0, ringWakeLock = null;
+  var snoozeAt = null, snoozeLabel = "";
+
+  function stopRing() {
+    alRing.hidden = true;
+    clearInterval(ringTimer); ringTimer = null;
+    try { if (ringWakeLock) ringWakeLock.release(); } catch (e) {}
+    ringWakeLock = null;
+  }
+
+  document.getElementById("alSnooze").addEventListener("click", function () {
+    snoozeAt = Date.now() + 5 * 60 * 1000;
+    snoozeLabel = alRingText.textContent;
+    stopRing();
+    if (activeTab === "alarm") renderAlarms();
+  });
+
+  function startRing(a) {
+    alRingText.textContent = a.time + (a.label ? " ／ " + a.label : "");
+    alRing.hidden = false;
+    playBell(true);
+    vibrate([300, 200, 300]);
+
+    // 気づくまで繰り返す。ただし2分で自動的に止める
+    ringStopAt = Date.now() + 120000;
+    clearInterval(ringTimer);
+    ringTimer = setInterval(function () {
+      if (Date.now() > ringStopAt) { stopRing(); return; }
+      playBell(true);
+      vibrate([300, 200, 300]);
+    }, 3000);
+
+    try {
+      if ("wakeLock" in navigator) {
+        navigator.wakeLock.request("screen").then(function (l) { ringWakeLock = l; }).catch(function () {});
+      }
+    } catch (e) {}
+  }
+
+  document.getElementById("alStop").addEventListener("click", stopRing);
+
+  function checkAlarms() {
+    // スヌーズは時刻ではなく経過で見る（5分後は分の境目と一致しないため）
+    if (snoozeAt && Date.now() >= snoozeAt) {
+      var lbl = snoozeLabel;
+      snoozeAt = null; snoozeLabel = "";
+      startRing({ time: hhmm(new Date()), label: lbl });
+      if (activeTab === "alarm") renderAlarms();
+      return;
+    }
+
+    if (!alarmState.items.length) return;
+    var d = new Date(), now = hhmm(d), key = todayKey(), changed = false;
+    alarmState.items.forEach(function (a) {
+      if (!a.on || !a.time) return;
+      if (a.firedOn === key) return;
+      if (!dayAllowed(a.repeat || "daily", d.getDay())) return;
+      if (a.time === now) {
+        a.firedOn = key;
+        if (a.repeat === "once") a.on = false;   // 一度だけなら、鳴ったら自分で止まる
+        changed = true;
+        startRing(a);
+      }
+    });
+    if (changed) { saveAlarms(); if (activeTab === "alarm") renderAlarms(); }
+    else if (activeTab === "alarm") renderAlarmNext();
+  }
+
+  setInterval(checkAlarms, 1000);
+  renderAlarms();
 
 
   // ==================== 意見を送る ====================
@@ -4305,7 +4728,7 @@
   // 「はかる／くらべる」（動詞）と「お金と住まい」（対象）が混ざっていたため、
   // 家賃vs保有のように文字どおり"くらべる"道具が別の群に散っていた
   var MENU_GROUPS = [
-    { head: "時間", tone: "sky", keys: ["timer", "stopwatch", "counter"] },
+    { head: "時間", tone: "sky", keys: ["timer", "stopwatch", "counter", "alarm"] },
     { head: "お金", tone: "sea", keys: ["fuel", "fx", "pv", "asset"] },
     { head: "住まい", tone: "leaf", keys: ["cost", "house", "jeonse", "invest"] }
   ];
@@ -4327,6 +4750,7 @@
     timer:     "たいまー タイマー 時間 集中 休憩 ポモドーロ timer pomodoro 타이머 집중",
     stopwatch: "すとっぷうぉっち ストップ 計測 ラップ stopwatch lap 스톱워치",
     counter:   "かうんたー カウンター 数 かぞえる counter tally 카운터",
+    alarm:     "あらーむ アラーム 目覚まし 時刻 ベル 起こす alarm clock 알람 자명종",
     fuel:      "きゅうゆ 給油 ガソリン 軽油 LPG 電気 充電 燃費 スタンド fuel gas ev 주유 기름 충전",
     fx:        "かわせ 為替 両替 レート 銀行 通貨 ドル 円 ウォン fx exchange rate 환전 환율",
     pv:        "げんざいかち 現在価値 割引 将来 present value discount 현재가치",
@@ -4343,6 +4767,7 @@
     timer:     "集中と休憩を切り替える",
     stopwatch: "経過時間とラップを計る",
     counter:   "数をかぞえる",
+    alarm:     "決めた時刻にベルが鳴る",
     fuel:      "遠くの安い店まで走る価値",
     fx:        "両替所と銀行、どちらが得か",
     pv:        "将来のお金を今の価値に",
