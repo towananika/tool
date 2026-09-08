@@ -390,6 +390,22 @@
 
   /* 全体モード — 画面ぜんぶを数える面にする。
      押す場所を狙わなくていいので、手元を見ずに数え続けられる */
+  .counter-name {
+    margin: 0 0 4px; text-align: center;
+    font-size: 12px; letter-spacing: .12em; color: var(--muted);
+  }
+  .counter-full-name {
+    margin: 0 0 10px; font-size: 12px; letter-spacing: .3em; text-indent: .3em;
+    color: var(--muted); opacity: .7;
+  }
+  #counterName {
+    flex: 1 1 auto; min-width: 0; max-width: 160px;
+    font: inherit; font-size: 14px; text-align: right;
+    background: transparent; border: 0; border-bottom: 1px solid var(--line);
+    color: var(--ink); padding: 2px 0;
+  }
+  #counterName:focus { outline: none; border-bottom-color: var(--wood); }
+
   .count-log { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
   .count-log-head { margin: 0 0 8px; font-size: 12px; color: var(--muted); letter-spacing: .04em; }
   .count-log-list { list-style: none; margin: 0; padding: 0; }
@@ -1348,6 +1364,7 @@
   </div>
 
   <div id="counterView" hidden>
+    <p class="counter-name" id="counterNameLabel" hidden></p>
     <div class="counter-stage">
       <button class="counter-circle" id="counterCircle" aria-label="カウントを増やす" title="タップで+1">
         <span class="counter-value" id="counterValue">0</span>
@@ -1367,6 +1384,10 @@
           <input type="number" id="counterStep" value="1" min="1" max="1000" inputmode="numeric">
           <button data-step="1" data-target="counterStep" aria-label="増減幅を増やす">＋</button>
         </div>
+      </div>
+      <div class="field-row">
+        <span class="field-label">名前</span>
+        <input type="text" id="counterName" maxlength="12" placeholder="なにを数えるか">
       </div>
       <div class="field-row">
         <button class="chip" id="counterFullBtn">全体モード</button>
@@ -1698,6 +1719,7 @@
 
 <div class="counter-full" id="counterFull" hidden>
   <div class="counter-full-tap" id="counterFullTap" data-hit="false">
+    <p class="counter-full-name" id="counterFullName" hidden></p>
     <span class="counter-full-value" id="counterFullValue" data-bump="false">0</span>
     <p class="counter-full-hint" id="counterFullHint">画面のどこでもタップして数える</p>
   </div>
@@ -1800,13 +1822,14 @@
 
   var activeTab = "timer";
 
-  var counterState = { count: 0, step: 1 };
+  var counterState = { count: 0, step: 1, name: "" };
 
   function loadCounter() {
     try {
       var saved = JSON.parse(localStorage.getItem("maai-counter") || "null");
       if (saved && typeof saved.count === "number") counterState.count = saved.count;
       if (saved && typeof saved.step === "number") counterState.step = saved.step;
+      if (saved && typeof saved.name === "string") counterState.name = saved.name.slice(0, 12);
     } catch (e) {}
   }
 
@@ -2202,6 +2225,25 @@
     counterWakeLock = null;
   }
 
+  var counterNameInput = document.getElementById("counterName");
+  var counterNameLabel = document.getElementById("counterNameLabel");
+  var counterFullName = document.getElementById("counterFullName");
+
+  function renderCounterName() {
+    var n = counterState.name;
+    counterNameLabel.textContent = n;
+    counterNameLabel.hidden = !n;
+    counterFullName.textContent = n;
+    counterFullName.hidden = !n;
+  }
+
+  counterNameInput.addEventListener("input", function () {
+    counterState.name = counterNameInput.value.slice(0, 12);
+    saveCounter();
+    renderCounterName();
+  });
+  counterNameInput.addEventListener("click", function (e) { e.stopPropagation(); });
+
   function openCounterFull() {
     counterFullHint.textContent = counterState.step === 1
       ? "画面のどこでもタップして数える"
@@ -2276,7 +2318,9 @@
     try { localStorage.setItem("maai-counter-log", JSON.stringify(countLog)); } catch (e) {}
   }
   function countLogText() {
-    return countLog.map(function (r) { return r.at + String.fromCharCode(9) + r.count; })
+    return countLog.map(function (r) {
+      return r.at + String.fromCharCode(9) + (r.name || "") + String.fromCharCode(9) + r.count;
+    })
       .join(String.fromCharCode(10));
   }
   function renderCountLog() {
@@ -2284,7 +2328,8 @@
     countLogList.innerHTML = "";
     countLog.slice(0, 7).forEach(function (r) {
       var li = document.createElement("li");
-      var w = document.createElement("span"); w.className = "when"; w.textContent = r.at;
+      var w = document.createElement("span"); w.className = "when";
+      w.textContent = r.name ? r.name + " · " + r.at : r.at;
       var n = document.createElement("span"); n.className = "num"; n.textContent = r.count.toLocaleString();
       li.appendChild(w); li.appendChild(n);
       countLogList.appendChild(li);
@@ -2312,7 +2357,8 @@
     function p2(n) { return n < 10 ? "0" + n : "" + n; }
     countLog.unshift({
       at: (d.getMonth() + 1) + "/" + d.getDate() + " " + p2(d.getHours()) + ":" + p2(d.getMinutes()),
-      count: counterState.count
+      count: counterState.count,
+      name: counterState.name || ""
     });
     countLog = countLog.slice(0, COUNT_LOG_MAX);
     saveCountLog();
@@ -3233,6 +3279,8 @@
 
   loadCountLog();
   renderCountLog();
+  counterNameInput.value = counterState.name;
+  renderCounterName();
   counterStepInput.value = counterState.step;
   renderCounter();
 
