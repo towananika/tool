@@ -1,6 +1,74 @@
 {
-  "updated": null,
-  "source": "dunamu quotation api",
-  "note": "GitHub Actions (.github/workflows/rates.yml) が平日 09/12/15/18 KST に更新します。初回実行までは空です。",
-  "rates": {}
+  "updated": "2026-09-08T15:24:58+09:00",
+  "source": "open.er-api.com",
+  "hasCash": false,
+  "note": "KRW建て。unit 単位あたりの韓国ウォン。この取得元では基準レートのみ。現金の売買レートは入らない。",
+  "rates": {
+    "USD": {
+      "unit": 1,
+      "base": 1345.9,
+      "cashBuy": null,
+      "cashSell": null,
+      "ttBuy": null,
+      "ttSell": null,
+      "name": "미국 달러",
+      "date": "08 Sep 2026",
+      "time": ""
+    },
+    "JPY": {
+      "unit": 100,
+      "base": 869.97,
+      "cashBuy": null,
+      "cashSell": null,
+      "ttBuy": null,
+      "ttSell": null,
+      "name": "일본 옌",
+      "date": "08 Sep 2026",
+      "time": ""
+    },
+    "EUR": {
+      "unit": 1,
+      "base": 1564.95,
+      "cashBuy": null,
+      "cashSell": null,
+      "ttBuy": null,
+      "ttSell": null,
+      "name": "유로",
+      "date": "08 Sep 2026",
+      "time": ""
+    },
+    "CNY": {
+      "unit": 1,
+      "base": 199.76,
+      "cashBuy": null,
+      "cashSell": null,
+      "ttBuy": null,
+      "ttSell": null,
+      "name": "중국 위안",
+      "date": "08 Sep 2026",
+      "time": ""
+    },
+    "GBP": {
+      "unit": 1,
+      "base": 1821.49,
+      "cashBuy": null,
+      "cashSell": null,
+      "ttBuy": null,
+      "ttSell": null,
+      "name": "영국 파운드",
+      "date": "08 Sep 2026",
+      "time": ""
+    },
+    "AUD": {
+      "unit": 1,
+      "base": 970.87,
+      "cashBuy": null,
+      "cashSell": null,
+      "ttBuy": null,
+      "ttSell": null,
+      "name": "호주 달러",
+      "date": "08 Sep 2026",
+      "time": ""
+    }
+  }
 }
