@@ -2403,7 +2403,7 @@
     return audioCtx;
   }
 
-  function noiseBurst(ctx, now, durationSec, filterType, filterFreq, peakGain, decaySec) {
+  function noiseBurst(ctx, now, durationSec, filterType, filterFreq, peakGain, decaySec, dest) {
     var bufferSize = Math.max(1, Math.floor(ctx.sampleRate * durationSec));
     var buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     var data = buffer.getChannelData(0);
@@ -2418,7 +2418,7 @@
     var gain = ctx.createGain();
     gain.gain.setValueAtTime(peakGain, now);
     gain.gain.exponentialRampToValueAtTime(0.0005, now + decaySec);
-    noise.connect(filter).connect(gain).connect(ctx.destination);
+    noise.connect(filter).connect(gain).connect(dest || ctx.destination);
     noise.start(now);
     return noise;
   }
@@ -2560,6 +2560,29 @@
   //
   // 基音430Hzはスマホの内蔵スピーカーではほとんど鳴らない（500Hz以下が苦手）。
   // 承知のうえで下げたまま置く。机で使う道具なので、イヤホンとPCを優先した。
+  // カウンターの音だけを通す出口。
+  // 単打を大きくすると、10単位（100打以上が重なる）で波形が振り切れて割れる。
+  // 圧縮を挟んで、単打は大きく・連射は潰さずに済ませる。
+  var COUNTER_GAIN = 30;
+  var counterBus = null;
+  function counterOut(ctx) {
+    if (counterBus && counterBus.ctx === ctx) return counterBus.node;
+    var g = ctx.createGain();
+    g.gain.value = COUNTER_GAIN;
+    var comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -20;
+    comp.knee.value = 6;
+    comp.ratio.value = 10;
+    comp.attack.value = 0.001;
+    comp.release.value = 0.08;
+    // 圧縮の追いつかない一瞬（10単位の頭）が振り切れるので、最後に少し下げる
+    var out = ctx.createGain();
+    out.gain.value = 0.72;
+    g.connect(comp).connect(out).connect(ctx.destination);
+    counterBus = { ctx: ctx, node: g };
+    return g;
+  }
+
   var MOKUGYO = {
     air: 1500,
     modes: [
@@ -2575,14 +2598,16 @@
     var n = Math.max(1, Math.floor(ctx.sampleRate * dur));
     var b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0);
     var exc = Math.max(1, Math.floor(ctx.sampleRate * 0.0010));
-    for (var i = 0; i < n; i++) d[i] = i < exc ? (Math.random() * 2 - 1) : 0;
+    // 励起は乱数にしない。乱数だと一打ごとに音量が倍近く揺れる（実測 0.27〜0.58）。
+    // 先頭で1に立ち上げて落とすだけの決まった形にすると、毎回同じ強さで鳴る
+    for (var i = 0; i < n; i++) d[i] = i < exc ? (1 - i / exc) : 0;
     var src = ctx.createBufferSource(); src.buffer = b;
     var bp = ctx.createBiquadFilter();
     bp.type = "bandpass"; bp.frequency.value = freq; bp.Q.value = q;
     var g = ctx.createGain();
     g.gain.setValueAtTime(peak, at);
     g.gain.exponentialRampToValueAtTime(0.0004, at + dur);
-    src.connect(bp).connect(g).connect(ctx.destination);
+    src.connect(bp).connect(g).connect(counterOut(ctx));
     src.start(at); src.stop(at + dur + 0.005);
   }
 
@@ -2590,7 +2615,7 @@
   function knock(ctx, at, amp, pitch) {
     var p = pitch || 1;
     var j = 0.98 + Math.random() * 0.04;
-    noiseBurst(ctx, at, 0.0012, "bandpass", MOKUGYO.air * p * j, 0.22 * amp, 0.0025);
+    noiseBurst(ctx, at, 0.0012, "bandpass", MOKUGYO.air * p * j, 0.22 * amp, 0.0025, counterOut(ctx));
     MOKUGYO.modes.forEach(function (m) {
       woodRing(ctx, at, m[0] * p * j, m[1], m[2], m[3] * amp);
     });
@@ -2615,9 +2640,13 @@
       var ctx = getCtx();
       var at = ctx.currentTime;
 
+      // 10単位は100打ぶんが重なるので、1打と同じ強さで鳴らすと合計が振り切れる。
+      // 圧縮でごまかさず、こちら側を下げておく
+      var MS = 0.55;
+
       // ① レバーを倒す手応え
-      noiseBurst(ctx, at, 0.006, "bandpass", 1780, 0.28, 0.012);
-      knock(ctx, at, 0.7, 0.8);
+      noiseBurst(ctx, at, 0.006, "bandpass", 1780, 0.28 * MS, 0.012, counterOut(ctx));
+      knock(ctx, at, 0.7 * MS, 0.8);
 
       // ② 4つの車が走る。戻る距離が桁ごとに違うので、走る長さも揃えない
       var t0 = at + 0.012;
@@ -2625,14 +2654,14 @@
         var steps = 4 + Math.floor(Math.random() * 6);
         var t = t0 + w * 0.004, gap = 0.0085;
         for (var i = 0; i < steps; i++) {
-          knock(ctx, t, Math.max(0.10, 0.5 * (1 - i / (steps + 3))), 1 - w * 0.05);
+          knock(ctx, t, MS * Math.max(0.10, 0.5 * (1 - i / (steps + 3))), 1 - w * 0.05);
           t += gap;
           gap *= 1.06;                       // 減速する
         }
       }
 
       // ③ 止め金に当たって終わる
-      knock(ctx, at + 0.115, 0.85, 0.92);
+      knock(ctx, at + 0.115, 0.85 * MS, 0.92);
     } catch (e) {}
   }
 
