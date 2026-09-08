@@ -3503,9 +3503,10 @@
     if (!r) return null;
     var unit = r.unit || 1;
     var base = r.base / unit;
-    var cashBuy = (r.cashBuy || r.base) / unit;    // 현찰 살 때（客が買う=高い）
-    var cashSell = (r.cashSell || r.base) / unit;  // 현찰 팔 때（客が売る=安い）
-    if (cashBuy < cashSell) { var t = cashBuy; cashBuy = cashSell; cashSell = t; }
+    // 取得元によっては現金レートが入らない。その場合は null にして行ごと出さない
+    var cashBuy = r.cashBuy ? r.cashBuy / unit : null;    // 현찰 살 때（客が買う=高い）
+    var cashSell = r.cashSell ? r.cashSell / unit : null; // 현찰 팔 때（客が売る=安い）
+    if (cashBuy && cashSell && cashBuy < cashSell) { var t = cashBuy; cashBuy = cashSell; cashSell = t; }
     return { base: base, cashBuy: cashBuy, cashSell: cashSell, date: r.date, time: r.time };
   }
 
@@ -3541,21 +3542,22 @@
     var buying = fxBuyingForeign();
     var bankRate = buying ? rates.cashBuy : rates.cashSell;
 
-    var candidates = [
-      { key: "base", label: "基準レート", rate: rates.base },
-      { key: "bank", label: "銀行 現金", rate: bankRate }
-    ];
+    var candidates = [{ key: "base", label: "基準レート", rate: rates.base }];
+    if (bankRate) candidates.push({ key: "bank", label: "銀行 現金", rate: bankRate });
     if (isFinite(manual) && manual > 0) candidates.push({ key: "manual", label: "両替所", rate: manual });
 
     candidates.forEach(function (c) { c.out = fxConvert(c.rate, amount); });
 
     // 主役: 両替所 > 銀行
     var primary = candidates.filter(function (c) { return c.key === "manual"; })[0] ||
-                  candidates.filter(function (c) { return c.key === "bank"; })[0];
+                  candidates.filter(function (c) { return c.key === "bank"; })[0] ||
+                  candidates[0];
     fxOut.textContent = primary.out === null ? "—" : fmt(primary.out, fxDigits());
     fxPrimaryLabel.textContent = primary.key === "manual"
       ? "両替所レート（手入力）で受け取る額"
-      : "銀行の現金レートで受け取る額 ／ 両替所レートは詳細から入力";
+      : primary.key === "bank"
+        ? "銀行の現金レートで受け取る額 ／ 両替所レートは詳細から入力"
+        : "基準レートで受け取る額 ／ 実際の窓口はこれより不利になる";
 
     // 比較行
     if (primary.key === "manual") {
