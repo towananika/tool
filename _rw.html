@@ -1,0 +1,117 @@
+<meta charset="utf-8"><title>r</title><body><p id="s">rendering...</p><script>
+// 木の音は金属と何が違うか。
+//   ・減衰が速い（内部摩擦が大きい。金属は長く鳴る）
+//   ・Qが低い（共振の山がなだらか＝澄まずに「コッ」と鳴る）
+//   ・共振が低め（同じ大きさなら木のほうが音速が遅い）
+//   ・高域が乏しい（鋭さが出ない＝驚愕反射を引きにくい）
+// この4つを動かすだけで、樹種と形の違いが作れる。
+
+function noiseBurst(ctx, at, dur, type, freq, peak, dec) {
+  var n = Math.max(1, Math.floor(ctx.sampleRate * dur));
+  var b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0);
+  for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2);
+  var s = ctx.createBufferSource(); s.buffer = b;
+  var f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq;
+  var g = ctx.createGain();
+  g.gain.setValueAtTime(peak, at);
+  g.gain.exponentialRampToValueAtTime(0.0005, at + dec);
+  s.connect(f).connect(g).connect(ctx.destination); s.start(at);
+}
+
+function ring(ctx, at, freq, q, dur, peak) {
+  var n = Math.max(1, Math.floor(ctx.sampleRate * dur));
+  var b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0);
+  var exc = Math.max(1, Math.floor(ctx.sampleRate * 0.0010));
+  for (var i = 0; i < n; i++) d[i] = i < exc ? (Math.random() * 2 - 1) : 0;
+  var s = ctx.createBufferSource(); s.buffer = b;
+  var bp = ctx.createBiquadFilter(); bp.type = "bandpass";
+  bp.frequency.value = freq; bp.Q.value = q;
+  var g = ctx.createGain();
+  g.gain.setValueAtTime(peak, at);
+  g.gain.exponentialRampToValueAtTime(0.0004, at + dur);
+  s.connect(bp).connect(g).connect(ctx.destination);
+  s.start(at); s.stop(at + dur + 0.005);
+}
+
+// 木を1回叩く。modes は [周波数, Q, 秒, 音量] の並び
+function knock(ctx, at, spec, amp, pitch) {
+  var p = pitch || 1;
+  var j = 0.98 + Math.random() * 0.04;
+  // 当たる瞬間の擦れ。木は高域が乏しいので控えめに、低めに絞る
+  noiseBurst(ctx, at, 0.0012, "bandpass", spec.air * p * j, 0.22 * amp, 0.0025);
+  spec.modes.forEach(function (m) {
+    ring(ctx, at, m[0] * p * j, m[1], m[2], m[3] * amp);
+  });
+}
+
+// 10種。樹種・大きさ・叩き方の違いを、上の4要素で表す
+var WOODS = [
+  { key:"hinoki",  name:"ひのき",       desc:"薄い板。軽く高い「コッ」",
+    air:2600, modes:[[1180,6,0.020,0.42],[2450,5,0.012,0.22],[520,4,0.026,0.16]] },
+  { key:"kiri",    name:"桐",           desc:"軽く柔らかい。最も丸い",
+    air:1700, modes:[[760,4,0.030,0.46],[1550,4,0.018,0.20],[380,3,0.038,0.20]] },
+  { key:"keyaki",  name:"けやき",       desc:"硬く密。締まった音",
+    air:3200, modes:[[1520,9,0.016,0.44],[3050,7,0.010,0.24],[690,6,0.022,0.18]] },
+  { key:"kashi",   name:"樫",           desc:"最も硬い。木の中では鋭い",
+    air:3800, modes:[[1780,11,0.014,0.44],[3600,9,0.009,0.26],[820,7,0.019,0.16]] },
+  { key:"take",    name:"竹",           desc:"中空。筒が鳴って余韻が残る",
+    air:3000, modes:[[1340,14,0.042,0.40],[2680,12,0.026,0.22],[4020,10,0.016,0.12]] },
+  { key:"hyoshigi",name:"拍子木",       desc:"2枚を打ち合わせる。乾いて高い",
+    air:4200, modes:[[2050,10,0.018,0.46],[3900,8,0.011,0.26],[1020,7,0.024,0.14]] },
+  { key:"mokugyo", name:"木魚",         desc:"厚く刳り抜いた胴。低く鈍い",
+    air:1500, modes:[[430,5,0.052,0.50],[880,5,0.030,0.22],[1620,4,0.016,0.10]] },
+  { key:"hikidashi",name:"引き出し",    desc:"箱の中で鳴る。こもった止め音",
+    air:1900, modes:[[620,4,0.034,0.40],[1180,4,0.020,0.22],[250,3,0.046,0.22]] },
+  { key:"soroban", name:"そろばん",     desc:"小さな玉。粒が細かく短い",
+    air:3400, modes:[[1950,7,0.010,0.40],[3700,6,0.007,0.20],[980,5,0.014,0.14]] },
+  { key:"kokeshi", name:"こけし",       desc:"丸い無垢材。太く柔らかい",
+    air:2100, modes:[[880,5,0.026,0.46],[1720,4,0.016,0.20],[440,4,0.034,0.20]] }
+];
+
+// 1打 — 爪が歯を乗り越える音と、そのあと座る音の二段
+function woodClick(ctx, at, spec) {
+  knock(ctx, at, spec, 1.0, 1);
+  knock(ctx, at + 0.009 + Math.random() * 0.003, spec, 0.30, 1);
+}
+
+// リセット — 4つの車が0まで戻る連射
+function woodReset(ctx, at, spec) {
+  noiseBurst(ctx, at, 0.006, "bandpass", spec.modes[2][0] * 1.1, 0.28, 0.012);
+  knock(ctx, at, spec, 0.7, 0.8);
+  var t0 = at + 0.012;
+  for (var w = 0; w < 4; w++) {
+    var steps = 4 + Math.floor(Math.random() * 6);
+    var t = t0 + w * 0.004, gap = 0.0085;
+    for (var i = 0; i < steps; i++) {
+      knock(ctx, t, spec, Math.max(0.10, 0.5 * (1 - i / (steps + 3))), 1 - w * 0.05);
+      t += gap; gap *= 1.06;
+    }
+  }
+  var endAt = at + 0.115;
+  knock(ctx, endAt, spec, 0.85, 0.92);
+}
+
+function encodeWAV(b){var n=b.length,d=b.getChannelData(0),sr=b.sampleRate;
+ var ab=new ArrayBuffer(44+n*2),v=new DataView(ab);
+ function s(o,t){for(var i=0;i<t.length;i++)v.setUint8(o+i,t.charCodeAt(i));}
+ s(0,'RIFF');v.setUint32(4,36+n*2,true);s(8,'WAVE');s(12,'fmt ');
+ v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+ v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);
+ v.setUint16(34,16,true);s(36,'data');v.setUint32(40,n*2,true);
+ for(var i=0;i<n;i++){var x=Math.max(-1,Math.min(1,d[i]));v.setInt16(44+i*2,x<0?x*0x8000:x*0x7fff,true);}
+ var u=new Uint8Array(ab),o='';for(var i=0;i<u.length;i++)o+=String.fromCharCode(u[i]);return btoa(o);}
+async function render(spec){
+ var oc=new OfflineAudioContext(1,44100*4.2,44100);
+ // 1〜8を数え、8打目の後にリセット
+ var t=0.15;
+ for(var i=0;i<7;i++){ woodClick(oc,t,spec); t+=0.30; }
+ woodReset(oc,t+0.35,spec);
+ return encodeWAV(await oc.startRendering());
+}
+(async()=>{
+ window.__OUT={};
+ for(const sp of WOODS){ window.__OUT[sp.key]=await render(sp); }
+ window.__META=WOODS.map(w=>({key:w.key,name:w.name,desc:w.desc}));
+ document.getElementById('s').textContent='done';
+})();
+</script></body>

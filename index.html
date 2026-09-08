@@ -1092,7 +1092,12 @@
   .menu-tile svg { width: 19px; height: 19px; margin-top: 1px; }
   .mt-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .mt-name { font-size: 12.5px; font-weight: 500; line-height: 1.3; }
-  .mt-desc { font-size: 10.5px; color: var(--text-muted); line-height: 1.4; }
+  /* text-wrap: balance で行の長さを揃える。
+     入れないと「集中と休憩を切り替え／る」のように、最後の1字だけが next行に落ちる */
+  .mt-desc {
+    font-size: 10.5px; color: var(--text-muted); line-height: 1.4;
+    text-wrap: balance;
+  }
   @media (min-width: 880px) {
     .menu-grid { grid-template-columns: repeat(3, 1fr); gap: 11px; }
     .menu-tile { padding: 15px 14px; }
@@ -1121,7 +1126,7 @@
   .undo-bar[hidden] { display: none; }
 
   /* ===== アラーム ===== */
-  .al-list { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+  .al-list { display: flex; flex-direction: column; gap: 8px; width: 100%; min-width: 0; }
 
   /* 1行に詰めるとスマホで窮屈なので、時刻の行と設定の行に分ける */
   .al-row {
@@ -1130,9 +1135,14 @@
     border-radius: 12px; padding: 10px 12px;
   }
   .al-row[data-on="false"] { opacity: .5; }
-  .al-top { display: flex; align-items: center; gap: 10px; }
-  .al-bottom { display: flex; align-items: center; gap: 8px; }
-  .al-when { flex: 1 1 auto; font-size: 11.5px; color: var(--text-muted); }
+  /* min-width:0 が無いと、中の入力欄が縮まずに行ごと画面からはみ出す */
+  .al-top { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .al-bottom { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .al-when {
+    flex: 1 1 auto; min-width: 0;
+    font-size: 11.5px; color: var(--text-muted);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
 
   .al-rep {
     flex: 0 0 auto;
@@ -1142,16 +1152,18 @@
   }
   .al-rep:focus { border-color: var(--wood); }
 
+  /* 端末の言語によっては「午前」の表記や時計アイコンが付いて横幅が伸びる。
+     縮められるようにしておかないと、行がカードごと画面の外へ広がる */
   .al-time {
-    flex: 0 0 auto;
+    flex: 0 1 auto; min-width: 0;
     border: none; background: transparent; color: var(--text);
-    font-family: inherit; font-size: 21px; font-weight: 700;
+    font-family: inherit; font-size: 18px; font-weight: 700;
     font-variant-numeric: tabular-nums; padding: 0; outline: none;
   }
   .al-time:focus { color: var(--wood); }
 
   .al-label {
-    flex: 1 1 auto; min-width: 0;
+    flex: 1 1 40px; min-width: 0; width: 40px;   /* input の既定幅(約135px)を上書きする */
     border: none; background: transparent; color: var(--text-muted);
     font-family: inherit; font-size: 12.5px; padding: 2px 0; outline: none;
   }
@@ -2099,9 +2111,8 @@
     spawnSparkle();
     if (crossedTen(before, counterState.count)) {
       playMilestone();
-      // 桁送りは音も3打なので、触覚も同じ形にする。
-      // スピーカーが鳴らせない低音の代わりを、手のひらが受け持つ
-      vibrate([14, 34, 12, 26, 10]);
+      // 音が「走って止まる」形なので、触覚も同じ形にする
+      vibrate([8, 12, 8, 12, 8, 14, 26]);
     } else {
       playClick(true);
       vibrate(10);
@@ -2233,7 +2244,8 @@
     counterState.count = 0;
     saveCounter();
     renderCounter();
-    vibrate(18);
+    playMilestone();          // 実機と同じく、リセットでも機構の音が鳴る
+    vibrate([8, 12, 8, 12, 8, 14, 26]);
 
     undoText.textContent = undoValue.toLocaleString() + " を 0 に戻しました";
     undoBar.setAttribute("data-in-full", counterFull.hidden ? "false" : "true");
@@ -2539,98 +2551,88 @@
   })();
 
   // 金属の共振（高Qのバンドパスで「カーン」という芯を作る）
-  function metalRing(ctx, at, freq, dur, peak) {
+  // ==================== カウンターの音（木魚） ====================
+  // 数取器はもともと念仏や読経の回数を数える道具で、木魚も同じ場で使う。
+  // 元から同じ用途の道具どうしなので、音を借りても後付けにならない。
+  //
+  // 木が金属と違うのは4点。減衰が速い／Qが低い（共振がなだらか）／共振が低め／
+  // 高域が乏しい。最後の1点があるので、鋭い高域による驚愕反射を引きにくい。
+  //
+  // 基音430Hzはスマホの内蔵スピーカーではほとんど鳴らない（500Hz以下が苦手）。
+  // 承知のうえで下げたまま置く。机で使う道具なので、イヤホンとPCを優先した。
+  var MOKUGYO = {
+    air: 1500,
+    modes: [
+      [430,  5, 0.052, 0.50],   // 胴。木魚らしさはここ
+      [880,  5, 0.030, 0.22],   // スマホで実際に聞こえるのはここから
+      [1620, 4, 0.016, 0.10]
+    ]
+  };
+
+  // 共振体を1つ叩く。励起は先頭だけで、あとはフィルタが鳴らす。
+  // 全体をノイズで埋めると乱数次第で音量が跳ねる（実測で8〜61%のばらつきが出た）
+  function woodRing(ctx, at, freq, q, dur, peak) {
     var n = Math.max(1, Math.floor(ctx.sampleRate * dur));
-    var buffer = ctx.createBuffer(1, n, ctx.sampleRate);
-    var data = buffer.getChannelData(0);
-    for (var i = 0; i < n; i++) data[i] = Math.random() * 2 - 1;
-    var src = ctx.createBufferSource();
-    src.buffer = buffer;
+    var b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0);
+    var exc = Math.max(1, Math.floor(ctx.sampleRate * 0.0010));
+    for (var i = 0; i < n; i++) d[i] = i < exc ? (Math.random() * 2 - 1) : 0;
+    var src = ctx.createBufferSource(); src.buffer = b;
     var bp = ctx.createBiquadFilter();
-    bp.type = "bandpass";
-    bp.frequency.value = freq;
-    bp.Q.value = 14;
+    bp.type = "bandpass"; bp.frequency.value = freq; bp.Q.value = q;
     var g = ctx.createGain();
     g.gain.setValueAtTime(peak, at);
     g.gain.exponentialRampToValueAtTime(0.0004, at + dur);
     src.connect(bp).connect(g).connect(ctx.destination);
-    src.start(at);
-    src.stop(at + dur + 0.01);
+    src.start(at); src.stop(at + dur + 0.005);
   }
 
-  // 筐体の胴鳴り（この低域が「機械らしさ」の正体）。
-  //
-  // ただしスマホの内蔵スピーカーは、およそ500Hz以下をほとんど鳴らせない。
-  // 190Hz の胴鳴りは実機では丸ごと消え、高い「チッ」だけが残って安っぽく聞こえていた。
-  // そこで基音に加えて2倍・3倍の音を重ねる。低音そのものが再生されなくても、
-  // 倍音の並びから脳が基音を補って聞く（missing fundamental）。
-  // イヤホンやPCでは基音も鳴るので、どちらの環境でも厚みが出る。
-  var BODY_PARTS = [
-    { mult: 1, gain: 1.00 },   // イヤホン・PC でだけ鳴る
-    { mult: 2, gain: 0.58 },   // スマホで実際に聞こえるのはここから
-    { mult: 3, gain: 0.30 }
-  ];
-
-  function clickBody(ctx, at, freq, peak, dur) {
-    BODY_PARTS.forEach(function (p) {
-      var osc = ctx.createOscillator();
-      var g = ctx.createGain();
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(freq * p.mult, at);
-      osc.frequency.exponentialRampToValueAtTime(freq * p.mult * 0.6, at + dur);
-      g.gain.setValueAtTime(0.0001, at);
-      g.gain.linearRampToValueAtTime(peak * p.gain, at + 0.002);
-      g.gain.exponentialRampToValueAtTime(0.0004, at + dur);
-      osc.connect(g).connect(ctx.destination);
-      osc.start(at);
-      osc.stop(at + dur + 0.01);
+  // 木を1回叩く
+  function knock(ctx, at, amp, pitch) {
+    var p = pitch || 1;
+    var j = 0.98 + Math.random() * 0.04;
+    noiseBurst(ctx, at, 0.0012, "bandpass", MOKUGYO.air * p * j, 0.22 * amp, 0.0025);
+    MOKUGYO.modes.forEach(function (m) {
+      woodRing(ctx, at, m[0] * p * j, m[1], m[2], m[3] * amp);
     });
   }
 
+  // 1打 — 1桁目の車が1コマ回る。
+  // 「カチカチ」と二つ聞こえるのは、爪が歯を乗り越える音と、そのあと座る音の二段があるため
   function playClick(up) {
     try {
       var ctx = getCtx();
-      var now = ctx.currentTime;
-      var jitter = 0.94 + Math.random() * 0.12;   // 一打ごとの個体差
-      var pitch = (up ? 1 : 0.9) * jitter;
-
-      // ① レバーを押し込む硬いアタック
-      noiseBurst(ctx, now, 0.006, "bandpass", 2600 * pitch, 0.42, 0.009);
-      noiseBurst(ctx, now, 0.003, "highpass", 6000, 0.07, 0.004);
-
-      // ② 金属の共振（3200Hz付近はスマホでよく鳴る帯域なので控えめにする。
-      //    ここを強くすると「チッ」だけが目立って安っぽくなる）
-      metalRing(ctx, now, 3200 * pitch, 0.018, 0.12);
-
-      // ③ 数ミリ秒後、爪が次の歯に落ちる二段目の「カチ」
-      noiseBurst(ctx, now + 0.011 + Math.random() * 0.004, 0.005, "bandpass", 1500 * pitch, 0.28, 0.01);
-
-      // ④ 胴鳴り
-      clickBody(ctx, now, 190 * pitch, 0.2, 0.035);
+      var at = ctx.currentTime;
+      var pitch = up ? 1 : 0.94;
+      knock(ctx, at, 1.0, pitch);
+      knock(ctx, at + 0.009 + Math.random() * 0.003, 0.30, pitch);
     } catch (e) {}
   }
 
+  // 10単位とリセット — 4つの桁車がすべて0まで戻る。
+  // 戻る間に多数の歯を通過するので、単発ではなく短い打撃の連射になる
   function playMilestone() {
     try {
       var ctx = getCtx();
-      var now = ctx.currentTime;
+      var at = ctx.currentTime;
 
-      // ① 桁を送る重い一撃（クリックよりはっきり大きく、低く）
-      noiseBurst(ctx, now, 0.016, "bandpass", 1000, 0.95, 0.03);
-      noiseBurst(ctx, now, 0.006, "highpass", 4000, 0.25, 0.01);
-      metalRing(ctx, now, 2000, 0.07, 0.38);
-      clickBody(ctx, now, 140, 0.6, 0.1);
+      // ① レバーを倒す手応え
+      noiseBurst(ctx, at, 0.006, "bandpass", 1780, 0.28, 0.012);
+      knock(ctx, at, 0.7, 0.8);
 
-      // ② ドラムが回り切って受け止められる二打目
-      var t2 = now + 0.06;
-      noiseBurst(ctx, t2, 0.01, "bandpass", 780, 0.5, 0.022);
-      metalRing(ctx, t2, 1500, 0.05, 0.2);
-      clickBody(ctx, t2, 105, 0.4, 0.09);
+      // ② 4つの車が走る。戻る距離が桁ごとに違うので、走る長さも揃えない
+      var t0 = at + 0.012;
+      for (var w = 0; w < 4; w++) {
+        var steps = 4 + Math.floor(Math.random() * 6);
+        var t = t0 + w * 0.004, gap = 0.0085;
+        for (var i = 0; i < steps; i++) {
+          knock(ctx, t, Math.max(0.10, 0.5 * (1 - i / (steps + 3))), 1 - w * 0.05);
+          t += gap;
+          gap *= 1.06;                       // 減速する
+        }
+      }
 
-      // ③ 最後に軽く収まる余韻
-      var t3 = now + 0.115;
-      noiseBurst(ctx, t3, 0.006, "bandpass", 1300, 0.22, 0.014);
-      clickBody(ctx, t3, 90, 0.16, 0.07);
+      // ③ 止め金に当たって終わる
+      knock(ctx, at + 0.115, 0.85, 0.92);
     } catch (e) {}
   }
 
