@@ -2698,6 +2698,10 @@
   // 実測: 実効値 0.026 → 0.080（3.1倍）／ ピーク 0.60 → 0.57（むしろ下がる）／
   //       打ごとのばらつき 0.50〜0.67 → 0.56〜0.58 ／ 10単位のクリップ 0
   var COUNTER_GAIN = 60;
+  // タッチで操作する端末＝モバイル。PCとは音量を分ける
+  var IS_COARSE = (function () {
+    try { return window.matchMedia("(pointer: coarse)").matches; } catch (e) { return false; }
+  })();
   var counterBus = null;
   function tanhCurve(k) {
     var n = 2048, c = new Float32Array(n), t = Math.tanh(k);
@@ -2721,34 +2725,39 @@
     comp.attack.value = 0.003;
     comp.release.value = 0.10;
     var out = ctx.createGain();
-    out.gain.value = 1.35;
+    // PCは机の上、モバイルは手の中で使う。距離と内蔵スピーカーの差があるので、
+    // PCは少し下げる。圧縮の手前を下げても頭打ちで効かないので、出口で下げる
+    out.gain.value = 1.35 * (IS_COARSE ? 1.0 : 0.70);
     g.connect(sat).connect(comp).connect(out).connect(ctx.destination);
     counterBus = { ctx: ctx, node: g };
     return g;
   }
 
   // ③ 共振体を増やして長く鳴らす。実物の木の胴にも共振はもっとある。
-  // 飽和で倍音を「作る」より、元からある共振を足すほうが、大きくしても濁らない
+  // 飽和で倍音を「作る」より、元からある共振を足すほうが、大きくしても濁らない。
+  // 全体を少し低くして、上の共振を弱くしてある（明るいほど「効果音」に聞こえる）
   var MOKUGYO = {
-    air: 1500,
+    air: 700,          // 空気の抜け。高いと「ピッ」という電子音に寄る
+    airAmp: 0.05,      // 1500Hz/0.22 だとここが立って、ゲームの効果音になっていた
+    attack: 0.0040,    // 励起の立ち上がり。速いほど尖る
     modes: [
-      [430,  14, 0.320, 0.50],   // 胴。木魚らしさはここ
-      [620,  13, 0.240, 0.30],
-      [880,  12, 0.170, 0.26],   // スマホで実際に聞こえるのはここから
-      [1180, 10, 0.100, 0.14],
-      [1620, 8,  0.070, 0.10]
+      [392,  16, 0.500, 0.52],   // 胴。木魚らしさはここ
+      [560,  15, 0.380, 0.30],
+      [790,  13, 0.250, 0.22],   // スマホで実際に聞こえるのはここから
+      [1050, 10, 0.130, 0.10],
+      [1480, 8,  0.080, 0.05]
     ]
   };
 
   // 共振体を1つ叩く。励起は先頭だけで、あとはフィルタが鳴らす。
   // 全体をノイズで埋めると乱数次第で音量が跳ねる（実測で8〜61%のばらつきが出た）
-  function woodRing(ctx, at, freq, q, dur, peak) {
+  function woodRing(ctx, at, freq, q, dur, peak, attack) {
     var n = Math.max(1, Math.floor(ctx.sampleRate * dur));
     var b = ctx.createBuffer(1, n, ctx.sampleRate), d = b.getChannelData(0);
-    var exc = Math.max(1, Math.floor(ctx.sampleRate * 0.0010));
+    var exc = Math.max(1, Math.floor(ctx.sampleRate * (attack || MOKUGYO.attack)));
     // 励起は乱数にしない。乱数だと一打ごとに音量が倍近く揺れる（実測 0.27〜0.58）。
-    // 先頭で1に立ち上げて落とすだけの決まった形にすると、毎回同じ強さで鳴る
-    for (var i = 0; i < n; i++) d[i] = i < exc ? (1 - i / exc) : 0;
+    // 角の立った形だと高い成分が散って「ピッ」と鳴るので、なだらかな山にする
+    for (var i = 0; i < n; i++) d[i] = i < exc ? 0.5 * (1 - Math.cos(2 * Math.PI * i / exc)) : 0;
     var src = ctx.createBufferSource(); src.buffer = b;
     var bp = ctx.createBiquadFilter();
     bp.type = "bandpass"; bp.frequency.value = freq; bp.Q.value = q;
@@ -2762,8 +2771,8 @@
   // 木を1回叩く
   function knock(ctx, at, amp, pitch) {
     var p = pitch || 1;
-    var j = 0.98 + Math.random() * 0.04;
-    noiseBurst(ctx, at, 0.0012, "bandpass", MOKUGYO.air * p * j, 0.22 * amp, 0.0025, counterOut(ctx));
+    var j = 0.99 + Math.random() * 0.02;
+    noiseBurst(ctx, at, 0.0025, "bandpass", MOKUGYO.air * p * j, MOKUGYO.airAmp * amp, 0.004, counterOut(ctx));
     MOKUGYO.modes.forEach(function (m) {
       woodRing(ctx, at, m[0] * p * j, m[1], m[2], m[3] * amp);
     });
@@ -2777,39 +2786,28 @@
       var at = ctx.currentTime;
       var pitch = up ? 1 : 0.94;
       knock(ctx, at, 1.0, pitch);
-      knock(ctx, at + 0.009 + Math.random() * 0.003, 0.30, pitch);
+      // 二つ目は間を空けて弱く。近くて強いと「カチカチ」という機械の音になる
+      knock(ctx, at + 0.018 + Math.random() * 0.002, 0.12, pitch);
     } catch (e) {}
   }
 
-  // 10単位とリセット — 4つの桁車がすべて0まで戻る。
-  // 戻る間に多数の歯を通過するので、単発ではなく短い打撃の連射になる
+  // 10単位とリセット — 一つ下の、長く残る音。
+  // v2.7までは桁車が0まで戻る連射（打撃を30発ほど）にしていた。機構としては正しいが、
+  // 何百回も聞く道具では「ゲームの効果音」に聞こえる。同じ木を一段低く叩いて、
+  // 長く鳴らすほうが、区切りとして分かりやすく、聞いていて疲れない
   function playMilestone() {
     try {
       var ctx = getCtx();
       var at = ctx.currentTime;
+      var MS = 0.55;
 
-      // 10単位は100打ぶんが重なるので、1打と同じ強さで鳴らすと合計が振り切れる。
-      // 圧縮でごまかさず、こちら側を下げておく
-      var MS = 0.45;
+      // ① 一段低く叩く
+      knock(ctx, at, 1.0 * MS, 0.72);
 
-      // ① レバーを倒す手応え
-      noiseBurst(ctx, at, 0.006, "bandpass", 1780, 0.28 * MS, 0.012, counterOut(ctx));
-      knock(ctx, at, 0.7 * MS, 0.8);
-
-      // ② 4つの車が走る。戻る距離が桁ごとに違うので、走る長さも揃えない
-      var t0 = at + 0.012;
-      for (var w = 0; w < 4; w++) {
-        var steps = 4 + Math.floor(Math.random() * 6);
-        var t = t0 + w * 0.004, gap = 0.0085;
-        for (var i = 0; i < steps; i++) {
-          knock(ctx, t, MS * Math.max(0.10, 0.5 * (1 - i / (steps + 3))), 1 - w * 0.05);
-          t += gap;
-          gap *= 1.06;                       // 減速する
-        }
-      }
-
-      // ③ 止め金に当たって終わる
-      knock(ctx, at + 0.115, 0.85 * MS, 0.92);
+      // ② その下でオクターブ下が長く残る。1打との差はここで付ける
+      MOKUGYO.modes.forEach(function (m) {
+        woodRing(ctx, at + 0.004, m[0] * 0.5, m[1] * 1.6, m[2] * 3.2, m[3] * 0.55 * MS, MOKUGYO.attack * 2);
+      });
     } catch (e) {}
   }
 
