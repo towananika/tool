@@ -852,6 +852,7 @@
   /* ===== pv ===== */
   .pv-form { width: 100%; display: flex; flex-direction: column; gap: 8px; }
   .pv-row2 { display: flex; gap: 8px; }
+  .pv-row2 .pv-ccy { flex: 0 0 78px; }
   .pv-form .pv-in { width: 100%; text-align: left; }
   .pv-row2 .pv-in { flex: 1 1 0; min-width: 0; }
   .pv-row2 .pv-in:last-child { text-align: right; }
@@ -1446,16 +1447,21 @@
 
   <div id="pvView" hidden>
     <p class="tool-title">現在価値</p>
-    <p class="tool-note">将来もらえるお金が、いま手元にあるとしたらいくらか。記録は積み重ねて保存されます。</p>
+    <p class="tool-note">将来もらえるお金が、いま手元にあるとしたらいくらか。<b>外貨は金利差から先物レートを出して</b>ウォンに直します（相場の予想ではありません）。</p>
     <div class="field-row">
-      <span class="field-label">割引率<span class="hint">（年率 %）</span></span>
+      <span class="field-label">割引率<span class="hint">（ウォン・年率 %）</span></span>
       <input class="num" type="number" id="pvRate" value="4" min="0" max="50" step="0.1" inputmode="decimal">
+    </div>
+    <div class="field-row">
+      <span class="field-label">外貨の金利<span class="hint">（年率 %）</span></span>
+      <input class="num" type="number" id="pvFxRate" value="4" min="0" max="50" step="0.1" inputmode="decimal">
     </div>
     <div class="pv-form">
       <input class="pv-in" type="text" id="pvLabel" placeholder="ラベル（例: 跳躍口座 満期）">
       <div class="pv-row2">
         <input class="pv-in" type="date" id="pvDate">
         <input class="pv-in" type="number" id="pvAmount" placeholder="金額" inputmode="numeric">
+        <select class="pv-in pv-ccy" id="pvCcy"></select>
       </div>
       <button class="chip add-btn" id="pvAddBtn">＋ 記録を追加</button>
     </div>
@@ -3623,7 +3629,42 @@
   var pvListEl = document.getElementById("pvList");
   var pvTotalEl = document.getElementById("pvTotal");
 
-  var pvState = loadJSON("pace-pv", { rate: 4, items: [] });
+  var pvCcyEl = document.getElementById("pvCcy");
+  var pvFxRateEl = document.getElementById("pvFxRate");
+  var pvState = loadJSON("pace-pv", { rate: 4, fxRate: 4, items: [] });
+  if (typeof pvState.fxRate !== "number") pvState.fxRate = 4;
+  var pvRatesAsked = false;
+
+  // 外貨1単位あたりのKRW（基準レート）。fxの読み込み結果をそのまま使う
+  function spotKrw(ccy) {
+    if (ccy === "KRW") return 1;
+    if (!fxBank || !fxBank.rates || !fxBank.rates[ccy]) return null;
+    var r = fxBank.rates[ccy];
+    return r.base / (r.unit || 1);
+  }
+
+  // 金利差から出る先物レート（カバー付き金利平価）。相場の予想ではなく、
+  // 「今そのお金を借りて/貸して固定するなら、この値になる」という理論値
+  function forwardKrw(ccy, years) {
+    var s0 = spotKrw(ccy);
+    if (s0 === null) return null;
+    if (ccy === "KRW") return 1;
+    return s0 * Math.pow((1 + pvState.rate / 100) / (1 + pvState.fxRate / 100), years);
+  }
+
+  function pvFillCcy() {
+    var list = ["KRW"];
+    if (fxBank && fxBank.rates) Object.keys(fxBank.rates).forEach(function (c) { list.push(c); });
+    else ["USD", "JPY", "EUR"].forEach(function (c) { list.push(c); });
+    var keep = pvCcyEl.value || "KRW";
+    pvCcyEl.innerHTML = "";
+    list.forEach(function (c) {
+      var o = document.createElement("option");
+      o.value = c; o.textContent = c;
+      pvCcyEl.appendChild(o);
+    });
+    if (list.indexOf(keep) >= 0) pvCcyEl.value = keep;
+  }
 
   function pvSave() { saveJSON("pace-pv", pvState); }
 
@@ -3639,6 +3680,13 @@
 
   function renderPv() {
     pvRateEl.value = pvState.rate;
+    pvFxRateEl.value = pvState.fxRate;
+    pvFillCcy();
+    // 外貨が1件でもあるのにレートが未取得なら、一度だけ取りに行く
+    if (!fxBank && !pvRatesAsked && pvState.items.some(function (x) { return x.ccy && x.ccy !== "KRW"; })) {
+      pvRatesAsked = true;
+      fxLoadRates(false).then(function () { pvFillCcy(); renderPv(); });
+    }
     pvListEl.innerHTML = "";
     if (!pvState.items.length) {
       var empty = document.createElement("p");
@@ -3653,8 +3701,23 @@
     sorted.forEach(function (it) {
       var y = yearsUntil(it.date);
       if (y === null) return;
-      var pv = presentValue(Number(it.amount), y, Number(pvState.rate));
-      total += pv; totalFace += Number(it.amount);
+      var ccy = it.ccy || "KRW";
+      var pv, faceKrw, fwd = null, missing = false;
+      if (ccy === "KRW") {
+        pv = presentValue(Number(it.amount), y, Number(pvState.rate));
+        faceKrw = Number(it.amount);
+      } else {
+        // 外貨は「その通貨の金利で割り引いて、今のレートで換算」する。
+        // これは先物レートで換算してからウォン金利で割り引くのと同じ値になる
+        var s0 = spotKrw(ccy);
+        fwd = forwardKrw(ccy, y);
+        if (s0 === null) { missing = true; pv = 0; faceKrw = 0; }
+        else {
+          pv = presentValue(Number(it.amount), y, Number(pvState.fxRate)) * s0;
+          faceKrw = Number(it.amount) * s0;
+        }
+      }
+      total += pv; totalFace += faceKrw;
 
       var el = document.createElement("div");
       el.className = "pv-item";
@@ -3665,7 +3728,9 @@
       nm.textContent = it.label || "（無題）";
       var meta = document.createElement("span");
       meta.className = "pv-meta";
-      meta.textContent = it.date + " ／ " + (y >= 0 ? "あと " + fmt(y, 1) + "年" : fmt(-y, 1) + "年前") + " ／ 額面 " + fmt(Number(it.amount));
+      meta.textContent = it.date + " ／ " + (y >= 0 ? "あと " + fmt(y, 1) + "年" : fmt(-y, 1) + "年前") +
+        " ／ 額面 " + fmt(Number(it.amount)) + (ccy === "KRW" ? "" : " " + ccy) +
+        (missing ? " ／ レート未取得" : (fwd === null || ccy === "KRW" ? "" : " ／ 先物 " + fmt(fwd, 2) + "원"));
       main.appendChild(nm); main.appendChild(meta);
 
       var val = document.createElement("span");
@@ -3694,7 +3759,10 @@
     var t2 = document.createElement("div");
     t2.style.color = "var(--text-muted)";
     t2.style.fontSize = "12px";
-    t2.textContent = "額面合計 " + fmt(totalFace) + " ／ 割引率 " + pvState.rate + "% で " + fmt(totalFace - total) + " 目減り";
+    var hasFx = pvState.items.some(function (x) { return x.ccy && x.ccy !== "KRW"; });
+    t2.textContent = "額面合計 " + fmt(totalFace) + "（外貨は今のレート換算）／ 割引率 " + pvState.rate + "% で " +
+      fmt(totalFace - total) + " 目減り" +
+      (hasFx ? " ／ 外貨は金利 " + pvState.fxRate + "% で割り引き" : "");
     pvTotalEl.appendChild(t1); pvTotalEl.appendChild(t2);
   }
 
@@ -3704,6 +3772,19 @@
     renderPv();
   });
 
+  pvFxRateEl.addEventListener("input", function () {
+    pvState.fxRate = pvFxRateEl.value === "" ? 0 : Number(pvFxRateEl.value);
+    pvSave();
+    renderPv();
+  });
+
+  pvCcyEl.addEventListener("change", function () {
+    if (pvCcyEl.value !== "KRW" && !fxBank && !pvRatesAsked) {
+      pvRatesAsked = true;
+      fxLoadRates(false).then(function () { pvFillCcy(); renderPv(); });
+    }
+  });
+
   pvAddBtn.addEventListener("click", function () {
     var amount = Number(pvAmountEl.value);
     if (!pvDateEl.value || !amount) { alert("日付と金額を入れてください。"); return; }
@@ -3711,7 +3792,8 @@
       id: String(Date.now()) + Math.random().toString(16).slice(2, 6),
       label: pvLabelEl.value,
       date: pvDateEl.value,
-      amount: amount
+      amount: amount,
+      ccy: pvCcyEl.value || "KRW"
     });
     pvSave();
     pvLabelEl.value = ""; pvAmountEl.value = "";
