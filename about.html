@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>計算式と前提 — 間合い (Maai)</title>
-<meta name="description" content="間合い（Maai）に収録した各道具の計算式・前提・限界をすべて公開しています。給油くらべ、為替の3層比較、現在価値、住居の重み、家賃と持ち家、청년 전세대출、株と不動産。引用・再利用は自由です。">
+<meta name="description" content="間合い（Maai）に収録した各道具の計算式・前提・限界をすべて公開しています。給油くらべ、為替の3層比較、現在価値、いつ届く、住居の重み、家賃と持ち家、청년 전세대출、株と不動産。引用・再利用は自由です。">
 <link rel="canonical" href="https://towananika.github.io/tool/about.html">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="間合い / Maai">
@@ -105,6 +105,14 @@
     <h3>現在価値 — 将来のお金を今の価値に直す</h3>
     <pre class="formula">現在価値 = 将来の金額 ÷ (1 + 割引率)^年数</pre>
     <p>将来の入金予定を記録として積み重ね、合計を現在価値で見ます。額面合計との差が「待つことで目減りする分」です。</p>
+  </article>
+
+  <article class="about-item" id="about-goal">
+    <h3>いつ届く — 目標の額に何年で届くか</h3>
+    <pre class="formula">n = ln((目標×i + 積立) ÷ (今の資産×i + 積立)) ÷ ln(1 + i)
+i = 年利 ÷ 12、n = 月数（月複利・月末に積立）</pre>
+    <p>年数そのものより、<strong>どれを動かすといちばん早く届くか</strong>を並べて出します。積立を+50万、積立を1.5倍、年利を+1%、目標を2割下げる。同じ「一つ動かす」でどれだけ縮むかを比べると、利回りを追うより積立を増やすほうが効く場面が多いことが分かります。</p>
+    <p>限界: 税・インフレ・為替を含みません。利回りは毎月一定として計算します（実際の相場は上下します）。絶対額の予測ではなく、選択肢どうしの順位比較に使ってください。</p>
   </article>
 
   <article class="about-item" id="about-cost">

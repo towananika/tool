@@ -1463,6 +1463,30 @@
     <div class="result-box" id="pvTotal"></div>
   </div>
 
+  <div id="goalView" hidden>
+    <p class="tool-title">いつ届く</p>
+    <p class="tool-note">目標の金額に何年で届くか。もっと大事なのは、<b>どれを動かすといちばん早いか</b>です。単位は万ウォン。</p>
+    <div class="field-row">
+      <span class="field-label">目標<span class="hint">（万）</span></span>
+      <input class="num" type="number" id="goalTarget" value="100000" min="1" step="1000" inputmode="numeric">
+    </div>
+    <div class="field-row">
+      <span class="field-label">いまの資産<span class="hint">（万）</span></span>
+      <input class="num" type="number" id="goalNow" value="10100" min="0" step="100" inputmode="numeric">
+    </div>
+    <div class="field-row">
+      <span class="field-label">毎月の積立<span class="hint">（万）</span></span>
+      <input class="num" type="number" id="goalSave" value="186" min="0" step="10" inputmode="numeric">
+    </div>
+    <div class="field-row">
+      <span class="field-label">年利<span class="hint">（%）</span></span>
+      <input class="num" type="number" id="goalRate" value="7" min="0" max="30" step="0.1" inputmode="decimal">
+    </div>
+    <div class="result-box" id="goalResult"></div>
+    <p class="tool-note">どれを動かすと早まるか</p>
+    <div class="result-box" id="goalLevers"></div>
+  </div>
+
   <div id="fxView" hidden>
     <p class="tool-title">為替</p>
     <div class="fx-row">
@@ -2033,7 +2057,7 @@
   // 以前は隠したタブバーの文字を読んでいたが、見えないUIに依存していたのでやめた
   var TOOL_NAME = {
     timer: "タイマー", stopwatch: "ストップ", counter: "カウンター", alarm: "アラーム",
-    fuel: "給油くらべ", fx: "為替", pv: "現在価値",
+    fuel: "給油くらべ", fx: "為替", pv: "現在価値", goal: "いつ届く",
     cost: "住居の重み", jeonse: "チョンセ融資", asset: "資産",
     house: "家賃vs保有", invest: "株vs不動産",
     settings: "設定", about: "計算式と前提"
@@ -2047,6 +2071,7 @@
     alarm:     { view: "alarmView" },
     fuel:      { view: "fuelView" },
     pv:        { view: "pvView" },
+    goal:      { view: "goalView" },
     fx:        { view: "fxView" },
     asset:     { view: "assetView" },
     house:     { view: "houseView" },
@@ -2092,6 +2117,7 @@
       // 前回送れなかった意見をここで送り直す
       if (typeof trySendOutbox === "function") trySendOutbox();
     }
+    if (tab === "goal") calcGoal();
     if (tab === "cost") renderCost();
     if (tab === "jeonse") calcJeonse();
     if (tab === "menu") { menuSearchEl.value = ""; buildMenu(); }
@@ -4875,6 +4901,93 @@
     return m * (Math.pow(1 + r, n) - 1) / r;
   }
 
+
+  // ==================== いつ届く ====================
+  // 「何年かかるか」より「どれを動かすと早いか」が本体。
+  // 積立・利回り・目標のどれを変えると何年縮むかを並べて出す
+  var goalEls = {
+    target: document.getElementById("goalTarget"),
+    now: document.getElementById("goalNow"),
+    save: document.getElementById("goalSave"),
+    rate: document.getElementById("goalRate"),
+    out: document.getElementById("goalResult"),
+    lev: document.getElementById("goalLevers")
+  };
+
+  // 月複利・月末積立。届かない場合は null
+  function goalYears(target, now, save, ratePct) {
+    if (now >= target) return 0;
+    var i = ratePct / 100 / 12;
+    if (i <= 0) return save > 0 ? (target - now) / (save * 12) : null;
+    var a = target * i + save, b = now * i + save;
+    if (b <= 0) return null;
+    var n = Math.log(a / b) / Math.log(1 + i);
+    return (n > 0 && isFinite(n)) ? n / 12 : null;
+  }
+
+  function goalText(y) {
+    if (y === null) return "届かない";
+    if (y === 0) return "もう届いている";
+    var years = Math.floor(y), months = Math.round((y - years) * 12);
+    if (months === 12) { years += 1; months = 0; }
+    return years > 0 ? (years + "年" + (months ? months + "ヶ月" : "")) : (months + "ヶ月");
+  }
+
+  function calcGoal() {
+    var target = Math.max(1, parseFloat(goalEls.target.value) || 0);
+    var now = Math.max(0, parseFloat(goalEls.now.value) || 0);
+    var save = Math.max(0, parseFloat(goalEls.save.value) || 0);
+    var rate = Math.max(0, parseFloat(goalEls.rate.value) || 0);
+    try { localStorage.setItem("pace-goal", JSON.stringify({ t: target, n: now, s: save, r: rate })); } catch (e) {}
+
+    var base = goalYears(target, now, save, rate);
+    var d = new Date();
+    if (base === null) {
+      goalEls.out.innerHTML = "積立も利回りも0では<b>届きません</b>。どちらかを動かしてください。";
+      goalEls.lev.textContent = "";
+      return;
+    }
+    d.setMonth(d.getMonth() + Math.round(base * 12));
+    var putIn = save * 12 * base;                       // 自分で入れた分
+    var grown = Math.max(0, target - now - putIn);      // 利回りが作った分
+    goalEls.out.innerHTML =
+      "<b>" + goalText(base) + "</b>後 — " + d.getFullYear() + "年" + (d.getMonth() + 1) + "月ごろ<br>" +
+      "内訳: 自分で入れる <b>" + Math.round(putIn).toLocaleString() + "万</b>／" +
+      "利回りが作る <b>" + Math.round(grown).toLocaleString() + "万</b>";
+
+    // 効きの比較。同じ「1つ動かす」でどれだけ縮むか
+    var levers = [
+      ["毎月の積立を+50万", goalYears(target, now, save + 50, rate)],
+      ["毎月の積立を1.5倍", goalYears(target, now, save * 1.5, rate)],
+      ["年利を+1%", goalYears(target, now, save, rate + 1)],
+      ["目標を2割下げる", goalYears(target * 0.8, now, save, rate)]
+    ];
+    var rows = levers.map(function (L) {
+      if (L[1] === null) return "<div>" + L[0] + " — 届かない</div>";
+      var cut = base - L[1];
+      var mark = cut >= 1 ? ' class="result-win"' : "";
+      return "<div>" + L[0] + " → <b>" + goalText(L[1]) + "</b>" +
+        (cut > 0.04 ? "<span" + mark + ">（" + goalText(cut) + "早い）</span>" : "") + "</div>";
+    });
+    goalEls.lev.innerHTML = rows.join("");
+  }
+
+  (function () {
+    try {
+      var g = JSON.parse(localStorage.getItem("pace-goal") || "null");
+      if (g) {
+        if (g.t) goalEls.target.value = g.t;
+        if (typeof g.n === "number") goalEls.now.value = g.n;
+        if (typeof g.s === "number") goalEls.save.value = g.s;
+        if (typeof g.r === "number") goalEls.rate.value = g.r;
+      }
+    } catch (e) {}
+  })();
+  ["target", "now", "save", "rate"].forEach(function (k) {
+    goalEls[k].addEventListener("input", calcGoal);
+  });
+  calcGoal();
+
   function renderCost() {
     costListEl.innerHTML = "";
     costState.items.forEach(function (it, i) {
@@ -5007,7 +5120,7 @@
   // 家賃vs保有のように文字どおり"くらべる"道具が別の群に散っていた
   var MENU_GROUPS = [
     { head: "時間", tone: "sky", keys: ["timer", "stopwatch", "counter", "alarm"] },
-    { head: "お金", tone: "sea", keys: ["fuel", "fx", "pv", "asset"] },
+    { head: "お金", tone: "sea", keys: ["fuel", "fx", "pv", "goal", "asset"] },
     { head: "住まい", tone: "leaf", keys: ["cost", "house", "jeonse", "invest"] }
   ];
 
@@ -5032,6 +5145,7 @@
     fuel:      "きゅうゆ 給油 ガソリン 軽油 LPG 電気 充電 燃費 スタンド fuel gas ev 주유 기름 충전",
     fx:        "かわせ 為替 両替 レート 銀行 通貨 ドル 円 ウォン fx exchange rate 환전 환율",
     pv:        "げんざいかち 現在価値 割引 将来 present value discount 현재가치",
+    goal:      "いつとどく 到達 目標 何年 複利 積立 貯金 資産形成 億 FIRE goal compound saving 목표 언제 복리 적립 자산",
     cost:      "じゅうきょ 住居 固定費 節約 家賃 重み cost saving 고정비 절약",
     asset:     "しさん 資産 純資産 現金 投資 棚卸し asset net worth 자산 순자산",
     house:     "やちん 家賃 保有 持ち家 賃貸 월세 전세 매매 rent buy 주거",
@@ -5049,6 +5163,7 @@
     fuel:      "遠くの安い店まで走る価値",
     fx:        "両替所と銀行、どちらが得か",
     pv:        "将来のお金を今の価値に",
+    goal:      "目標の額に何年で届くか",
     cost:      "どの固定費を削ると効くか",
     asset:     "純資産と現金比率の棚卸し",
     house:     "월세・전세・매매を比べる",
