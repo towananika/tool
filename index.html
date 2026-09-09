@@ -380,6 +380,8 @@
   .counter-controls {
     display: flex;
     justify-content: center;
+    align-items: center;
+    gap: 14px;
   }
 
   .counter-minus {
@@ -1388,6 +1390,7 @@
 
     <div class="counter-controls">
       <button class="icon-btn counter-minus" id="counterMinus" aria-label="1減らす" title="1減らす">−</button>
+      <button class="chip" id="counterFullBtn">全体モード</button>
     </div>
 
     <div class="settings" id="counterSettings" data-open="false">
@@ -1409,9 +1412,6 @@
           <button class="chip" data-sound="wood">木</button>
           <button class="chip" data-sound="click">カチカチ</button>
         </div>
-      </div>
-      <div class="field-row">
-        <button class="chip" id="counterFullBtn">全体モード</button>
       </div>
       <div class="count-log" id="countLog" hidden>
         <p class="count-log-head">数え終わった記録</p>
