@@ -1111,7 +1111,6 @@
     font-size: 17px; line-height: 1; cursor: pointer; padding: 0 2px;
   }
   .menu-empty { width: 100%; text-align: center; font-size: 13px; color: var(--text-muted); margin: 18px 0 4px; }
-  .menu-head[data-tone="often"] b { background: var(--wood); }
 
   /* ホーム: 説明つきタイル（2列） */
   .menu-grid { grid-template-columns: repeat(2, 1fr); gap: 9px; }
@@ -2088,7 +2087,6 @@
     if (tab === "cost") renderCost();
     if (tab === "jeonse") calcJeonse();
     if (tab === "menu") { menuSearchEl.value = ""; buildMenu(); }
-    else noteUsage(tab);
     try { localStorage.setItem("pace-tab", tab); } catch (e) {}
     var want = tab === "menu" ? "#/" : "#/" + tab;
     if (location.hash.indexOf("?s=") < 0 && location.hash !== want) history.replaceState(null, "", want);
@@ -4998,24 +4996,12 @@
     setActiveTab("settings");
   });
 
+  // 「よく使う」をやめたので、貯めていた使用回数は捨てる
+  try { localStorage.removeItem("pace-usage"); } catch (e) {}
+
   var menuSearchEl = document.getElementById("menuSearch");
   var menuSearchClear = document.getElementById("menuSearchClear");
   var menuEmptyEl = document.getElementById("menuEmpty");
-
-  var usage = loadJSON("pace-usage", {});
-  function noteUsage(key) {
-    if (!key || key === "menu") return;
-    usage[key] = (usage[key] || 0) + 1;
-    saveJSON("pace-usage", usage);
-  }
-  function oftenUsed() {
-    var keys = Object.keys(usage).filter(function (k) {
-      return VIEWS[k] && k !== "settings" && HIDDEN_KEYS.indexOf(k) < 0;
-    });
-    var total = keys.reduce(function (a, k) { return a + usage[k]; }, 0);
-    if (total < 4) return [];              // 使い始めのうちは出さない
-    return keys.sort(function (a, b) { return usage[b] - usage[a]; }).slice(0, 3);
-  }
 
   function matches(key, q) {
     if (!q) return true;
@@ -5048,13 +5034,6 @@
     return tile;
   }
 
-  function toneOf(key) {
-    for (var i = 0; i < MENU_GROUPS.length; i++) {
-      if (MENU_GROUPS[i].keys.indexOf(key) >= 0) return MENU_GROUPS[i].tone;
-    }
-    return "wood";
-  }
-
   function addHead(text, tone) {
     var h = document.createElement("p");
     h.className = "menu-head";
@@ -5085,12 +5064,6 @@
       return;
     }
     menuEmptyEl.hidden = true;
-
-    var often = oftenUsed();
-    if (often.length) {
-      addHead("よく使う", "wood");
-      often.forEach(function (k) { menuGridEl.appendChild(makeTile(k, toneOf(k))); });
-    }
 
     MENU_GROUPS.forEach(function (g) {
       if (g.head) addHead(g.head, g.tone);
