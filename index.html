@@ -1073,6 +1073,7 @@
   .site-foot { width: 100%; max-width: 720px; margin: 30px auto 0; text-align: center; }
   .site-foot a { color: var(--text-muted); text-decoration: none; font-size: 12.5px; }
   .site-foot a:hover { color: var(--wood); }
+  .site-count { margin: 8px 0 0; font-size: 11.5px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
   .formula {
     margin: 8px 0 10px; padding: 12px 14px; overflow-x: auto;
     background: var(--surface); border: 1px solid var(--surface-border); border-radius: 10px;
@@ -1740,6 +1741,7 @@
 
 <footer class="site-foot">
   <a href="about.html">計算式と前提</a>
+  <p class="site-count" id="siteCount" hidden></p>
 </footer>
 
 <div class="al-ring" id="alRing" hidden>
@@ -4983,6 +4985,36 @@
     return m * (Math.pow(1 + r, n) - 1) / r;
   }
 
+
+  // ==================== 訪問者の数え方 ====================
+  // GitHub Pages は静的配信なので、このページから訪問者のIPは見えない。
+  // 「同じIPは1日1回」を満たすには外の集計に任せるしかない。
+  // GoatCounter は IP+UA+日替わりの塩をハッシュして数えるので、
+  // クッキーを置かずに「同じ人はその日1回」になる。IPそのものは保存されない。
+  // 使うときはここにサイト名（xxxx.goatcounter.com の xxxx）を入れる。空なら何もしない
+  var COUNTER_SITE = "";
+
+  (function siteCounter() {
+    var el = document.getElementById("siteCount");
+    if (!COUNTER_SITE) return;                     // 未設定なら読み込みもしない
+    var base = "https://" + COUNTER_SITE + ".goatcounter.com";
+
+    var sc = document.createElement("script");
+    sc.async = true;
+    sc.src = base + "/count.js";
+    sc.setAttribute("data-goatcounter", base + "/count");
+    document.body.appendChild(sc);
+
+    // 表示は「今日」と「累計」。取れなければ黙って出さない
+    fetch(base + "/counter/TOTAL.json")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        if (!j || !j.count) return;
+        el.textContent = "のべ " + j.count + " 人が使いました";
+        el.hidden = false;
+      })
+      .catch(function () {});
+  })();
 
   // ==================== いつ届く ====================
   // 「何年かかるか」より「どれを動かすと早いか」が本体。
