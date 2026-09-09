@@ -2699,7 +2699,7 @@
   //
   // 実測: 実効値 0.026 → 0.080（3.1倍）／ ピーク 0.60 → 0.57（むしろ下がる）／
   //       打ごとのばらつき 0.50〜0.67 → 0.56〜0.58 ／ 10単位のクリップ 0
-  var COUNTER_GAIN = 30;
+  var COUNTER_GAIN = 90;
   var counterBus = null;
   function tanhCurve(k) {
     var n = 2048, c = new Float32Array(n), t = Math.tanh(k);
@@ -2712,17 +2712,17 @@
     g.gain.value = COUNTER_GAIN;
     // ① 飽和。4xで折り返し歪みを避ける
     var sat = ctx.createWaveShaper();
-    sat.curve = tanhCurve(6);
+    sat.curve = tanhCurve(20);
     sat.oversample = "4x";
     // ② 安全弁。しきいを高く・比を大きくして、単打は素通し、連射の頭だけ止める
     var comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -3;
+    comp.threshold.value = -6;
     comp.knee.value = 2;
     comp.ratio.value = 20;
     comp.attack.value = 0.003;
     comp.release.value = 0.10;
     var out = ctx.createGain();
-    out.gain.value = 1.0;
+    out.gain.value = 1.10;
     g.connect(sat).connect(comp).connect(out).connect(ctx.destination);
     counterBus = { ctx: ctx, node: g };
     return g;
@@ -2732,9 +2732,9 @@
   var MOKUGYO = {
     air: 1500,
     modes: [
-      [430,  8, 0.130, 0.50],   // 胴。木魚らしさはここ
-      [880,  8, 0.075, 0.22],   // スマホで実際に聞こえるのはここから
-      [1620, 6, 0.038, 0.10]
+      [430,  10, 0.200, 0.50],   // 胴。木魚らしさはここ
+      [880,  10, 0.110, 0.24],   // スマホで実際に聞こえるのはここから
+      [1620, 7, 0.050, 0.10]
     ]
   };
 
@@ -2788,7 +2788,7 @@
 
       // 10単位は100打ぶんが重なるので、1打と同じ強さで鳴らすと合計が振り切れる。
       // 圧縮でごまかさず、こちら側を下げておく
-      var MS = 0.55;
+      var MS = 0.42;
 
       // ① レバーを倒す手応え
       noiseBurst(ctx, at, 0.006, "bandpass", 1780, 0.28 * MS, 0.012, counterOut(ctx));
