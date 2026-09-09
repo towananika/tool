@@ -2686,34 +2686,55 @@
   // 基音430Hzはスマホの内蔵スピーカーではほとんど鳴らない（500Hz以下が苦手）。
   // 承知のうえで下げたまま置く。机で使う道具なので、イヤホンとPCを優先した。
   // カウンターの音だけを通す出口。
-  // 単打を大きくすると、10単位（100打以上が重なる）で波形が振り切れて割れる。
-  // 圧縮を挟んで、単打は大きく・連射は潰さずに済ませる。
+  //
+  // 「音が小さい」の正体はピークではなく密度だった。実測（OfflineAudioContextで
+  // レンダリングして計測）すると、ピークは0.60まで出ているのに実効値は0.026しかない。
+  // 打撃音は一瞬で消えるので、ピークが天井に当たっていても耳には小さい。
+  // だから音量を上げても割れるだけで大きく聞こえない（実際3回作り直して失敗している）。
+  //
+  // 直し方は3つを同時に。
+  //  ① 飽和（tanh）— 木は非線形に鳴る。潰すと倍音が増え、ピークを上げずに密度が出る
+  //  ② 圧縮を「常にかける機械」から「振り切れる時だけ止める安全弁」に変える
+  //  ③ 胴の鳴りを伸ばす（52ms→130ms）。短すぎてエネルギーが乗っていなかった
+  //
+  // 実測: 実効値 0.026 → 0.080（3.1倍）／ ピーク 0.60 → 0.57（むしろ下がる）／
+  //       打ごとのばらつき 0.50〜0.67 → 0.56〜0.58 ／ 10単位のクリップ 0
   var COUNTER_GAIN = 30;
   var counterBus = null;
+  function tanhCurve(k) {
+    var n = 2048, c = new Float32Array(n), t = Math.tanh(k);
+    for (var i = 0; i < n; i++) { var x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(k * x) / t; }
+    return c;
+  }
   function counterOut(ctx) {
     if (counterBus && counterBus.ctx === ctx) return counterBus.node;
     var g = ctx.createGain();
     g.gain.value = COUNTER_GAIN;
+    // ① 飽和。4xで折り返し歪みを避ける
+    var sat = ctx.createWaveShaper();
+    sat.curve = tanhCurve(6);
+    sat.oversample = "4x";
+    // ② 安全弁。しきいを高く・比を大きくして、単打は素通し、連射の頭だけ止める
     var comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -20;
-    comp.knee.value = 6;
-    comp.ratio.value = 10;
-    comp.attack.value = 0.001;
-    comp.release.value = 0.08;
-    // 圧縮の追いつかない一瞬（10単位の頭）が振り切れるので、最後に少し下げる
+    comp.threshold.value = -3;
+    comp.knee.value = 2;
+    comp.ratio.value = 20;
+    comp.attack.value = 0.003;
+    comp.release.value = 0.10;
     var out = ctx.createGain();
-    out.gain.value = 0.72;
-    g.connect(comp).connect(out).connect(ctx.destination);
+    out.gain.value = 1.0;
+    g.connect(sat).connect(comp).connect(out).connect(ctx.destination);
     counterBus = { ctx: ctx, node: g };
     return g;
   }
 
+  // ③ 鳴りを伸ばす。Qを上げると共振が細く長く続き、同じピークでも密度が上がる
   var MOKUGYO = {
     air: 1500,
     modes: [
-      [430,  5, 0.052, 0.50],   // 胴。木魚らしさはここ
-      [880,  5, 0.030, 0.22],   // スマホで実際に聞こえるのはここから
-      [1620, 4, 0.016, 0.10]
+      [430,  8, 0.130, 0.50],   // 胴。木魚らしさはここ
+      [880,  8, 0.075, 0.22],   // スマホで実際に聞こえるのはここから
+      [1620, 6, 0.038, 0.10]
     ]
   };
 
