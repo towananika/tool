@@ -2699,7 +2699,7 @@
   //
   // 実測: 実効値 0.026 → 0.080（3.1倍）／ ピーク 0.60 → 0.57（むしろ下がる）／
   //       打ごとのばらつき 0.50〜0.67 → 0.56〜0.58 ／ 10単位のクリップ 0
-  var COUNTER_GAIN = 250;
+  var COUNTER_GAIN = 60;
   var counterBus = null;
   function tanhCurve(k) {
     var n = 2048, c = new Float32Array(n), t = Math.tanh(k);
@@ -2712,29 +2712,33 @@
     g.gain.value = COUNTER_GAIN;
     // ① 飽和。4xで折り返し歪みを避ける
     var sat = ctx.createWaveShaper();
-    sat.curve = tanhCurve(40);
+    sat.curve = tanhCurve(8);
     sat.oversample = "4x";
-    // ② 安全弁。しきいを高く・比を大きくして、単打は素通し、連射の頭だけ止める
+    // ② 圧縮。飽和で歪ませる代わりにここで密度を稼ぐ。
+    // 飽和を上げると3kHz超の倍音が増えて「変な音」になる（実測 tanh8で0.09 / tanh40で0.12）
     var comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -9;
+    comp.threshold.value = -14;
     comp.knee.value = 2;
-    comp.ratio.value = 20;
+    comp.ratio.value = 12;
     comp.attack.value = 0.003;
     comp.release.value = 0.10;
     var out = ctx.createGain();
-    out.gain.value = 1.18;
+    out.gain.value = 1.35;
     g.connect(sat).connect(comp).connect(out).connect(ctx.destination);
     counterBus = { ctx: ctx, node: g };
     return g;
   }
 
-  // ③ 鳴りを伸ばす。Qを上げると共振が細く長く続き、同じピークでも密度が上がる
+  // ③ 共振体を増やして長く鳴らす。実物の木の胴にも共振はもっとある。
+  // 飽和で倍音を「作る」より、元からある共振を足すほうが、大きくしても濁らない
   var MOKUGYO = {
     air: 1500,
     modes: [
-      [430,  10, 0.200, 0.50],   // 胴。木魚らしさはここ
-      [880,  10, 0.110, 0.24],   // スマホで実際に聞こえるのはここから
-      [1620, 7, 0.050, 0.10]
+      [430,  14, 0.320, 0.50],   // 胴。木魚らしさはここ
+      [620,  13, 0.240, 0.30],
+      [880,  12, 0.170, 0.26],   // スマホで実際に聞こえるのはここから
+      [1180, 10, 0.100, 0.14],
+      [1620, 8,  0.070, 0.10]
     ]
   };
 
@@ -2788,7 +2792,7 @@
 
       // 10単位は100打ぶんが重なるので、1打と同じ強さで鳴らすと合計が振り切れる。
       // 圧縮でごまかさず、こちら側を下げておく
-      var MS = 0.30;
+      var MS = 0.45;
 
       // ① レバーを倒す手応え
       noiseBurst(ctx, at, 0.006, "bandpass", 1780, 0.28 * MS, 0.012, counterOut(ctx));
