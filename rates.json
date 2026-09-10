@@ -1,73 +1,73 @@
 {
-  "updated": "2026-09-09T22:16:07+09:00",
+  "updated": "2026-09-10T11:15:39+09:00",
   "source": "open.er-api.com",
   "hasCash": false,
   "note": "KRW建て。unit 単位あたりの韓国ウォン。この取得元では基準レートのみ。現金の売買レートは入らない。",
   "rates": {
     "USD": {
       "unit": 1,
-      "base": 1340.48,
+      "base": 1338.69,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "미국 달러",
-      "date": "09 Sep 2026",
+      "date": "10 Sep 2026",
       "time": ""
     },
     "JPY": {
       "unit": 100,
-      "base": 871.56,
+      "base": 871.89,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "일본 옌",
-      "date": "09 Sep 2026",
+      "date": "10 Sep 2026",
       "time": ""
     },
     "EUR": {
       "unit": 1,
-      "base": 1560.06,
+      "base": 1557.63,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "유로",
-      "date": "09 Sep 2026",
+      "date": "10 Sep 2026",
       "time": ""
     },
     "CNY": {
       "unit": 1,
-      "base": 200.12,
+      "base": 199.76,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "중국 위안",
-      "date": "09 Sep 2026",
+      "date": "10 Sep 2026",
       "time": ""
     },
     "GBP": {
       "unit": 1,
-      "base": 1818.18,
+      "base": 1814.88,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "영국 파운드",
-      "date": "09 Sep 2026",
+      "date": "10 Sep 2026",
       "time": ""
     },
     "AUD": {
       "unit": 1,
-      "base": 968.05,
+      "base": 966.18,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "호주 달러",
-      "date": "09 Sep 2026",
+      "date": "10 Sep 2026",
       "time": ""
     }
   },
@@ -92,6 +92,17 @@
         "CNY": 200.12,
         "GBP": 1818.18,
         "AUD": 968.05
+      }
+    },
+    {
+      "date": "2026-09-10",
+      "base": {
+        "USD": 1338.69,
+        "JPY": 871.89,
+        "EUR": 1557.63,
+        "CNY": 199.76,
+        "GBP": 1814.88,
+        "AUD": 966.18
       }
     }
   ]
