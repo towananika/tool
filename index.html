@@ -1387,13 +1387,16 @@
           </label>
         </div>
         <div class="daylight-panel" id="daylightPanel" hidden>
-          <p class="daylight-status" id="daylightStatus">位置情報を確認中…</p>
+          <p class="daylight-status" id="daylightStatus">タイムゾーンから推定します。正確にしたいときだけ現在地を使ってください。</p>
           <div class="field-row">
             <span class="field-label">緯度・経度（手動調整）</span>
             <div class="latlon-row">
               <input type="number" id="latInput" step="0.01" inputmode="decimal">
               <input type="number" id="lonInput" step="0.01" inputmode="decimal">
             </div>
+          </div>
+          <div class="field-row">
+            <button class="chip" id="useGeoBtn">現在地を使う</button>
           </div>
           <button class="chip" id="screensaverBtn">全体モード</button>
         </div>
@@ -3214,23 +3217,41 @@
     } catch (e) {}
   }
 
+  // 位置情報は自分からは取りに行かない。
+  // 開いた瞬間に許可のダイアログが画面を塞ぐのは、道具として気持ちよくないため。
+  // 既定はタイムゾーンからの推定で、正確にしたい人だけ「現在地を使う」を押す。
   function resolveLocation(callback) {
     var saved = loadDaylightPrefs();
     if (typeof saved.lat === "number" && typeof saved.lon === "number" && saved.manual) {
       callback(saved.lat, saved.lon, "手動入力");
       return;
     }
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        function (pos) {
-          callback(pos.coords.latitude, pos.coords.longitude, "現在地");
-        },
-        function () { resolveByTimezone(callback); },
-        { timeout: 6000, maximumAge: 3600000 }
-      );
-    } else {
-      resolveByTimezone(callback);
+    resolveByTimezone(callback);
+  }
+
+  // 押されたときだけ位置情報を要求する
+  function requestGeolocation() {
+    if (!navigator.geolocation) {
+      daylightStatus.textContent = "この環境では現在地を取れません。緯度・経度を手で入れてください。";
+      return;
     }
+    daylightStatus.textContent = "現在地を確認中…";
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        var lat = pos.coords.latitude, lon = pos.coords.longitude;
+        daylightState.lat = lat;
+        daylightState.lon = lon;
+        daylightState.source = "現在地";
+        latInput.value = Math.round(lat * 100) / 100;
+        lonInput.value = Math.round(lon * 100) / 100;
+        saveDaylightPrefs({ lat: lat, lon: lon, source: "現在地", manual: true });
+        startDaylightLoop();
+      },
+      function () {
+        daylightStatus.textContent = "現在地は使えませんでした。推定のまま続けます。";
+      },
+      { timeout: 8000, maximumAge: 3600000 }
+    );
   }
 
   function resolveByTimezone(callback) {
@@ -3433,7 +3454,7 @@
       lonInput.value = prefs.lon;
       startDaylightLoop();
     }
-    daylightStatus.textContent = "位置情報を確認中…";
+    daylightStatus.textContent = "位置を推定しています…";
     resolveLocation(function (lat, lon, source) {
       daylightState.lat = lat;
       daylightState.lon = lon;
@@ -3471,6 +3492,11 @@
     saveDaylightPrefs({ lat: lat, lon: lon, source: "手動入力", manual: true });
     applyDaylight();
   }
+
+  document.getElementById("useGeoBtn").addEventListener("click", function (e) {
+    e.stopPropagation();
+    requestGeolocation();
+  });
 
   latInput.addEventListener("change", applyManualLocation);
   lonInput.addEventListener("change", applyManualLocation);
