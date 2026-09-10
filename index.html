@@ -377,6 +377,12 @@
     .sparkle-particle { animation: none; opacity: 0; }
   }
 
+  .timer-controls {
+    display: flex;
+    justify-content: center;
+    margin-top: 4px;
+  }
+
   .counter-controls {
     display: flex;
     justify-content: center;
@@ -1331,6 +1337,10 @@
 
     <p class="break-hint" id="breakHint" hidden></p>
 
+    <div class="timer-controls">
+      <button class="chip" id="screensaverBtn">全体モード</button>
+    </div>
+
     <div class="settings" id="settings" data-open="false">
       <div class="settings-group">
         <div class="field-row presets-row">
@@ -1398,7 +1408,6 @@
           <div class="field-row">
             <button class="chip" id="useGeoBtn">現在地を使う</button>
           </div>
-          <button class="chip" id="screensaverBtn">全体モード</button>
         </div>
       </div>
     </div>
