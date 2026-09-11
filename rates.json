@@ -1,62 +1,62 @@
 {
-  "updated": "2026-09-10T22:13:47+09:00",
+  "updated": "2026-09-11T11:11:34+09:00",
   "source": "open.er-api.com",
   "hasCash": false,
   "note": "KRW建て。unit 単位あたりの韓国ウォン。この取得元では基準レートのみ。現金の売買レートは入らない。",
   "rates": {
     "USD": {
       "unit": 1,
-      "base": 1338.69,
+      "base": 1345.9,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "미국 달러",
-      "date": "10 Sep 2026",
+      "date": "11 Sep 2026",
       "time": ""
     },
     "JPY": {
       "unit": 100,
-      "base": 871.89,
+      "base": 872.4,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "일본 옌",
-      "date": "10 Sep 2026",
+      "date": "11 Sep 2026",
       "time": ""
     },
     "EUR": {
       "unit": 1,
-      "base": 1557.63,
+      "base": 1562.5,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "유로",
-      "date": "10 Sep 2026",
+      "date": "11 Sep 2026",
       "time": ""
     },
     "CNY": {
       "unit": 1,
-      "base": 199.76,
+      "base": 199.56,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "중국 위안",
-      "date": "10 Sep 2026",
+      "date": "11 Sep 2026",
       "time": ""
     },
     "GBP": {
       "unit": 1,
-      "base": 1814.88,
+      "base": 1818.18,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "영국 파운드",
-      "date": "10 Sep 2026",
+      "date": "11 Sep 2026",
       "time": ""
     },
     "AUD": {
@@ -67,7 +67,7 @@
       "ttBuy": null,
       "ttSell": null,
       "name": "호주 달러",
-      "date": "10 Sep 2026",
+      "date": "11 Sep 2026",
       "time": ""
     }
   },
@@ -102,6 +102,17 @@
         "EUR": 1557.63,
         "CNY": 199.76,
         "GBP": 1814.88,
+        "AUD": 966.18
+      }
+    },
+    {
+      "date": "2026-09-11",
+      "base": {
+        "USD": 1345.9,
+        "JPY": 872.4,
+        "EUR": 1562.5,
+        "CNY": 199.56,
+        "GBP": 1818.18,
         "AUD": 966.18
       }
     }
