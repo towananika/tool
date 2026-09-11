@@ -2946,7 +2946,7 @@
       attack: 0.0040,    // 励起の立ち上がり。速いほど尖る
       gap: 0.018,        // 二打目まで。近いと「カチカチ」になる
       second: 0.12,
-      mile: "low",       // 10単位は一段低く長く残す
+      mile: "rin",       // 10単位は木魚のあとに鈴が残る
       modes: [
         [392,  16, 0.500, 0.52],   // 胴。木魚らしさはここ
         [560,  15, 0.380, 0.30],
@@ -3046,14 +3046,36 @@
         return;
       }
 
-      // ① 一段低く叩く
-      knock(ctx, at, 1.0 * MS, 0.72);
-
-      // ② その下でオクターブ下が長く残る。1打との差はここで付ける
-      V.modes.forEach(function (m) {
-        woodRing(ctx, at + 0.004, m[0] * 0.5, m[1] * 1.6, m[2] * 3.2, m[3] * 0.55 * MS, V.attack * 2);
-      });
+      // v3.4: 木魚を1打と同じに叩き、そのあと鈴（りん）を残す。
+      // v2.9〜3.3は「一段低く＋オクターブ下」だったが、スマホのスピーカーは500Hz以下をほぼ鳴らせず、
+      // 500Hz超で測ると1打より小さかった（0.83倍）。鈴は木魚と同じ仏壇の道具で、
+      // 木→金属・短い→長い の両方が変わる。500Hz超で1打の1.51倍（tools/counter_accent.html で測定）
+      knock(ctx, at, 1.0, 1);
+      knock(ctx, at + V.gap, V.second, 1);
+      rin(ctx, at + 0.02, 880, 0.30 * (IS_COARSE ? 1.0 : 0.70), 1.6);
     } catch (e) {}
+  }
+
+  // 鈴（りん）。木の飽和・圧縮を通すと割れるので、別の道で出す。
+  // お椀型の鈴は倍音が整数倍にならない（おおよそ 1 : 2.7 : 5.2）。少しずらした2本で「うなり」を作る
+  function rin(ctx, at, f0, level, len) {
+    var out = ctx.createGain();
+    out.gain.value = level;
+    out.connect(ctx.destination);
+    [[1, 1, len], [2.71, 0.28, len * 0.55], [5.2, 0.06, len * 0.3]].forEach(function (p) {
+      [-1.2, 1.2].forEach(function (det) {
+        var o = ctx.createOscillator();
+        o.type = "sine";
+        o.frequency.value = f0 * p[0] + det;
+        var g = ctx.createGain();
+        g.gain.setValueAtTime(0, at);
+        g.gain.linearRampToValueAtTime(p[1] * 0.5, at + 0.004);
+        g.gain.exponentialRampToValueAtTime(0.0003, at + p[2]);
+        o.connect(g).connect(out);
+        o.start(at);
+        o.stop(at + p[2] + 0.02);
+      });
+    });
   }
 
   function playTemple(toFocus) {
