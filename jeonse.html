@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>전세 vs 월세 vs 매매 계산기 — 10년 뒤 순자산으로 비교 | 間合い</title>
+<meta name="description" content="같은 종잣돈에서 출발해 월세·전세·매매를 10년 뒤 순자산으로 비교합니다. 청년 전세대출 이자와 소득공제 환급까지 계산합니다. 무료, 가입 없음, 계산식 전부 공개.">
+<link rel="canonical" href="https://towananika.github.io/tool/jeonse.html">
+<link rel="alternate" hreflang="ja" href="https://towananika.github.io/tool/about.html">
+<link rel="alternate" hreflang="ko" href="https://towananika.github.io/tool/jeonse.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="間合い / Maai">
+<meta property="og:title" content="전세 vs 월세 vs 매매 — 10년 뒤 순자산으로 비교">
+<meta property="og:description" content="같은 종잣돈에서 출발해 세 가지 방식을 같은 기준으로 비교합니다. 계산식 전부 공개.">
+<meta property="og:url" content="https://towananika.github.io/tool/jeonse.html">
+<meta property="og:locale" content="ko_KR">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg: #f5f1e9;
+    --surface: #fbf9f4;
+    --surface-border: #e2dac8;
+    --text: #2b2924;
+    --text-muted: #8a8271;
+    --wood: #93704b;
+    --sea: #5b7d8a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1a16;
+      --surface: #242119;
+      --surface-border: #38332a;
+      --text: #ede8dd;
+      --text-muted: #a89e8a;
+      --wood: #c99f74;
+      --sea: #8fb0bd;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+    padding: 28px 20px 64px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .back {
+    display: block; max-width: 720px; margin: 0 auto 22px;
+    color: var(--text-muted); text-decoration: none; font-size: 13px;
+  }
+  .back:hover { color: var(--wood); }
+  .about {
+    width: 100%; max-width: 720px; margin: 0 auto;
+    line-height: 1.95; font-size: 14px;
+  }
+  .about h1 { font-size: 19px; font-weight: 700; margin: 0 0 10px; letter-spacing: 0.02em; }
+  .about h2 { font-size: 15px; font-weight: 700; margin: 30px 0 10px;
+    padding-bottom: 7px; border-bottom: 1px solid var(--surface-border); }
+  .about h3 { font-size: 14px; font-weight: 700; margin: 0 0 6px; color: var(--wood); }
+  .about p { margin: 0 0 10px; }
+  .about-lead { color: var(--text-muted); }
+  .about-item { margin: 0 0 22px; }
+  .formula {
+    margin: 8px 0 10px; padding: 12px 14px; overflow-x: auto;
+    background: var(--surface); border: 1px solid var(--surface-border); border-radius: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.5px; line-height: 1.8; white-space: pre; color: var(--text);
+  }
+  .about-notes { margin: 0; padding-left: 1.2em; color: var(--text-muted); font-size: 13px; }
+  .about-notes li { margin-bottom: 8px; }
+  .about a { color: var(--sea); }
+  .about code { font-family: ui-monospace, monospace; font-size: 12.5px;
+    background: var(--surface); padding: 2px 6px; border-radius: 5px; }
+</style>
+</head>
+<body>
+
+<a class="back" href="./#/house">← 계산기 열기</a>
+
+<main class="about">
+  <h1>전세 vs 월세 vs 매매 — 10년 뒤 순자산으로 비교하기</h1>
+  <p class="about-lead">
+    같은 종잣돈에서 출발시켜, 주거비를 그 돈에서 계속 내면서 굴렸을 때
+    <strong>N년 뒤에 순자산이 얼마나 남는지</strong>로 세 가지 방식을 비교합니다.
+    계산식은 아래에 전부 적어 두었습니다. 입력한 값은 이용자의 브라우저에만 저장되며 서버로 보내지 않습니다. 무료이고 가입도 필요 없습니다.
+  </p>
+
+  <p class="about-lead">
+    <a class="back" href="./#/house">→ 월세·전세·매매 비교 계산기 열기</a><br>
+    <a class="back" href="./#/jeonse">→ 청년 전세대출 계산기 열기</a>
+  </p>
+
+  <h2>왜 월세가 손해라고 단정할 수 없나</h2>
+  <p>
+    월세는 매달 돈이 나가지만, 보증금이 작아서 <strong>남은 종잣돈을 굴릴 수 있습니다</strong>.
+    전세는 월 지출이 적은 대신 큰 돈이 보증금에 묶이고, 대출을 쓰면 이자가 나갑니다.
+    매매는 집값이 오르면 이득이지만 취득세·보유비용·대출이자가 매년 나갑니다.
+    이 셋은 <strong>같은 기준에 올려놓고 계산해야</strong> 비교가 됩니다. 그 기준이 「N년 뒤 순자산」입니다.
+  </p>
+
+  <h2>계산식</h2>
+  <article class="about-item" id="ko-house">
+    <h3>월세 · 전세 · 매매 비교</h3>
+    <pre class="formula">N년 뒤 순자산 = 운용 잔고 + 보유 자산 − 남은 대출
+
+운용 잔고는 매달 (1 + 연이율/12) 로 불어나고, 그 달의 주거비를 뺀다
+보유 자산 : 매매는 집값 ×(1+상승률)^N,  월세·전세는 돌려받는 보증금
+전세대출은 이자만,  주택담보대출은 원리금균등으로 남은 대출을 계산</pre>
+    <p>
+      여기에 더해, <strong>매매가 임차와 같아지는 집값 상승률</strong>을 이분 탐색으로 구합니다.
+      이 숫자 하나가 「지금 사야 하는가」의 갈림길이 됩니다.
+      예를 들어 결과가 연 3.1%라면, 앞으로 집값이 매년 3.1%보다 더 오를 것 같으면 매매가 유리하고, 그보다 덜 오를 것 같으면 임차가 유리하다는 뜻입니다.
+    </p>
+  </article>
+
+  <article class="about-item" id="ko-jeonse">
+    <h3>청년 전세대출은 얼마나 이득인가</h3>
+    <pre class="formula">청년으로 빌릴 수 있는 금액 = min(필요 금액, 한도)
+한도를 넘는 부분은 일반 금리
+
+연간 이자 = 청년금액 × 청년금리 + 초과금액 × 일반금리
+환급     = min(이자 × 공제율, 연간 상한) × 적용 세율
+실질 부담 = 연간 이자 − 환급</pre>
+    <p>
+      전액을 일반 금리로 빌렸을 때와의 차이가, 제도를 쓰는 값어치입니다.
+      월세와 비교할 때는 자기자금과 보증금의 기회비용도 연액에 넣습니다.
+      금리와 한도는 제도가 바뀌면 달라지므로 <strong>전부 직접 입력하는 방식</strong>입니다.
+    </p>
+  </article>
+
+  <h2>전제와 한계</h2>
+  <ul class="about-notes">
+    <li>집값 상승률과 기대수익률은 <strong>이용자가 넣은 가정</strong>입니다. 미래를 맞히는 도구가 아니라, 「그 가정이라면 이렇게 된다」를 보여주는 도구입니다.</li>
+    <li>개별 세제 혜택과 지역 차이는 반영하지 않았습니다. 실제 판단은 전문가에게 확인하시기 바랍니다.</li>
+    <li>전세보증금을 돌려받지 못하는 위험(전세사기·역전세)은 금액으로 계산하지 않습니다. 보증보험 가입 여부는 따로 확인하셔야 합니다.</li>
+    <li>순위를 매기거나 남과 비교하지 않습니다. 나오는 것은 본인의 숫자뿐입니다.</li>
+  </ul>
+
+  <h2>인용과 재사용</h2>
+  <p>
+    계산식과 전제, 결과 해석은 자유롭게 인용하셔도 됩니다. 출처로
+    <code>間合い (Maai) — https://towananika.github.io/tool/</code>
+    를 적어 주시면 충분합니다. 소스 코드는 MIT 라이선스로
+    <a href="https://github.com/towananika/tool">GitHub</a>에 공개되어 있습니다.
+  </p>
+  <p><a class="back" href="./about.html">計算式と前提（日本語）</a></p>
+</main>
+
+</body></html>
