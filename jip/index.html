@@ -138,6 +138,8 @@
   <li>입력값은 <strong>이 브라우저에만 저장</strong>되며 서버로 보내지 않습니다. 무료이고 가입도 없습니다.</li>
 </ul>
 
+<p class="foot" id="visits" hidden></p>
+
 <p class="foot">
   <a href="../">間合い (Maai) — 판단을 숫자로 바꾸는 도구상자</a><br>
   <a href="../jeonse.html">전세 vs 월세 vs 매매 — 10년 뒤 순자산으로 비교</a>
@@ -146,6 +148,28 @@
 </main>
 
 <script>
+// 방문자 수. 가입도 키도 없는 외부 카운터에, 그날 처음 열었을 때만 1을 더한다.
+// IP가 아니라 브라우저 기준이라는 점은 그대로 밝혀 둔다
+(function visits() {
+  var el = document.getElementById("visits");
+  var BASE = "https://abacus.jasoncameron.dev", NS = "towananika-tool", KEY = "jip";
+  var today = new Date().toISOString().slice(0, 10), mark = "jip-visit", seen = null;
+  try { seen = localStorage.getItem(mark); } catch (e) {}
+  var url;
+  if (seen === today) url = BASE + "/get/" + NS + "/" + KEY;
+  else {
+    url = BASE + "/hit/" + NS + "/" + KEY;
+    try { localStorage.setItem(mark, today); } catch (e) {}
+    fetch(BASE + "/hit/" + NS + "/" + KEY + "-" + today).catch(function () {});
+  }
+  fetch(url).then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) {
+      if (!j || !(j.value > 0)) return;
+      el.textContent = "지금까지 " + j.value.toLocaleString("ko-KR") + "명이 열어봤습니다";
+      el.hidden = false;
+    }).catch(function () {});
+})();
+
 (function () {
   "use strict";
   // 초기값은 예시. 실제 매물 조건으로 바꿔서 쓰는 것을 전제로 한다

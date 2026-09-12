@@ -5306,32 +5306,40 @@
 
 
   // ==================== 訪問者の数え方 ====================
-  // GitHub Pages は静的配信なので、このページから訪問者のIPは見えない。
-  // 「同じIPは1日1回」を満たすには外の集計に任せるしかない。
-  // GoatCounter は IP+UA+日替わりの塩をハッシュして数えるので、
-  // クッキーを置かずに「同じ人はその日1回」になる。IPそのものは保存されない。
-  // 使うときはここにサイト名（xxxx.goatcounter.com の xxxx）を入れる。空なら何もしない
-  var COUNTER_SITE = "";
+  // 静的配信なので、このページから訪問者のIPは見えない。登録も鍵も要らない
+  // 外の数え台（Abacus）に「その日はじめて開いた」ときだけ1を足す。
+  // 同じ端末・同じブラウザなら日に1回。IPではなく端末で数えていることは承知の上
+  // （IPで数えるにはアカウントの要る集計か自前のサーバーが要る）
+  var COUNT_BASE = "https://abacus.jasoncameron.dev";
+  var COUNT_NS = "towananika-tool";
+  var COUNT_KEY = "home";
 
   (function siteCounter() {
     var el = document.getElementById("siteCount");
-    if (!COUNTER_SITE) return;                     // 未設定なら読み込みもしない
-    var base = "https://" + COUNTER_SITE + ".goatcounter.com";
+    if (!el) return;
+    var today = new Date().toISOString().slice(0, 10);
+    var mark = "maai-visit";
+    var seen = null;
+    try { seen = localStorage.getItem(mark); } catch (e) {}
 
-    var sc = document.createElement("script");
-    sc.async = true;
-    sc.src = base + "/count.js";
-    sc.setAttribute("data-goatcounter", base + "/count");
-    document.body.appendChild(sc);
+    function show(v) {
+      if (!(v > 0)) return;
+      el.textContent = "のべ " + v.toLocaleString() + " 人が開きました";
+      el.hidden = false;
+    }
 
-    // 表示は「今日」と「累計」。取れなければ黙って出さない
-    fetch(base + "/counter/TOTAL.json")
+    var url;
+    if (seen === today) {
+      url = COUNT_BASE + "/get/" + COUNT_NS + "/" + COUNT_KEY;        // 今日はもう数えた。読むだけ
+    } else {
+      url = COUNT_BASE + "/hit/" + COUNT_NS + "/" + COUNT_KEY;        // 今日はじめて。1を足す
+      try { localStorage.setItem(mark, today); } catch (e) {}
+      // 日ごとの推移も残す。どの日に人が来たかが分かるように
+      fetch(COUNT_BASE + "/hit/" + COUNT_NS + "/" + COUNT_KEY + "-" + today).catch(function () {});
+    }
+    fetch(url)
       .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (j) {
-        if (!j || !j.count) return;
-        el.textContent = "のべ " + j.count + " 人が使いました";
-        el.hidden = false;
-      })
+      .then(function (j) { if (j) show(j.value); })
       .catch(function () {});
   })();
 
