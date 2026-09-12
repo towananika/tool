@@ -64,6 +64,13 @@
   ul { margin: 0 0 12px 18px; font-size: 14px; }
   li { margin-bottom: 6px; }
   a { color: var(--sea); }
+  .bar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .btn { font: inherit; font-size: 12.5px; cursor: pointer; background: transparent; color: var(--text);
+    border: 1px solid var(--surface-border); border-radius: 999px; padding: 6px 13px; }
+  .btn:hover { border-color: var(--wood); color: var(--wood); }
+  .del { position: absolute; top: 6px; right: 8px; border: none; background: transparent; cursor: pointer;
+    color: var(--text-muted); font-size: 15px; line-height: 1; padding: 2px 4px; }
+  .home { position: relative; }
   .foot { margin-top: 40px; text-align: center; font-size: 12.5px; color: var(--text-muted); }
   .foot a { color: var(--text-muted); text-decoration: none; }
 </style>
@@ -96,6 +103,11 @@
       <label for="months">기간 (개월)</label>
       <input type="number" id="months" value="24" min="1" max="240" step="1" inputmode="numeric">
     </div>
+  </div>
+
+  <div class="bar">
+    <button class="btn" id="addHome">＋ 집 추가</button>
+    <button class="btn" id="share">🔗 이 조건 그대로 링크 복사</button>
   </div>
 
   <details>
@@ -180,15 +192,45 @@
   ];
   var KEY = "jip-homes-v1";
 
+  // 링크로 받은 조건이 있으면 그것을 먼저 쓴다. 남에게 보여줄 때 이 링크 하나면 된다
+  //   #h=이름,보증금,월세,관리비,대출|이름,...&r=대출금리,기대수익률,개월
+  function fromHash() {
+    var raw = location.hash.replace(/^#/, "");
+    if (!raw) return null;
+    var q = {}, parts = raw.split("&");
+    parts.forEach(function (kv) {
+      var i = kv.indexOf("=");
+      if (i > 0) q[kv.slice(0, i)] = decodeURIComponent(kv.slice(i + 1));
+    });
+    if (!q.h) return null;
+    var list = q.h.split("|").map(function (chunk) {
+      var c = chunk.split(",");
+      if (c.length < 5) return null;
+      return { name: c[0] || "집", deposit: +c[1] || 0, rent: +c[2] || 0, mgmt: +c[3] || 0, loan: +c[4] || 0 };
+    }).filter(Boolean);
+    if (!list.length) return null;
+    return { homes: list, rates: (q.r || "").split(",") };
+  }
+
+  var shared = fromHash();
   var homes;
-  try { homes = JSON.parse(localStorage.getItem(KEY)) || null; } catch (e) { homes = null; }
-  if (!homes || !homes.length) homes = DEFAULTS.slice();
+  if (shared) homes = shared.homes;
+  else {
+    try { homes = JSON.parse(localStorage.getItem(KEY)) || null; } catch (e) { homes = null; }
+    if (!homes || !homes.length) homes = DEFAULTS.slice();
+  }
 
   var host = document.getElementById("homes");
   var verdict = document.getElementById("verdict");
   var loanRateEl = document.getElementById("loanRate");
   var oppRateEl = document.getElementById("oppRate");
   var monthsEl = document.getElementById("months");
+
+  if (shared && shared.rates.length === 3) {
+    if (shared.rates[0]) loanRateEl.value = shared.rates[0];
+    if (shared.rates[1]) oppRateEl.value = shared.rates[1];
+    if (shared.rates[2]) monthsEl.value = shared.rates[2];
+  }
 
   function n(v) { var x = parseFloat(v); return isFinite(x) ? x : 0; }
   function won(x) { return Math.round(x).toLocaleString("ko-KR"); }
@@ -246,6 +288,17 @@
       nameEl.addEventListener("input", function () { h.name = nameEl.value; save(); });
       card.appendChild(nameEl);
 
+      if (homes.length > 2) {          // 2つ未満だと比べられないので、そこまでは消せない
+        var del = document.createElement("button");
+        del.className = "del";
+        del.textContent = "×";
+        del.setAttribute("aria-label", "이 집 지우기");
+        del.addEventListener("click", function () {
+          homes.splice(i, 1); save(); render();
+        });
+        card.appendChild(del);
+      }
+
       card.appendChild(field("보증금", h.deposit, 0, 200000, 100, function (v) { h.deposit = n(v); save(); render(); }));
       card.appendChild(field("월세", h.rent, 0, 1000, 1, function (v) { h.rent = n(v); save(); render(); }));
       card.appendChild(field("관리비", h.mgmt, 0, 200, 1, function (v) { h.mgmt = n(v); save(); render(); }));
@@ -297,6 +350,29 @@
   [loanRateEl, oppRateEl, monthsEl].forEach(function (el) {
     el.addEventListener("input", render);
   });
+  document.getElementById("addHome").addEventListener("click", function () {
+    if (homes.length >= 4) return;     // 4つを超えると横に並べても読めない
+    homes.push({ name: "집 " + (homes.length + 1), deposit: 5000, rent: 40, mgmt: 7, loan: 0 });
+    save(); render();
+  });
+
+  document.getElementById("share").addEventListener("click", function (e) {
+    var btn = e.currentTarget;
+    var h = homes.map(function (x) {
+      return [String(x.name).replace(/[,|&#]/g, " "), x.deposit, x.rent, x.mgmt, x.loan].join(",");
+    }).join("|");
+    var url = location.origin + location.pathname + "#h=" + encodeURIComponent(h) +
+      "&r=" + [n(loanRateEl.value), n(oppRateEl.value), n(monthsEl.value)].join(",");
+    function done(ok) {
+      btn.textContent = ok ? "✓ 복사했습니다" : "복사 실패";
+      setTimeout(function () { btn.textContent = "🔗 이 조건 그대로 링크 복사"; }, 1800);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { done(true); }, function () { done(false); });
+    } else { done(false); }
+    history.replaceState(null, "", url);
+  });
+
   render();
 })();
 </script>

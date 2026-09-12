@@ -2366,10 +2366,32 @@
     }
   }
 
+  // 押し間違いの取り消し。押した指をそのまま置いておくと、いま足したぶんが戻る。
+  // 「−」を探して押すより速く、数えている流れが切れない
+  var UNDO_HOLD = 600;
+  var holdTimer = null;
+
+  function startHold() {
+    clearTimeout(holdTimer);
+    holdTimer = setTimeout(function () {
+      holdTimer = null;
+      counterState.count -= counterState.step;   // いま足したぶんを戻す
+      saveCounter();
+      renderCounter();
+      vibrate([18, 40, 18]);                     // 数えたときと違う触り心地にする
+      playClick(false);
+    }, UNDO_HOLD);
+  }
+  function endHold() { clearTimeout(holdTimer); holdTimer = null; }
+
   counterCircle.addEventListener("pointerdown", function (e) {
     if (e.pointerType === "mouse" && e.button !== 0) return;
     e.preventDefault();
     counterIncrement();
+    startHold();
+  });
+  ["pointerup", "pointercancel", "pointerleave"].forEach(function (ev) {
+    counterCircle.addEventListener(ev, endHold);
   });
   counterMinus.addEventListener("pointerdown", function (e) {
     if (e.pointerType === "mouse" && e.button !== 0) return;
@@ -2510,9 +2532,9 @@
     counterFullLock.textContent = counterLocked ? "長押しで解除" : "ロック";
     counterFullHint.textContent = counterLocked
       ? "ロック中。数えません"
-      : (counterState.step === 1
+      : ((counterState.step === 1
           ? "画面のどこでもタップして数える"
-          : "画面のどこでもタップして ＋" + counterState.step);
+          : "画面のどこでもタップして ＋" + counterState.step) + " ／ 長押しで取り消し");
   }
 
   counterFullLock.addEventListener("pointerdown", function (e) {
@@ -2535,11 +2557,13 @@
     if (counterLocked) return;
     counterFullTap.setAttribute("data-hit", "true");
     counterIncrement();
+    startHold();
   });
 
   ["pointerup", "pointercancel", "pointerleave"].forEach(function (ev) {
     counterFullTap.addEventListener(ev, function () {
       counterFullTap.setAttribute("data-hit", "false");
+      endHold();
     });
   });
 
