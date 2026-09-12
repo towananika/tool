@@ -91,6 +91,84 @@ def from_erapi():
     return rates or None
 
 
+# ===== 国債利回り（イールドカーブ） =====
+# 韓国: 韓国銀行ECOS 817Y002「시장금리(일별)」。sample鍵は1回10件までなので2回に分ける。
+# 米国: 財務省の日次イールドカーブCSV。鍵は不要。
+# ここが失敗しても為替の更新は続ける（前回の値を残す）。
+
+ECOS = "https://ecos.bok.or.kr/api/StatisticSearch/sample/json/kr/{a}/{b}/817Y002/D/{d}/{d}"
+UST = ("https://home.treasury.gov/resource-center/data-chart-center/interest-rates/"
+       "daily-treasury-rates.csv/{y}/all?type=daily_treasury_yield_curve"
+       "&field_tdr_date_value={y}&page&_format=csv")
+
+KR_WANT = ("1", "2", "3", "5", "10", "20", "30")
+
+
+def kr_yields():
+    """国庫債の年限別利回り。直近の営業日を7日さかのぼって探す。"""
+    import re
+    for back in range(0, 8):
+        day = (datetime.now(KST) - timedelta(days=back)).strftime("%Y%m%d")
+        rows = []
+        for a, b in ((1, 10), (11, 20)):
+            try:
+                d = get(ECOS.format(a=a, b=b, d=day))
+            except Exception:
+                continue
+            rows += (d.get("StatisticSearch") or {}).get("row") or []
+        curve = {}
+        for r in rows:
+            m = re.match(r"국고채\((\d+)년\)", r.get("ITEM_NAME1") or "")
+            if m and m.group(1) in KR_WANT and r.get("DATA_VALUE"):
+                curve[m.group(1)] = float(r["DATA_VALUE"])
+        if len(curve) >= 5:
+            return {"date": day, "source": "BOK ECOS 817Y002", "curve": curve}
+    return None
+
+
+def us_yields():
+    """米国財務省の日次カーブ。最新行を使う。"""
+    year = datetime.now(KST).year
+    req = urllib.request.Request(UST.format(y=year),
+                                 headers={"User-Agent": "pace-maai-rates/1.0"})
+    with urllib.request.urlopen(req, timeout=25) as res:
+        text = res.read().decode("utf-8", "replace")
+
+    lines = [l for l in text.splitlines() if l.strip()]
+    if len(lines) < 2:
+        return None
+    head = [h.strip().strip('"') for h in lines[0].split(",")]
+    cells = [c.strip().strip('"') for c in lines[1].split(",")]
+
+    curve = {}
+    for h, c in zip(head[1:], cells[1:]):
+        if not c:
+            continue
+        n = h.replace(" Mo", "").replace(" Month", "").replace(" Yr", "")
+        if "Yr" in h and n in ("1", "2", "3", "5", "7", "10", "20", "30"):
+            curve[n] = float(c)
+    if not curve:
+        return None
+    return {"date": cells[0], "source": "US Treasury daily yield curve", "curve": curve}
+
+
+def collect_yields(prev):
+    """取れた分だけ入れ替える。取れなければ前回の値をそのまま返す。"""
+    out = dict((prev.get("yields") or {}))
+    for key, fn in (("kr", kr_yields), ("us", us_yields)):
+        try:
+            v = fn()
+        except Exception as e:
+            print("yields skip", key, ":", e, file=sys.stderr)
+            continue
+        if v:
+            out[key] = v
+    if not out:
+        return None
+    out["updated"] = datetime.now(KST).isoformat(timespec="seconds")
+    return out
+
+
 def merged_history(prev, rates, day):
     """1日1件、通貨ごとの基準レートだけを積む。同じ日は最後の取得で上書きする。
 
@@ -145,6 +223,9 @@ def main():
             "rates": rates,
             "history": history,
         }
+        ylds = collect_yields(prev)
+        if ylds:
+            out["yields"] = ylds
         with open(OUT, "w", encoding="utf-8") as f:
             json.dump(out, f, ensure_ascii=False, indent=2)
             f.write("\n")

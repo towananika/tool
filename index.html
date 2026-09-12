@@ -1594,6 +1594,26 @@
     <div class="bar-chart" id="assetChart"></div>
   </div>
 
+  <div id="rateView" hidden>
+    <p class="tool-title">金利の先ゆき</p>
+    <p class="tool-note">市場がいま織り込んでいる将来の金利です。<b>予報ではありません。</b>固定と変動のどちらで借りるかが釣り合う分岐点を示します。</p>
+
+    <div class="settings-group">
+      <p class="hs-head">どこの金利か</p>
+      <div class="field-row">
+        <span class="field-label">国</span>
+        <select class="num" id="rateCountry">
+          <option value="kr">韓国（国庫債）</option>
+          <option value="us">米国（国債）</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="result-box" id="rateNow"></div>
+    <div class="result-box" id="rateFwd"></div>
+    <div class="result-box" id="rateRead"></div>
+  </div>
+
   <div id="houseView" hidden>
     <p class="tool-title">家賃 vs 保有</p>
     <p class="tool-note">月세・전세・매매を同じ土俵で比べます。手元資金は共通で、住居費はすべてその資金から支払う前提です。</p>
@@ -2131,6 +2151,7 @@
   var TOOL_NAME = {
     timer: "タイマー", stopwatch: "ストップ", counter: "カウンター", alarm: "アラーム",
     fuel: "給油くらべ", fx: "為替", pv: "現在価値", goal: "いつ届く",
+    rate: "金利の先ゆき",
     cost: "住居の重み", jeonse: "チョンセ融資", asset: "資産",
     house: "家賃vs保有", invest: "株vs不動産",
     settings: "設定", about: "計算式と前提"
@@ -2146,6 +2167,7 @@
     pv:        { view: "pvView" },
     goal:      { view: "goalView" },
     fx:        { view: "fxView" },
+    rate:      { view: "rateView" },
     asset:     { view: "assetView" },
     house:     { view: "houseView" },
     invest:    { view: "investView" },
@@ -2182,6 +2204,7 @@
     if (tab === "fuel") renderFuel();
     if (tab === "pv") renderPv();
     if (tab === "fx") initFx();
+    if (tab === "rate") renderRate();
     if (tab === "asset") renderAssets();
     if (tab === "house") calcHouse();
     if (tab === "invest") calcInvest();
@@ -5470,13 +5493,110 @@
   });
 
 
+  // ==================== 金利の先ゆき ====================
+  // 市場のイールドカーブから、将来の区間金利（フォワードレート）を導く。
+  // これは予報ではなく「損益分岐点」。固定で借りるか変動で借りるかが
+  // 釣り合う水準を示すだけで、実際の金利がこう動くとは限らない。
+  // データは rates.json の yields（GitHub Actions が平日に取得）。
+
+  var rateData = null;
+  var rateFetched = false;
+  var rateCountryEl = document.getElementById("rateCountry");
+  var rateNowEl = document.getElementById("rateNow");
+  var rateFwdEl = document.getElementById("rateFwd");
+  var rateReadEl = document.getElementById("rateRead");
+
+  try {
+    var savedRateC = localStorage.getItem("pace-rate-country");
+    if (savedRateC) rateCountryEl.value = savedRateC;
+  } catch (e) {}
+
+  // a年後からb年後までの区間金利
+  function fwdRate(curve, a, b) {
+    var ra = curve[a] / 100, rb = curve[b] / 100;
+    return (Math.pow(Math.pow(1 + rb, b) / Math.pow(1 + ra, a), 1 / (b - a)) - 1) * 100;
+  }
+
+  function rateRow(label, value) {
+    return '<div style="display:flex;justify-content:space-between;gap:10px;line-height:1.9">' +
+      '<span>' + label + '</span><b>' + value + '</b></div>';
+  }
+
+  function renderRate() {
+    if (!rateFetched) {
+      rateFetched = true;
+      fetch("./rates.json")
+        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+        .then(function (j) { rateData = j.yields || null; drawRate(); })
+        .catch(function () { rateData = null; drawRate(); });
+      rateNowEl.textContent = "読み込んでいます…";
+      return;
+    }
+    drawRate();
+  }
+
+  function drawRate() {
+    var c = rateCountryEl.value;
+    if (!rateData || !rateData[c] || !rateData[c].curve) {
+      rateNowEl.textContent = "金利データをまだ読み込めていません。平日に自動で更新されます。";
+      rateFwdEl.textContent = "";
+      rateReadEl.textContent = "";
+      return;
+    }
+    var d = rateData[c];
+    var curve = d.curve;
+    var ys = Object.keys(curve).map(Number).sort(function (a, b) { return a - b; });
+
+    // 今の利回り
+    var html = '<div style="font-weight:700;margin-bottom:6px">今の利回り</div>';
+    ys.forEach(function (y) {
+      html += rateRow(y + "年", curve[y].toFixed(2) + "%");
+    });
+    html += '<div style="font-size:11.5px;color:var(--text-muted);margin-top:8px;line-height:1.7">' +
+      d.date + " 時点 ／ " + d.source + "</div>";
+    rateNowEl.innerHTML = html;
+
+    // 市場が織り込む将来の区間金利
+    var f = '<div style="font-weight:700;margin-bottom:6px">市場が織り込む将来の金利</div>';
+    var pairs = [];
+    for (var i = 0; i < ys.length - 1; i++) {
+      var a = ys[i], b = ys[i + 1];
+      var v = fwdRate(curve, a, b);
+      pairs.push({ a: a, b: b, v: v });
+      f += rateRow(a + "年後〜" + b + "年後（" + (b - a) + "年間）", v.toFixed(2) + "%");
+    }
+    rateFwdEl.innerHTML = f;
+
+    // 読み方
+    if (pairs.length >= 2) {
+      var first = pairs[0].v, last = pairs[pairs.length - 1].v;
+      var diff = last - first;
+      var dir = Math.abs(diff) < 0.25 ? "ほぼ横ばい" : (diff > 0 ? "上がる" : "下がる");
+      var now1 = curve[ys[0]];
+      var r = '<div style="font-weight:700;margin-bottom:6px">読み方</div>';
+      r += '<div style="line-height:1.9">市場は、いまの' + ys[0] + '年金利 <b>' + now1.toFixed(2) +
+        '%</b> が、' + ys[ys.length - 1] + '年先までに <b>' + last.toFixed(2) + '%</b> へ' + dir +
+        'と見ています。</div>';
+      r += '<div style="font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.8">' +
+        'これは予報ではなく分岐点です。変動で借りて実際の金利がこの線より下で推移すれば変動が得、' +
+        '上で推移すれば固定が得になります。歴史的には期間プレミアムのぶん高めに出る傾向があります。</div>';
+      rateReadEl.innerHTML = r;
+    }
+  }
+
+  rateCountryEl.addEventListener("change", function () {
+    try { localStorage.setItem("pace-rate-country", rateCountryEl.value); } catch (e) {}
+    drawRate();
+  });
+
+
   // ==================== ホーム（メニュー） ====================
   // 群の名前は対象を表す名詞ひとつに揃える。
   // 「はかる／くらべる」（動詞）と「お金と住まい」（対象）が混ざっていたため、
   // 家賃vs保有のように文字どおり"くらべる"道具が別の群に散っていた
   var MENU_GROUPS = [
     { head: "時間", tone: "sky", keys: ["timer", "stopwatch", "counter", "alarm"] },
-    { head: "お金", tone: "sea", keys: ["fuel", "fx", "pv", "goal", "asset"] },
+    { head: "お金", tone: "sea", keys: ["fuel", "fx", "rate", "pv", "goal", "asset"] },
     { head: "住まい", tone: "leaf", keys: ["cost", "house", "jeonse", "invest"] }
   ];
 
@@ -5500,6 +5620,7 @@
     alarm:     "あらーむ アラーム 目覚まし 時刻 ベル 起こす alarm clock 알람 자명종",
     fuel:      "きゅうゆ 給油 ガソリン 軽油 LPG 電気 充電 燃費 スタンド fuel gas ev 주유 기름 충전",
     fx:        "かわせ 為替 両替 レート 銀行 通貨 ドル 円 ウォン fx exchange rate 환전 환율",
+    rate:      "きんり 金利 利回り 国債 国庫債 イールドカーブ フォワード 固定 変動 住宅ローン 長期金利 yield curve forward rate bond 금리 국고채 수익률 고정 변동 장기금리",
     pv:        "げんざいかち 現在価値 割引 将来 present value discount 현재가치",
     goal:      "いつとどく 到達 目標 何年 複利 積立 貯金 資産形成 億 FIRE goal compound saving 목표 언제 복리 적립 자산",
     cost:      "じゅうきょ 住居 固定費 節約 家賃 重み cost saving 고정비 절약",
@@ -5518,6 +5639,7 @@
     alarm:     "決めた時刻にベルが鳴る",
     fuel:      "遠くの安い店まで走る価値",
     fx:        "両替所と銀行、どちらが得か",
+    rate:      "市場が見ている将来の金利",
     pv:        "将来のお金を今の価値に",
     goal:      "目標の額に何年で届くか",
     cost:      "どの固定費を削ると効くか",
