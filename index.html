@@ -1521,33 +1521,27 @@
   </div>
 
   <div id="pvView" hidden>
-    <p class="tool-title">現在価値</p>
-    <p class="tool-note">将来もらえるお金が、いま手元にあるとしたらいくらか。<b>外貨は金利差から先物レートを出して</b>ウォンに直します（相場の予想ではありません）。</p>
+    <p class="tool-note">いまの100%が、待つあいだにどれだけ目減りするか。外貨を選ぶと先物レートも並びます。</p>
+
+    <div class="field-row">
+      <span class="field-label">割引率<span class="hint">（年率 %）</span></span>
+      <input class="num" type="number" id="pvRate" value="4" min="0" max="50" step="0.1" inputmode="decimal">
+    </div>
+    <div class="field-row">
+      <span class="field-label">通貨</span>
+      <select class="num" id="pvCcy"></select>
+    </div>
+    <div class="field-row" id="pvFxRow" style="display:none">
+      <span class="field-label">その通貨の金利<span class="hint">（年率 %）</span></span>
+      <input class="num" type="number" id="pvFxRate" value="4" min="0" max="50" step="0.1" inputmode="decimal">
+    </div>
+
     <div class="pv-decay">
       <p class="pv-decay-head">いまを100%とすると</p>
       <table class="pv-decay-table" id="pvDecayTable"></table>
       <button class="chip pv-decay-btn" id="pvDecayBtn" aria-expanded="false">計算式を見る ▾</button>
       <div class="pv-decay-detail" id="pvDecayDetail" hidden></div>
     </div>
-    <div class="field-row">
-      <span class="field-label">割引率<span class="hint">（ウォン・年率 %）</span></span>
-      <input class="num" type="number" id="pvRate" value="4" min="0" max="50" step="0.1" inputmode="decimal">
-    </div>
-    <div class="field-row">
-      <span class="field-label">外貨の金利<span class="hint">（年率 %）</span></span>
-      <input class="num" type="number" id="pvFxRate" value="4" min="0" max="50" step="0.1" inputmode="decimal">
-    </div>
-    <div class="pv-form">
-      <input class="pv-in" type="text" id="pvLabel" placeholder="ラベル（例: 跳躍口座 満期）">
-      <div class="pv-row2">
-        <input class="pv-in" type="date" id="pvDate">
-        <input class="pv-in" type="number" id="pvAmount" placeholder="金額" inputmode="numeric">
-        <select class="pv-in pv-ccy" id="pvCcy"></select>
-      </div>
-      <button class="chip add-btn" id="pvAddBtn">＋ 記録を追加</button>
-    </div>
-    <div class="pv-list" id="pvList"></div>
-    <div class="result-box" id="pvTotal"></div>
   </div>
 
   <div id="goalView" hidden>
@@ -3960,24 +3954,26 @@
   });
 
   // ==================== 現在価値 ====================
+  // 1画面に収める。記録の積み上げと合計はやめた（使われていなかったうえ、
+  // 入力欄が増えるほど「で、何%減るのか」が下に押し出されていた）。
+  // 残すのは、割引率・通貨・減り方の表だけ
   var pvRateEl = document.getElementById("pvRate");
-  var pvLabelEl = document.getElementById("pvLabel");
-  var pvDateEl = document.getElementById("pvDate");
-  var pvAmountEl = document.getElementById("pvAmount");
-  var pvAddBtn = document.getElementById("pvAddBtn");
-  var pvListEl = document.getElementById("pvList");
-  var pvTotalEl = document.getElementById("pvTotal");
-
   var pvCcyEl = document.getElementById("pvCcy");
+  var pvFxRateEl = document.getElementById("pvFxRate");
+  var pvFxRow = document.getElementById("pvFxRow");
   var pvDecayTable = document.getElementById("pvDecayTable");
   var pvDecayDetail = document.getElementById("pvDecayDetail");
   var pvDecayBtn = document.getElementById("pvDecayBtn");
-  var pvFxRateEl = document.getElementById("pvFxRate");
-  var pvState = loadJSON("pace-pv", { rate: 4, fxRate: 4, items: [] });
+
+  var pvState = loadJSON("pace-pv", { rate: 4, fxRate: 4, ccy: "KRW" });
+  if (typeof pvState.rate !== "number") pvState.rate = 4;
   if (typeof pvState.fxRate !== "number") pvState.fxRate = 4;
+  if (typeof pvState.ccy !== "string") pvState.ccy = "KRW";
   var pvRatesAsked = false;
 
-  // 外貨1単位あたりのKRW（基準レート）。fxの読み込み結果をそのまま使う
+  function pvSave() { saveJSON("pace-pv", pvState); }
+
+  // 外貨1単位あたりのKRW（基準レート）。為替の読み込み結果をそのまま使う
   function spotKrw(ccy) {
     if (ccy === "KRW") return 1;
     if (!fxBank || !fxBank.rates || !fxBank.rates[ccy]) return null;
@@ -3985,212 +3981,90 @@
     return r.base / (r.unit || 1);
   }
 
-  // 金利差から出る先物レート（カバー付き金利平価）。相場の予想ではなく、
-  // 「今そのお金を借りて/貸して固定するなら、この値になる」という理論値
-  function forwardKrw(ccy, years) {
-    var s0 = spotKrw(ccy);
-    if (s0 === null) return null;
-    if (ccy === "KRW") return 1;
-    return s0 * Math.pow((1 + pvState.rate / 100) / (1 + pvState.fxRate / 100), years);
-  }
-
   function pvFillCcy() {
     var list = ["KRW"];
     if (fxBank && fxBank.rates) Object.keys(fxBank.rates).forEach(function (c) { list.push(c); });
     else ["USD", "JPY", "EUR"].forEach(function (c) { list.push(c); });
-    var keep = pvCcyEl.value || "KRW";
     pvCcyEl.innerHTML = "";
     list.forEach(function (c) {
       var o = document.createElement("option");
       o.value = c; o.textContent = c;
       pvCcyEl.appendChild(o);
     });
-    if (list.indexOf(keep) >= 0) pvCcyEl.value = keep;
+    if (list.indexOf(pvState.ccy) >= 0) pvCcyEl.value = pvState.ccy;
   }
 
-  function pvSave() { saveJSON("pace-pv", pvState); }
-
-  function yearsUntil(dateStr) {
-    var t = new Date(dateStr + "T00:00:00").getTime();
-    if (isNaN(t)) return null;
-    return (t - Date.now()) / (365.2425 * 24 * 3600 * 1000);
-  }
-
-  function presentValue(amount, years, ratePct) {
-    return amount / Math.pow(1 + ratePct / 100, years);
-  }
-
-  // 1〜5年で、いまの100%が何%になるか。
-  // 最初に見たときに「5年でここまで下がる」が分かることを優先し、式は畳んでおく
-  function renderPvDecay() {
-    var ccy = pvCcyEl.value || "KRW";
-    var kr = Number(pvState.rate), fr = Number(pvState.fxRate);
-    var s0 = spotKrw(ccy);
-    var showFx = ccy !== "KRW" && s0 !== null;
-
-    var head = "<tr><th>年</th><th>ウォンで受け取る</th>" +
-      (showFx ? "<th>" + ccy + "で受け取る</th><th>先物レート</th>" : "") + "</tr>";
-    var rows = "";
-    for (var n = 1; n <= 5; n++) {
-      var krPct = 100 / Math.pow(1 + kr / 100, n);
-      var line = "<tr" + (n === 5 ? ' data-mark="true"' : "") + "><td>" + n + "年後</td>" +
-        "<td>" + fmt(krPct, 1) + "%</td>";
-      if (showFx) {
-        var fxPct = 100 / Math.pow(1 + fr / 100, n);       // KRW換算での目減り
-        var fwd = s0 * Math.pow((1 + kr / 100) / (1 + fr / 100), n);
-        line += "<td>" + fmt(fxPct, 1) + "%</td><td>" + fmt(fwd, 0) + "원</td>";
-      }
-      rows += line + "</tr>";
-    }
-    pvDecayTable.innerHTML = head + rows;
-
-    pvDecayDetail.innerHTML =
-      "<p><b>ウォンで受け取る場合</b><br>" +
-      "<code>いまの価値 = 将来の金額 ÷ (1 + 割引率)^年数</code><br>" +
-      "割引率 " + kr + "% なので、5年後の100は " + fmt(100 / Math.pow(1 + kr / 100, 5), 1) + " になります。" +
-      "待つあいだに増やせたはずの分が、そのまま目減りです。</p>" +
-      (showFx
-        ? "<p><b>" + ccy + "で受け取る場合</b><br>" +
-          "<code>いまの価値(원) = 外貨の金額 ÷ (1 + 外貨金利)^年数 × 今のレート</code><br>" +
-          "外貨金利 " + fr + "% で割り引きます。ウォンより金利が高ければ、同じ年数でも目減りは大きくなります。</p>" +
-          "<p><b>先物レート</b><br>" +
-          "<code>今のレート × ((1 + ウォン金利) ÷ (1 + 外貨金利))^年数</code><br>" +
-          "<b>これは相場の予想ではありません。</b>いまその通貨を借りて（貸して）固定するなら、この値でしか成立しないという理論値です。" +
-          "<b>金利の高い通貨ほど、先物では安くなります。</b>高い金利は「将来その通貨が下がる」とセットで、すでに値段に入っているためです。</p>" +
-          "<p>だから、金利差だけを見て「高いほうが得」とはなりません。</p>"
-        : "<p>通貨を選ぶと、外貨で受け取る場合と先物レートも並びます。</p>") +
-      "<p style=\"color:var(--text-muted)\">含めていないもの: 物価上昇、税、先物取引の手数料。</p>";
-  }
+  var PV_YEARS = [1, 2, 3, 5, 10];
 
   function renderPv() {
     pvRateEl.value = pvState.rate;
     pvFxRateEl.value = pvState.fxRate;
     pvFillCcy();
-    renderPvDecay();
-    // 外貨が1件でもあるのにレートが未取得なら、一度だけ取りに行く
-    if (!fxBank && !pvRatesAsked && pvState.items.some(function (x) { return x.ccy && x.ccy !== "KRW"; })) {
+
+    var ccy = pvState.ccy;
+    // field-row は display:flex なので hidden 属性では消えない
+    pvFxRow.style.display = ccy === "KRW" ? "none" : "";
+
+    // 外貨を選んだのにレートが未取得なら、一度だけ取りに行く
+    if (ccy !== "KRW" && !fxBank && !pvRatesAsked) {
       pvRatesAsked = true;
-      fxLoadRates(false).then(function () { pvFillCcy(); renderPv(); });
+      fxLoadRates(false).then(function () { renderPv(); });
     }
-    pvListEl.innerHTML = "";
-    if (!pvState.items.length) {
-      var empty = document.createElement("p");
-      empty.className = "pv-empty";
-      empty.textContent = "まだ記録がありません。将来の入金予定を足していくと、いまの価値で合計されます。";
-      pvListEl.appendChild(empty);
-      pvTotalEl.textContent = "";
-      return;
-    }
-    var total = 0, totalFace = 0;
-    var sorted = pvState.items.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; });
-    sorted.forEach(function (it) {
-      var y = yearsUntil(it.date);
-      if (y === null) return;
-      var ccy = it.ccy || "KRW";
-      var pv, faceKrw, fwd = null, missing = false;
-      if (ccy === "KRW") {
-        pv = presentValue(Number(it.amount), y, Number(pvState.rate));
-        faceKrw = Number(it.amount);
-      } else {
-        // 外貨は「その通貨の金利で割り引いて、今のレートで換算」する。
-        // これは先物レートで換算してからウォン金利で割り引くのと同じ値になる
-        var s0 = spotKrw(ccy);
-        fwd = forwardKrw(ccy, y);
-        if (s0 === null) { missing = true; pv = 0; faceKrw = 0; }
-        else {
-          pv = presentValue(Number(it.amount), y, Number(pvState.fxRate)) * s0;
-          faceKrw = Number(it.amount) * s0;
-        }
+
+    var kr = Number(pvState.rate), fr = Number(pvState.fxRate);
+    var s0 = spotKrw(ccy);
+    var showFx = ccy !== "KRW" && s0 !== null;
+
+    var head = "<tr><th>年</th><th>" + (showFx ? "ウォン" : "残る割合") + "</th>" +
+      (showFx ? "<th>" + ccy + "</th><th>先物</th>" : "") + "</tr>";
+    var rows = "";
+    PV_YEARS.forEach(function (n) {
+      var krPct = 100 / Math.pow(1 + kr / 100, n);
+      var line = "<tr" + (n === 10 ? ' data-mark="true"' : "") + "><td>" + n + "年後</td>" +
+        "<td>" + fmt(krPct, 1) + "%</td>";
+      if (showFx) {
+        var fxPct = 100 / Math.pow(1 + fr / 100, n);
+        var fwd = s0 * Math.pow((1 + kr / 100) / (1 + fr / 100), n);
+        line += "<td>" + fmt(fxPct, 1) + "%</td><td>" + fmt(fwd, 0) + "</td>";
       }
-      total += pv; totalFace += faceKrw;
-
-      var el = document.createElement("div");
-      el.className = "pv-item";
-      var main = document.createElement("div");
-      main.className = "pv-main";
-      var nm = document.createElement("span");
-      nm.className = "pv-name";
-      nm.textContent = it.label || "（無題）";
-      var meta = document.createElement("span");
-      meta.className = "pv-meta";
-      meta.textContent = it.date + " ／ " + (y >= 0 ? "あと " + fmt(y, 1) + "年" : fmt(-y, 1) + "年前") +
-        " ／ 額面 " + fmt(Number(it.amount)) + (ccy === "KRW" ? "" : " " + ccy) +
-        (missing ? " ／ レート未取得" : (fwd === null || ccy === "KRW" ? "" : " ／ 先物 " + fmt(fwd, 2) + "원"));
-      main.appendChild(nm); main.appendChild(meta);
-
-      var val = document.createElement("span");
-      val.className = "pv-val";
-      val.textContent = fmt(pv);
-
-      var del = document.createElement("button");
-      del.className = "st-del";
-      del.textContent = "×";
-      del.setAttribute("aria-label", "削除");
-      del.addEventListener("click", function () {
-        if (!confirm("この記録を削除します。よろしいですか？")) return;
-        pvState.items = pvState.items.filter(function (x) { return x.id !== it.id; });
-        pvSave();
-        renderPv();
-      });
-
-      el.appendChild(main); el.appendChild(val); el.appendChild(del);
-      pvListEl.appendChild(el);
+      rows += line + "</tr>";
     });
+    pvDecayTable.innerHTML = head + rows;
 
-    pvTotalEl.innerHTML = "";
-    var t1 = document.createElement("div");
-    t1.innerHTML = 'いまの価値の合計 <b></b>';
-    t1.querySelector("b").textContent = fmt(total);
-    var t2 = document.createElement("div");
-    t2.style.color = "var(--text-muted)";
-    t2.style.fontSize = "12px";
-    var hasFx = pvState.items.some(function (x) { return x.ccy && x.ccy !== "KRW"; });
-    t2.textContent = "額面合計 " + fmt(totalFace) + "（外貨は今のレート換算）／ 割引率 " + pvState.rate + "% で " +
-      fmt(totalFace - total) + " 目減り" +
-      (hasFx ? " ／ 外貨は金利 " + pvState.fxRate + "% で割り引き" : "");
-    pvTotalEl.appendChild(t1); pvTotalEl.appendChild(t2);
+    pvDecayDetail.innerHTML =
+      "<p><b>ウォンで受け取る場合</b><br>" +
+      "<code>いまの価値 = 将来の金額 ÷ (1 + 割引率)^年数</code><br>" +
+      "割引率 " + kr + "% なので、10年後の100は " + fmt(100 / Math.pow(1 + kr / 100, 10), 1) + " になります。" +
+      "待つあいだに増やせたはずの分が、そのまま目減りです。</p>" +
+      (showFx
+        ? "<p><b>" + ccy + "で受け取る場合</b><br>" +
+          "<code>いまの価値(원) = 外貨の金額 ÷ (1 + その通貨の金利)^年数 × 今のレート</code><br>" +
+          "ウォンより金利が高ければ、同じ年数でも目減りは大きくなります。</p>" +
+          "<p><b>先物レート</b><br>" +
+          "<code>今のレート × ((1 + ウォン金利) ÷ (1 + その通貨の金利))^年数</code><br>" +
+          "<b>相場の予想ではありません。</b>いまその通貨を借りて（貸して）固定するなら、この値でしか成立しないという理論値です。" +
+          "<b>金利の高い通貨ほど、先物では安くなります。</b></p>"
+        : "<p>通貨を選ぶと、その通貨で受け取る場合と先物レートも並びます。</p>") +
+      "<p style=\"color:var(--text-muted)\">含めていないもの: 物価上昇、税、先物取引の手数料。</p>";
   }
 
   pvRateEl.addEventListener("input", function () {
     pvState.rate = pvRateEl.value === "" ? 0 : Number(pvRateEl.value);
-    pvSave();
-    renderPv();
+    pvSave(); renderPv();
   });
-
   pvFxRateEl.addEventListener("input", function () {
     pvState.fxRate = pvFxRateEl.value === "" ? 0 : Number(pvFxRateEl.value);
-    pvSave();
-    renderPv();
+    pvSave(); renderPv();
   });
-
   pvCcyEl.addEventListener("change", function () {
-    if (pvCcyEl.value !== "KRW" && !fxBank && !pvRatesAsked) {
-      pvRatesAsked = true;
-      fxLoadRates(false).then(function () { pvFillCcy(); renderPv(); });
-    }
-    renderPvDecay();
+    pvState.ccy = pvCcyEl.value || "KRW";
+    pvSave(); renderPv();
   });
-
   pvDecayBtn.addEventListener("click", function () {
     var open = !pvDecayDetail.hidden;
     pvDecayDetail.hidden = open;
     pvDecayBtn.textContent = open ? "計算式を見る ▾" : "計算式を閉じる ▴";
     pvDecayBtn.setAttribute("aria-expanded", open ? "false" : "true");
-  });
-
-  pvAddBtn.addEventListener("click", function () {
-    var amount = Number(pvAmountEl.value);
-    if (!pvDateEl.value || !amount) { alert("日付と金額を入れてください。"); return; }
-    pvState.items.push({
-      id: String(Date.now()) + Math.random().toString(16).slice(2, 6),
-      label: pvLabelEl.value,
-      date: pvDateEl.value,
-      amount: amount,
-      ccy: pvCcyEl.value || "KRW"
-    });
-    pvSave();
-    pvLabelEl.value = ""; pvAmountEl.value = "";
-    renderPv();
   });
 
   // ==================== 為替 ====================
@@ -6376,8 +6250,8 @@
     },
     pv:     {
       io: {
-        get: function () { return { rate: pvState.rate, items: pvState.items }; },
-        set: function (o) { if (o.rate !== undefined) pvState.rate = o.rate; if (o.items) pvState.items = o.items; }
+        get: function () { return { rate: pvState.rate, fxRate: pvState.fxRate, ccy: pvState.ccy }; },
+        set: function (o) { if (o.rate !== undefined) pvState.rate = o.rate; if (o.fxRate !== undefined) pvState.fxRate = o.fxRate; if (o.ccy) pvState.ccy = o.ccy; }
       },
       after: function () { pvSave(); renderPv(); }
     }
