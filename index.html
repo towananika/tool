@@ -446,6 +446,10 @@
   .count-log-list li:last-child { border-bottom: 0; }
   .count-log-list .when { color: var(--muted); font-size: 12px; }
   .count-log-list .num { font-variant-numeric: tabular-nums; }
+  .count-log-list .cl-day .when { color: var(--text); font-size: 12.5px; }
+  .count-log-list .cl-day .num { font-weight: 700; color: var(--wood); }
+  .count-log-list .cl-item { padding-left: 12px; opacity: .78; }
+  .count-log-list .cl-item .num { font-size: 12.5px; }
   .count-log-bar { display: flex; gap: 8px; margin-top: 10px; }
 
   .counter-full[hidden] { display: none; }
@@ -1882,7 +1886,7 @@
   <a href="about.html" data-i18n="name.about">計算式と前提</a>
   <a href="jip/" hreflang="ko" style="margin-left:14px">집 비교 (한국어)</a>
   <a href="jeonwolse/" hreflang="ko" style="margin-left:14px">전월세 전환율 (한국어)</a>
-  <p class="site-count" id="siteCount" hidden></p>
+
 </footer>
 
 <div class="al-ring" id="alRing" hidden>
@@ -2654,16 +2658,39 @@
     })
       .join(String.fromCharCode(10));
   }
+  // 日ごとにまとめる。毎日使う道具なので、知りたいのは1回ぶんより「その日いくつ数えたか」
   function renderCountLog() {
     countLogEl.hidden = countLog.length === 0;
     countLogList.innerHTML = "";
-    countLog.slice(0, 7).forEach(function (r) {
-      var li = document.createElement("li");
+
+    var days = [], index = {};
+    countLog.forEach(function (r) {
+      var day = String(r.at).split(" ")[0];          // "9/12 14:30" → "9/12"
+      if (!index[day]) { index[day] = { day: day, sum: 0, items: [] }; days.push(index[day]); }
+      index[day].sum += r.count;
+      index[day].items.push(r);
+    });
+
+    days.slice(0, 4).forEach(function (d) {
+      var head = document.createElement("li");
+      head.className = "cl-day";
       var w = document.createElement("span"); w.className = "when";
-      w.textContent = r.name ? r.name + " · " + r.at : r.at;
-      var n = document.createElement("span"); n.className = "num"; n.textContent = r.count.toLocaleString();
-      li.appendChild(w); li.appendChild(n);
-      countLogList.appendChild(li);
+      w.textContent = d.day + "　" + d.items.length + "回";
+      var n = document.createElement("span"); n.className = "num";
+      n.textContent = d.sum.toLocaleString();
+      head.appendChild(w); head.appendChild(n);
+      countLogList.appendChild(head);
+
+      d.items.slice(0, 4).forEach(function (r) {
+        var li = document.createElement("li");
+        li.className = "cl-item";
+        var w2 = document.createElement("span"); w2.className = "when";
+        w2.textContent = (r.name ? r.name + " · " : "") + String(r.at).split(" ")[1];
+        var n2 = document.createElement("span"); n2.className = "num";
+        n2.textContent = r.count.toLocaleString();
+        li.appendChild(w2); li.appendChild(n2);
+        countLogList.appendChild(li);
+      });
     });
   }
   document.getElementById("countLogCopy").addEventListener("click", function (e) {
@@ -5251,53 +5278,16 @@
   }
 
 
-  // ==================== 訪問者の数え方 ====================
-  // 静的配信なので、このページから訪問者のIPは見えない。登録も鍵も要らない
-  // 外の数え台（Abacus）に「その日はじめて開いた」ときだけ1を足す。
-  // 同じ端末・同じブラウザなら日に1回。IPではなく端末で数えていることは承知の上
-  // （IPで数えるにはアカウントの要る集計か自前のサーバーが要る）
-  var COUNT_BASE = "https://abacus.jasoncameron.dev";
-  var COUNT_NS = "towananika-tool";
-  var COUNT_KEY = "home";
-
-  var visitCount = 0;
-
-  // 言語を切り替えたときも描き直せるよう、表示だけ関数にしておく
-  function renderVisits() {
-    var el = document.getElementById("siteCount");
-    if (!el || !(visitCount > 0)) return;
-    var t = (typeof tr === "function" && tr("foot.visits")) || "のべ {n} 人が開きました";
-    el.textContent = t.replace("{n}", visitCount.toLocaleString());
-    el.hidden = false;
-  }
-
+  // 訪問者の数え方 — 表示はやめた（自分用の道具箱に他人の人数は要らない）。
+  // 数えるのは続ける。どの日に開いたかだけ、外の数え台に1日1回だけ足す
   (function siteCounter() {
-    var el = document.getElementById("siteCount");
-    if (!el) return;
-    var today = new Date().toISOString().slice(0, 10);
-    var mark = "maai-visit";
-    var seen = null;
+    var BASE = "https://abacus.jasoncameron.dev", NS = "towananika-tool", KEY = "home";
+    var today = new Date().toISOString().slice(0, 10), mark = "maai-visit", seen = null;
     try { seen = localStorage.getItem(mark); } catch (e) {}
-
-    function show(v) {
-      if (!(v > 0)) return;
-      visitCount = v;
-      renderVisits();
-    }
-
-    var url;
-    if (seen === today) {
-      url = COUNT_BASE + "/get/" + COUNT_NS + "/" + COUNT_KEY;        // 今日はもう数えた。読むだけ
-    } else {
-      url = COUNT_BASE + "/hit/" + COUNT_NS + "/" + COUNT_KEY;        // 今日はじめて。1を足す
-      try { localStorage.setItem(mark, today); } catch (e) {}
-      // 日ごとの推移も残す。どの日に人が来たかが分かるように
-      fetch(COUNT_BASE + "/hit/" + COUNT_NS + "/" + COUNT_KEY + "-" + today).catch(function () {});
-    }
-    fetch(url)
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (j) { if (j) show(j.value); })
-      .catch(function () {});
+    if (seen === today) return;
+    try { localStorage.setItem(mark, today); } catch (e) {}
+    fetch(BASE + "/hit/" + NS + "/" + KEY).catch(function () {});
+    fetch(BASE + "/hit/" + NS + "/" + KEY + "-" + today).catch(function () {});
   })();
 
   // ==================== いつ届く ====================
@@ -5789,7 +5779,6 @@
       "search.ph": "도구 찾기", "search.empty": "찾지 못했습니다",
       "btn.back": "홈으로", "btn.reset": "초기화", "btn.settings": "설정",
       "btn.clear": "지우기", "btn.lang": "언어",
-      "foot.visits": "지금까지 {n}명이 열어봤습니다",
       "group.sky": "시간", "group.sea": "돈", "group.leaf": "주거",
       "name.timer": "타이머", "desc.timer": "집중과 휴식을 번갈아",
       "name.stopwatch": "스톱워치", "desc.stopwatch": "경과 시간과 랩을 측정",
@@ -5813,7 +5802,6 @@
       "search.ph": "Find a tool", "search.empty": "Nothing found",
       "btn.back": "Back to home", "btn.reset": "Reset", "btn.settings": "Settings",
       "btn.clear": "Clear", "btn.lang": "Language",
-      "foot.visits": "Opened {n} times so far",
       "group.sky": "Time", "group.sea": "Money", "group.leaf": "Housing",
       "name.timer": "Timer", "desc.timer": "Switch between focus and rest",
       "name.stopwatch": "Stopwatch", "desc.stopwatch": "Measure elapsed time and laps",
@@ -5837,7 +5825,6 @@
       "search.ph": "查找工具", "search.empty": "未找到",
       "btn.back": "返回首页", "btn.reset": "重置", "btn.settings": "设置",
       "btn.clear": "清除", "btn.lang": "语言",
-      "foot.visits": "至今已有 {n} 人打开",
       "group.sky": "时间", "group.sea": "金钱", "group.leaf": "居住",
       "name.timer": "计时器", "desc.timer": "在专注与休息之间切换",
       "name.stopwatch": "秒表", "desc.stopwatch": "测量用时与分段",
@@ -5910,7 +5897,6 @@
       els[i].title = use;
       els[i].setAttribute("aria-label", use);
     }
-    if (typeof renderVisits === "function") renderVisits();
     if (typeof buildMenu === "function") buildMenu();
     if (typeof currentToolEl !== "undefined" && currentToolEl) {
       currentToolEl.textContent = activeTab === "menu" ? "" : tabLabel(activeTab);
