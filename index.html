@@ -1627,9 +1627,19 @@
       </div>
     </div>
 
+    <div class="field-row">
+      <span class="field-label">どのくらい先</span>
+      <div class="presets" id="rateTermPick">
+        <button class="chip" data-term="short">短期</button>
+        <button class="chip" data-term="mid">中期</button>
+        <button class="chip" data-term="long">長期</button>
+      </div>
+    </div>
+
+    <div class="result-box" id="rateCash"></div>
     <div class="result-box" id="rateNow"></div>
-    <div class="result-box" id="rateFwd"></div>
     <div class="result-box" id="rateRead"></div>
+    <div class="result-box" id="rateFwd" hidden></div>
   </div>
 
   <div id="buyView" hidden>
@@ -5774,6 +5784,10 @@
   var rateData = null;
   var rateFetched = false;
   var rateCountryEl = document.getElementById("rateCountry");
+  var rateCashEl = document.getElementById("rateCash");
+  var rateTermPick = document.getElementById("rateTermPick");
+  var rateTerm = "short";
+  try { rateTerm = localStorage.getItem("pace-rate-term") || "short"; } catch (e) {}
   var rateNowEl = document.getElementById("rateNow");
   var rateFwdEl = document.getElementById("rateFwd");
   var rateReadEl = document.getElementById("rateRead");
@@ -5819,42 +5833,66 @@
     var curve = d.curve;
     var ys = Object.keys(curve).map(Number).sort(function (a, b) { return a - b; });
 
-    // 今の利回り
-    var html = '<div style="font-weight:700;margin-bottom:6px">今の利回り</div>';
-    ys.forEach(function (y) {
-      html += rateRow(y + "年", curve[y].toFixed(2) + "%");
-    });
+    // 短期・中期・長期を1つずつ見る。全部を一度に並べると、どれを見ればいいか分からなくなる
+    function nearest(target) {
+      return ys.reduce(function (best, y) {
+        return Math.abs(y - target) < Math.abs(best - target) ? y : best;
+      }, ys[0]);
+    }
+    var TERMS = { short: nearest(1), mid: nearest(5), long: ys[ys.length - 1] };
+    var n = TERMS[rateTerm] || ys[0];
+    var r = curve[n];
+
+    // ① 今の現金100%が、その年数のあとにどうなるか。
+    // 金利で置けば増え、そのまま持てば「増やせたはずのぶん」だけ目減りする
+    var grown = Math.pow(1 + r / 100, n) * 100;
+    var kept = 10000 / grown;          // 100 / (1+r)^n を%で
+    rateCashEl.innerHTML =
+      '<div style="font-weight:700;margin-bottom:8px">いまの現金100%は、' + n + '年後には</div>' +
+      '<div style="font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--wood)">' +
+      kept.toFixed(1) + '%</div>' +
+      '<div style="font-size:12.5px;color:var(--text-muted);margin-top:6px;line-height:1.8">' +
+      '同じお金を' + n + '年' + r.toFixed(2) + '%で置けば <b>' + grown.toFixed(1) + '%</b> になります。' +
+      'その差が、現金のまま持っていることの値段です。</div>';
+
+    // ② その年数の金利と、市場が織り込む先の金利
+    var html = '<div style="font-weight:700;margin-bottom:6px">' + n + '年の金利</div>';
+    html += rateRow("いまの利回り", r.toFixed(2) + "%");
+    var idx = ys.indexOf(n);
+    if (idx > 0) {
+      var a = ys[idx - 1];
+      html += rateRow(a + "年後〜" + n + "年後の区間", fwdRate(curve, a, n).toFixed(2) + "%");
+    }
     html += '<div style="font-size:11.5px;color:var(--text-muted);margin-top:8px;line-height:1.7">' +
       d.date + " 時点 ／ " + d.source + "</div>";
     rateNowEl.innerHTML = html;
 
-    // 市場が織り込む将来の区間金利
-    var f = '<div style="font-weight:700;margin-bottom:6px">市場が織り込む将来の金利</div>';
-    var pairs = [];
-    for (var i = 0; i < ys.length - 1; i++) {
-      var a = ys[i], b = ys[i + 1];
-      var v = fwdRate(curve, a, b);
-      pairs.push({ a: a, b: b, v: v });
-      f += rateRow(a + "年後〜" + b + "年後（" + (b - a) + "年間）", v.toFixed(2) + "%");
-    }
-    rateFwdEl.innerHTML = f;
-
-    // 読み方
-    if (pairs.length >= 2) {
-      var first = pairs[0].v, last = pairs[pairs.length - 1].v;
-      var diff = last - first;
-      var dir = Math.abs(diff) < 0.25 ? "ほぼ横ばい" : (diff > 0 ? "上がる" : "下がる");
-      var now1 = curve[ys[0]];
-      var r = '<div style="font-weight:700;margin-bottom:6px">読み方</div>';
-      r += '<div style="line-height:1.9">市場は、いまの' + ys[0] + '年金利 <b>' + now1.toFixed(2) +
-        '%</b> が、' + ys[ys.length - 1] + '年先までに <b>' + last.toFixed(2) + '%</b> へ' + dir +
-        'と見ています。</div>';
-      r += '<div style="font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.8">' +
-        'これは予報ではなく分岐点です。変動で借りて実際の金利がこの線より下で推移すれば変動が得、' +
-        '上で推移すれば固定が得になります。歴史的には期間プレミアムのぶん高めに出る傾向があります。</div>';
-      rateReadEl.innerHTML = r;
-    }
+    // ③ 読み方。1行だけにする
+    var longest = curve[ys[ys.length - 1]], shortest = curve[ys[0]];
+    var dir = Math.abs(longest - shortest) < 0.25 ? "ほぼ横ばい" : (longest > shortest ? "上がる" : "下がる");
+    rateReadEl.innerHTML =
+      '<div style="line-height:1.9">市場は、金利がこの先 <b>' + dir + '</b> と見ています（' +
+      ys[0] + '年 ' + shortest.toFixed(2) + '% → ' + ys[ys.length - 1] + '年 ' + longest.toFixed(2) + '%）。</div>' +
+      '<div style="font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.8">' +
+      'これは予報ではなく分岐点です。変動で借りて実際の金利がこの線より下で推移すれば変動が得、' +
+      '上で推移すれば固定が得になります。歴史的には期間プレミアムのぶん高めに出る傾向があります。</div>';
   }
+
+  function renderRateTerm() {
+    rateTermPick.querySelectorAll("button[data-term]").forEach(function (b) {
+      b.setAttribute("data-active", b.getAttribute("data-term") === rateTerm ? "true" : "false");
+    });
+  }
+  rateTermPick.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-term]");
+    if (!b) return;
+    e.stopPropagation();
+    rateTerm = b.getAttribute("data-term");
+    try { localStorage.setItem("pace-rate-term", rateTerm); } catch (e2) {}
+    renderRateTerm();
+    drawRate();
+  });
+  renderRateTerm();
 
   rateCountryEl.addEventListener("change", function () {
     try { localStorage.setItem("pace-rate-country", rateCountryEl.value); } catch (e) {}
