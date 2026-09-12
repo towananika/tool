@@ -1,4 +1,4 @@
-const CACHE_NAME = "maai-cache-v29";
+const CACHE_NAME = "maai-cache-v30";
 const CORE_FILES = ["./", "./index.html", "./about.html", "./manifest.json", "./icon.svg"];
 
 self.addEventListener("install", (event) => {
