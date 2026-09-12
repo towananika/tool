@@ -1463,6 +1463,15 @@
         <div class="presets" id="counterSoundPick">
           <button class="chip" data-sound="wood">木</button>
           <button class="chip" data-sound="click">カチカチ</button>
+          <button class="chip" data-sound="off">切</button>
+        </div>
+      </div>
+      <div class="field-row" id="counterVolRow">
+        <span class="field-label">音量</span>
+        <div class="presets" id="counterVolPick">
+          <button class="chip" data-vol="low">小</button>
+          <button class="chip" data-vol="mid">中</button>
+          <button class="chip" data-vol="high">大</button>
         </div>
       </div>
       <div class="count-log" id="countLog" hidden>
@@ -1953,7 +1962,7 @@
 
   var activeTab = "timer";
 
-  var counterState = { count: 0, step: 1, name: "", sound: "wood" };
+  var counterState = { count: 0, step: 1, name: "", sound: "wood", vol: "high" };
 
   function loadCounter() {
     try {
@@ -1962,7 +1971,8 @@
       if (saved && typeof saved.step === "number") counterState.step = saved.step;
       if (saved && typeof saved.name === "string") counterState.name = saved.name.slice(0, 12);
       if (saved && typeof saved.goal === "number") counterState.goal = clampInt(saved.goal, 0, 100000);
-      if (saved && VOICES[saved.sound]) counterState.sound = saved.sound;
+      if (saved && (VOICES[saved.sound] || saved.sound === "off")) counterState.sound = saved.sound;
+      if (saved && COUNTER_VOL[saved.vol]) counterState.vol = saved.vol;
     } catch (e) {}
   }
 
@@ -2431,6 +2441,16 @@
       b.setAttribute("data-active", b.getAttribute("data-sound") === counterState.sound ? "true" : "false");
     });
   }
+  var volPick = document.getElementById("counterVolPick");
+  var volRow = document.getElementById("counterVolRow");
+
+  function renderVolPick() {
+    volPick.querySelectorAll("button[data-vol]").forEach(function (b) {
+      b.setAttribute("data-active", b.getAttribute("data-vol") === counterState.vol ? "true" : "false");
+    });
+    volRow.hidden = counterState.sound === "off";   // 切のときは音量を出さない
+  }
+
   soundPick.addEventListener("click", function (e) {
     var btn = e.target.closest("button[data-sound]");
     if (!btn) return;
@@ -2438,9 +2458,23 @@
     counterState.sound = btn.getAttribute("data-sound");
     saveCounter();
     renderSoundPick();
+    renderVolPick();
     playClick(true);
   });
+
+  volPick.addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-vol]");
+    if (!btn) return;
+    e.stopPropagation();
+    counterState.vol = btn.getAttribute("data-vol");
+    saveCounter();
+    applyCounterVol();
+    renderVolPick();
+    playClick(true);      // 変えた音量で一度鳴らす
+  });
+
   renderSoundPick();
+  renderVolPick();
 
   function openCounterFull() {
     counterLocked = false;
@@ -2942,6 +2976,13 @@
     for (var i = 0; i < n; i++) { var x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(k * x) / t; }
     return c;
   }
+  // 音量。出口（圧縮のあと）で掛ける。手前を下げても圧縮が持ち上げ返すので効かない
+  var COUNTER_VOL = { low: 0.25, mid: 0.55, high: 1.0 };
+  function counterVol() { return COUNTER_VOL[counterState.vol] || 1.0; }
+  function applyCounterVol() {
+    if (counterBus && counterBus.out) counterBus.out.gain.value = counterBus.base * counterVol();
+  }
+
   function counterOut(ctx) {
     if (counterBus && counterBus.ctx === ctx) return counterBus.node;
     var g = ctx.createGain();
@@ -2961,9 +3002,10 @@
     var out = ctx.createGain();
     // PCは机の上、モバイルは手の中で使う。距離と内蔵スピーカーの差があるので、
     // PCは少し下げる。圧縮の手前を下げても頭打ちで効かないので、出口で下げる
-    out.gain.value = 1.35 * (IS_COARSE ? 1.0 : 0.70);
+    var base = 1.35 * (IS_COARSE ? 1.0 : 0.70);
+    out.gain.value = base * counterVol();
     g.connect(sat).connect(comp).connect(out).connect(ctx.destination);
-    counterBus = { ctx: ctx, node: g };
+    counterBus = { ctx: ctx, node: g, out: out, base: base };
     return g;
   }
 
@@ -3039,6 +3081,7 @@
   // 1打 — 1桁目の車が1コマ回る。
   // 「カチカチ」と二つ聞こえるのは、爪が歯を乗り越える音と、そのあと座る音の二段があるため
   function playClick(up) {
+    if (counterState.sound === "off") return;   // 切のときは鳴らさない。振動は残す
     try {
       var ctx = getCtx();
       var at = ctx.currentTime;
@@ -3055,6 +3098,7 @@
   // 何百回も聞く道具では「ゲームの効果音」に聞こえる。同じ木を一段低く叩いて、
   // 長く鳴らすほうが、区切りとして分かりやすく、聞いていて疲れない
   function playMilestone() {
+    if (counterState.sound === "off") return;
     try {
       var ctx = getCtx();
       var at = ctx.currentTime;
