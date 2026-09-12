@@ -1278,23 +1278,31 @@
 
   /* 押しても何も起きないボタンは、押せないことが見えているほうがよい */
   .chip[data-idle="true"] { opacity: .38; cursor: default; }
+
+  /* 言語の選択 */
+  .lang-sel {
+    flex: 0 0 auto; border: 1px solid var(--surface-border); border-radius: 10px;
+    background: var(--bg); color: var(--text); font-family: inherit; font-size: 12px;
+    padding: 7px 8px; -webkit-appearance: none; appearance: none; text-align: center;
+  }
+  .lang-sel:focus { outline: none; border-color: var(--wood); }
 </style>
 
 <div class="shell">
   <header class="brand">
     <p class="brand-name">間合い</p>
     <p class="brand-sub">MAAI</p>
-    <p class="brand-tag">近すぎず、遠すぎず。判断のための距離を測る。</p>
+    <p class="brand-tag" data-i18n="brand.tag">近すぎず、遠すぎず。判断のための距離を測る。</p>
   </header>
 
 <div class="card" id="card" data-mode="focus">
 
   <div class="top-row">
-    <button class="icon-btn back-btn" id="backBtn" aria-label="ホームへ戻る" title="ホームへ戻る">
+    <button class="icon-btn back-btn" id="backBtn" data-i18n-title="btn.back" aria-label="ホームへ戻る" title="ホームへ戻る">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
     </button>
     <span class="current-tool" id="currentTool"></span>
-    <button class="icon-btn reset-btn" id="resetBtn" aria-label="リセット" title="リセット">
+    <button class="icon-btn reset-btn" id="resetBtn" data-i18n-title="btn.reset" aria-label="リセット" title="リセット">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
     </button>
     <span class="mode-dot" id="modeDot"></span>
@@ -1311,15 +1319,16 @@
     <div class="menu-top">
     <div class="menu-search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
-      <input type="search" id="menuSearch" placeholder="道具をさがす" autocomplete="off" enterkeyhint="go" aria-label="道具をさがす">
-      <button class="ms-clear" id="menuSearchClear" aria-label="消す" hidden>×</button>
+      <input type="search" id="menuSearch" data-i18n-ph="search.ph" placeholder="道具をさがす" autocomplete="off" enterkeyhint="go" aria-label="道具をさがす">
+      <button class="ms-clear" id="menuSearchClear" data-i18n-title="btn.clear" title="消す" aria-label="消す" hidden>×</button>
     </div>
-      <button class="icon-btn menu-settings" id="menuSettingsBtn" aria-label="設定" title="設定">
+      <select class="lang-sel" id="langSel" aria-label="言語" data-i18n-title="btn.lang" title="言語"></select>
+      <button class="icon-btn menu-settings" id="menuSettingsBtn" data-i18n-title="btn.settings" aria-label="設定" title="設定">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
       </button>
     </div>
     <div class="menu-grid" id="menuGrid"></div>
-    <p class="menu-empty" id="menuEmpty" hidden>見つかりませんでした</p>
+    <p class="menu-empty" id="menuEmpty" data-i18n="search.empty" hidden>見つかりませんでした</p>
   </div>
 
   <div id="timerView">
@@ -1822,7 +1831,7 @@
 <div id="aboutStub" hidden></div>
 
 <footer class="site-foot">
-  <a href="about.html">計算式と前提</a>
+  <a href="about.html" data-i18n="name.about">計算式と前提</a>
   <p class="site-count" id="siteCount" hidden></p>
 </footer>
 
@@ -5590,6 +5599,160 @@
   });
 
 
+  // ==================== 言語 ====================
+  // 入口（ホーム・道具の名前・一行説明・上部のボタン）だけを訳す。
+  // 各道具の中の文章は日本語のまま。鍵がなければ日本語に落ちるので、
+  // 訳を足していけば少しずつ広がる。ja は既存の TOOL_NAME / TOOL_DESC を使う。
+
+  var LANG_LIST = [
+    ["ja", "日本語"], ["ko", "한국어"], ["en", "English"], ["zh", "中文"]
+  ];
+
+  var I18N = {
+    ko: {
+      "brand.tag": "너무 가깝지도, 너무 멀지도 않게. 판단을 위한 거리를 잰다.",
+      "search.ph": "도구 찾기", "search.empty": "찾지 못했습니다",
+      "btn.back": "홈으로", "btn.reset": "초기화", "btn.settings": "설정",
+      "btn.clear": "지우기", "btn.lang": "언어",
+      "group.sky": "시간", "group.sea": "돈", "group.leaf": "주거",
+      "name.timer": "타이머", "desc.timer": "집중과 휴식을 번갈아",
+      "name.stopwatch": "스톱워치", "desc.stopwatch": "경과 시간과 랩을 측정",
+      "name.counter": "카운터", "desc.counter": "수를 센다",
+      "name.alarm": "알람", "desc.alarm": "정한 시각에 벨이 울린다",
+      "name.fuel": "주유 비교", "desc.fuel": "멀리 있는 싼 곳까지 갈 가치",
+      "name.fx": "환전", "desc.fx": "환전소와 은행, 어디가 이득인가",
+      "name.rate": "금리의 앞날", "desc.rate": "시장이 보는 미래 금리",
+      "name.pv": "현재가치", "desc.pv": "미래의 돈을 지금 가치로",
+      "name.goal": "언제 도달", "desc.goal": "목표 금액까지 몇 년",
+      "name.cost": "주거의 무게", "desc.cost": "어떤 고정비를 줄이면 효과가 큰가",
+      "name.jeonse": "전세대출", "desc.jeonse": "청년 전세대출의 이득 계산",
+      "name.asset": "자산", "desc.asset": "순자산과 현금 비중 점검",
+      "name.house": "월세 vs 보유", "desc.house": "월세·전세·매매를 비교",
+      "name.invest": "주식 vs 부동산", "desc.invest": "주식과 부동산, 어느 쪽이 유리한가",
+      "name.settings": "설정", "desc.settings": "백업과 저장된 데이터",
+      "name.about": "계산식과 전제", "desc.about": "각 도구의 계산식과 전제"
+    },
+    en: {
+      "brand.tag": "Not too close, not too far. Measuring the distance for a decision.",
+      "search.ph": "Find a tool", "search.empty": "Nothing found",
+      "btn.back": "Back to home", "btn.reset": "Reset", "btn.settings": "Settings",
+      "btn.clear": "Clear", "btn.lang": "Language",
+      "group.sky": "Time", "group.sea": "Money", "group.leaf": "Housing",
+      "name.timer": "Timer", "desc.timer": "Switch between focus and rest",
+      "name.stopwatch": "Stopwatch", "desc.stopwatch": "Measure elapsed time and laps",
+      "name.counter": "Counter", "desc.counter": "Count things",
+      "name.alarm": "Alarm", "desc.alarm": "A bell at the time you set",
+      "name.fuel": "Fuel compare", "desc.fuel": "Is the cheaper station worth the drive",
+      "name.fx": "Exchange", "desc.fx": "Exchange shop or bank, which is better",
+      "name.rate": "Rate outlook", "desc.rate": "What the market expects",
+      "name.pv": "Present value", "desc.pv": "Future money in today value",
+      "name.goal": "When you reach it", "desc.goal": "How many years to your target",
+      "name.cost": "Weight of housing", "desc.cost": "Which fixed cost to cut first",
+      "name.jeonse": "Jeonse loan", "desc.jeonse": "How much the youth loan saves",
+      "name.asset": "Assets", "desc.asset": "Net worth and cash ratio",
+      "name.house": "Rent vs own", "desc.house": "Compare renting and buying",
+      "name.invest": "Stocks vs property", "desc.invest": "Stocks or property, which wins",
+      "name.settings": "Settings", "desc.settings": "Backup and saved data",
+      "name.about": "Formulas", "desc.about": "The formula behind each tool"
+    },
+    zh: {
+      "brand.tag": "不太近，也不太远。测量判断所需的距离。",
+      "search.ph": "查找工具", "search.empty": "未找到",
+      "btn.back": "返回首页", "btn.reset": "重置", "btn.settings": "设置",
+      "btn.clear": "清除", "btn.lang": "语言",
+      "group.sky": "时间", "group.sea": "金钱", "group.leaf": "居住",
+      "name.timer": "计时器", "desc.timer": "在专注与休息之间切换",
+      "name.stopwatch": "秒表", "desc.stopwatch": "测量用时与分段",
+      "name.counter": "计数器", "desc.counter": "计数",
+      "name.alarm": "闹钟", "desc.alarm": "在设定的时刻响铃",
+      "name.fuel": "加油比较", "desc.fuel": "远处便宜的油站是否值得跑",
+      "name.fx": "汇率", "desc.fx": "换钱所与银行哪个更划算",
+      "name.rate": "利率走向", "desc.rate": "市场预期的未来利率",
+      "name.pv": "现值", "desc.pv": "把未来的钱换算成现在的价值",
+      "name.goal": "何时达成", "desc.goal": "多少年达到目标金额",
+      "name.cost": "居住的重量", "desc.cost": "削减哪项固定支出最有效",
+      "name.jeonse": "全租贷款", "desc.jeonse": "青年全租贷款能省多少",
+      "name.asset": "资产", "desc.asset": "净资产与现金比例",
+      "name.house": "租房与买房", "desc.house": "比较月租、全租与购房",
+      "name.invest": "股票与房产", "desc.invest": "股票还是房产更有利",
+      "name.settings": "设置", "desc.settings": "备份与已保存的数据",
+      "name.about": "计算式与前提", "desc.about": "各工具的计算式与前提"
+    }
+  };
+
+  var lang = "ja";
+  try {
+    var saved = localStorage.getItem("pace-lang");
+    if (saved) {
+      lang = saved;
+    } else {
+      var nav = (navigator.language || "").toLowerCase();
+      if (nav.indexOf("ko") === 0) lang = "ko";
+      else if (nav.indexOf("zh") === 0) lang = "zh";
+      else if (nav.indexOf("ja") === 0) lang = "ja";
+      else if (nav) lang = "en";
+    }
+  } catch (e) {}
+
+  // 訳が無ければ空を返す。呼ぶ側で日本語に落とす
+  function tr(key) {
+    var d = I18N[lang];
+    return (d && d[key]) || "";
+  }
+
+  function descOf(key) {
+    return tr("desc." + key) || TOOL_DESC[key] || "";
+  }
+
+  function applyLang() {
+    document.documentElement.lang = lang;
+    var i, els;
+    els = document.querySelectorAll("[data-i18n]");
+    for (i = 0; i < els.length; i++) {
+      var v = tr(els[i].getAttribute("data-i18n"));
+      if (v) {
+        if (!els[i].getAttribute("data-i18n-ja")) els[i].setAttribute("data-i18n-ja", els[i].textContent);
+        els[i].textContent = v;
+      } else if (els[i].getAttribute("data-i18n-ja")) {
+        els[i].textContent = els[i].getAttribute("data-i18n-ja");
+      }
+    }
+    els = document.querySelectorAll("[data-i18n-ph]");
+    for (i = 0; i < els.length; i++) {
+      var p = tr(els[i].getAttribute("data-i18n-ph"));
+      if (!els[i].getAttribute("data-i18n-ja")) els[i].setAttribute("data-i18n-ja", els[i].placeholder);
+      els[i].placeholder = p || els[i].getAttribute("data-i18n-ja");
+      els[i].setAttribute("aria-label", els[i].placeholder);
+    }
+    els = document.querySelectorAll("[data-i18n-title]");
+    for (i = 0; i < els.length; i++) {
+      var ti = tr(els[i].getAttribute("data-i18n-title"));
+      if (!els[i].getAttribute("data-i18n-ja")) els[i].setAttribute("data-i18n-ja", els[i].title);
+      var use = ti || els[i].getAttribute("data-i18n-ja");
+      els[i].title = use;
+      els[i].setAttribute("aria-label", use);
+    }
+    if (typeof buildMenu === "function") buildMenu();
+    if (typeof currentToolEl !== "undefined" && currentToolEl) {
+      currentToolEl.textContent = activeTab === "menu" ? "" : tabLabel(activeTab);
+    }
+  }
+
+  var langSel = document.getElementById("langSel");
+  LANG_LIST.forEach(function (p) {
+    var o = document.createElement("option");
+    o.value = p[0];
+    o.textContent = p[1];
+    langSel.appendChild(o);
+  });
+  langSel.value = lang;
+  langSel.addEventListener("change", function () {
+    lang = langSel.value;
+    try { localStorage.setItem("pace-lang", lang); } catch (e) {}
+    applyLang();
+  });
+
+
   // ==================== ホーム（メニュー） ====================
   // 群の名前は対象を表す名詞ひとつに揃える。
   // 「はかる／くらべる」（動詞）と「お金と住まい」（対象）が混ざっていたため、
@@ -5609,7 +5772,7 @@
   var currentToolEl = document.getElementById("currentTool");
 
   function tabLabel(key) {
-    return TOOL_NAME[key] || key;
+    return (typeof tr === "function" && tr("name." + key)) || TOOL_NAME[key] || key;
   }
 
   // 道具ごとの検索キーワード（かな・漢字・ローマ字・韓国語・英語）
@@ -5665,7 +5828,7 @@
 
   function matches(key, q) {
     if (!q) return true;
-    var hay = (tabLabel(key) + " " + (TOOL_DESC[key] || "") + " " + (TOOL_KEYWORDS[key] || "")).toLowerCase();
+    var hay = (tabLabel(key) + " " + descOf(key) + " " + (TOOL_KEYWORDS[key] || "")).toLowerCase();
     return hay.indexOf(q) >= 0;
   }
 
@@ -5683,10 +5846,10 @@
     span.className = "mt-name";
     span.textContent = tabLabel(key);
     body.appendChild(span);
-    if (TOOL_DESC[key]) {
+    if (descOf(key)) {
       var d = document.createElement("span");
       d.className = "mt-desc";
-      d.textContent = TOOL_DESC[key];
+      d.textContent = descOf(key);
       body.appendChild(d);
     }
     tile.appendChild(body);
@@ -5726,7 +5889,7 @@
     menuEmptyEl.hidden = true;
 
     MENU_GROUPS.forEach(function (g) {
-      if (g.head) addHead(g.head, g.tone);
+      if (g.head) addHead(tr("group." + g.tone) || g.head, g.tone);
       g.keys.forEach(function (key) {
         if (!VIEWS[key]) return;
         menuGridEl.appendChild(makeTile(key, g.tone));
@@ -5977,7 +6140,7 @@
     var h = (location.hash || "").replace(/^#\/?/, "").split("?")[0];
     return VIEWS[h] ? h : "menu";
   }
-  buildMenu();
+  applyLang();   // 訳を当ててから棚を組む（この中で buildMenu を呼ぶ）
   var startTab = tabFromHash();
   setActiveTab(startTab);
   applySharedState(startTab);
