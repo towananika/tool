@@ -3,204 +3,302 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>당신은 방금 6가지 기법에 걸렸습니다 — 정보성 광고 체험</title>
-<meta name="description" content="정보상품 광고가 사람을 움직이는 6가지 기법을, 직접 걸려보면서 배우는 페이지입니다. 돈도 개인정보도 받지 않습니다. 버튼을 누르는 순간 바로 정답을 보여드립니다.">
+<title>방금 당신을 움직인 6가지 — 정보성 광고 체험</title>
+<meta name="description" content="정보상품 광고가 사람을 움직이는 6가지 기법을, 직접 걸려보면서 배우는 페이지. 돈도 개인정보도 받지 않습니다. 버튼을 누르는 순간 바로 정답이 나옵니다.">
 <link rel="canonical" href="https://towananika.github.io/tool/scam.html">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="間合い / Maai">
-<meta property="og:title" content="당신은 방금 6가지 기법에 걸렸습니다">
-<meta property="og:description" content="정보상품 광고의 수법을, 직접 걸려보면서 배우는 페이지. 돈도 개인정보도 받지 않습니다.">
+<meta property="og:title" content="방금 당신을 움직인 6가지">
+<meta property="og:description" content="걸려보고 나서 배우는 광고의 수법. 돈도 개인정보도 받지 않습니다.">
 <meta property="og:url" content="https://towananika.github.io/tool/scam.html">
 <meta property="og:locale" content="ko_KR">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <style>
   :root {
     --bg: #f5f1e9; --surface: #fbf9f4; --surface-border: #e2dac8;
-    --text: #2b2924; --text-muted: #8a8271; --wood: #93704b; --sea: #5b7d8a; --leaf: #6b7f5c;
+    --text: #2b2924; --text-muted: #8a8271; --wood: #93704b; --sea: #5b7d8a;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #1c1a16; --surface: #242119; --surface-border: #38332a;
-      --text: #e8e2d6; --text-muted: #9a917f; --wood: #c19a70; --sea: #8fb0bd; --leaf: #9ab388;
+      --text: #e8e2d6; --text-muted: #9a917f; --wood: #c19a70; --sea: #8fb0bd;
     }
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
-    line-height: 1.75; }
+  body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.7;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; }
 
-  /* ===== 1단계: 미끼 (일부러 요란하게) ===== */
-  .bait { background: #fff8e7; color: #221c14; min-height: 100vh; padding: 0 0 60px; }
-  .bait-bar { background: #d42a2a; color: #fff; text-align: center; padding: 11px 14px;
-    font-size: 14px; font-weight: 700; letter-spacing: -.2px; }
-  .bait-in { max-width: 620px; margin: 0 auto; padding: 26px 20px 0; }
-  .bait h1 { font-size: 30px; line-height: 1.35; margin: 22px 0 10px; letter-spacing: -.6px; }
+  /* 1단계: 미끼 */
+  .bait { background: #fff8e7; color: #221c14; min-height: 100vh; }
+  .bait-bar { background: #d42a2a; color: #fff; text-align: center;
+    padding: 11px 14px; font-size: 14px; font-weight: 700; }
+  .bait-in { max-width: 560px; margin: 0 auto; padding: 30px 20px 60px; }
+  .bait h1 { font-size: 31px; line-height: 1.32; margin: 16px 0 10px; letter-spacing: -.7px; }
   .bait h1 em { font-style: normal; color: #d42a2a; }
-  .bait .sub { font-size: 16px; color: #5a4f42; margin: 0 0 22px; }
-  .badge { display: inline-block; background: #ffe27a; color: #6b4c00; font-size: 12.5px;
-    font-weight: 700; padding: 5px 11px; border-radius: 999px; }
-  .stat-row { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
-  .stat { flex: 1 1 90px; background: #fff; border: 1px solid #f0e2c0; border-radius: 12px;
-    padding: 13px 10px; text-align: center; }
-  .stat b { display: block; font-size: 20px; color: #d42a2a; }
-  .stat span { font-size: 11.5px; color: #7a6a55; }
+  .bait .sub { font-size: 15.5px; color: #5a4f42; margin: 0 0 24px; }
+  .badge { display: inline-block; background: #ffe27a; color: #6b4c00;
+    font-size: 12.5px; font-weight: 700; padding: 5px 11px; border-radius: 999px; }
+  .stat-row { display: flex; gap: 9px; margin: 22px 0; }
+  .stat { flex: 1; background: #fff; border: 1px solid #f0e2c0; border-radius: 12px;
+    padding: 13px 6px; text-align: center; }
+  .stat b { display: block; font-size: 19px; color: #d42a2a; }
+  .stat span { font-size: 11px; color: #7a6a55; }
   .quote { background: #fff; border: 1px solid #f0e2c0; border-radius: 12px;
-    padding: 14px 16px; margin: 11px 0; font-size: 14px; }
-  .quote .who { display: block; font-size: 12px; color: #8a7a63; margin-top: 7px; }
-  .price { text-align: center; margin: 26px 0 8px; font-size: 17px; }
+    padding: 13px 15px; margin: 10px 0; font-size: 14px; }
+  .quote em { font-style: normal; }
+  .quote span { display: block; font-size: 12px; color: #8a7a63; margin-top: 6px; }
+  .price { text-align: center; margin: 26px 0 10px; font-size: 17px; }
   .price s { color: #8a7a63; }
   .price b { color: #d42a2a; font-size: 26px; }
   .cta { display: block; width: 100%; border: 0; border-radius: 14px; cursor: pointer;
     background: #d42a2a; color: #fff; font-size: 18px; font-weight: 800; padding: 19px 16px;
     font-family: inherit; box-shadow: 0 6px 18px rgba(212,42,42,.28); }
-  .tiny { font-size: 11.5px; color: #8a7a63; text-align: center; margin-top: 12px; }
+  .tiny { font-size: 11.5px; color: #8a7a63; text-align: center; margin-top: 11px; }
 
-  /* ===== 2단계: 정답 (조용하게) ===== */
-  .reveal { max-width: 620px; margin: 0 auto; padding: 34px 20px 70px; }
-  .reveal h2 { font-size: 23px; line-height: 1.45; margin: 0 0 8px; letter-spacing: -.4px; }
-  .lead { color: var(--text-muted); font-size: 14.5px; margin: 0 0 26px; }
-  .item { border-top: 1px solid var(--surface-border); padding: 18px 0 4px; }
-  .item h3 { margin: 0 0 6px; font-size: 16px; }
-  .item h3 i { font-style: normal; color: var(--wood); margin-right: 8px; font-weight: 700; }
-  .item p { margin: 0 0 8px; font-size: 14.5px; }
-  .saw { background: var(--surface); border: 1px solid var(--surface-border);
-    border-left: 3px solid var(--sea); border-radius: 0 10px 10px 0;
-    padding: 9px 13px; font-size: 13px; color: var(--text-muted); }
+  /* 2단계: 정답 */
+  .reveal { max-width: 560px; margin: 0 auto; padding: 28px 20px 70px; }
+  .top { display: flex; justify-content: flex-end; margin-bottom: 18px; }
+  select { border: 1px solid var(--surface-border); border-radius: 10px; background: var(--bg);
+    color: var(--text); font-family: inherit; font-size: 12px; padding: 6px 8px;
+    -webkit-appearance: none; appearance: none; }
+  .reveal h2 { font-size: 24px; line-height: 1.42; margin: 0 0 10px; letter-spacing: -.5px; }
+  .lead { color: var(--text-muted); font-size: 14.5px; margin: 0 0 24px; }
+  .row { display: flex; gap: 11px; align-items: baseline;
+    border-top: 1px solid var(--surface-border); padding: 13px 0; }
+  .row i { font-style: normal; font-weight: 800; color: var(--wood); font-size: 13px; flex: 0 0 14px; }
+  .row div { min-width: 0; }
+  .row b { font-size: 15.5px; display: block; }
+  .row p { margin: 2px 0 0; font-size: 14px; }
+  .row q { display: block; margin-top: 5px; font-size: 12.5px; color: var(--text-muted); }
+  .share { display: block; width: 100%; margin: 26px 0 0; border: 0; border-radius: 14px;
+    background: var(--wood); color: #fff; font-family: inherit; font-size: 16.5px;
+    font-weight: 700; padding: 17px; cursor: pointer; }
   .card { background: var(--surface); border: 1px solid var(--surface-border);
-    border-radius: 14px; padding: 20px; margin: 30px 0 0; }
-  .card h3 { margin: 0 0 10px; font-size: 16px; }
-  .card ul { margin: 0; padding-left: 19px; }
-  .card li { margin: 8px 0; font-size: 14.5px; }
-  .note { font-size: 13px; color: var(--text-muted); margin-top: 26px; line-height: 1.85; }
-  .go { display: inline-block; margin-top: 14px; color: var(--sea); font-weight: 700;
-    text-decoration: none; font-size: 15px; }
-  .go:hover { text-decoration: underline; }
+    border-radius: 14px; padding: 18px 20px; margin-top: 26px; }
+  .card b { font-size: 15px; }
+  .card ul { margin: 9px 0 0; padding-left: 18px; }
+  .card li { margin: 6px 0; font-size: 14px; }
+  .card a { display: block; margin-top: 9px; color: var(--sea); font-weight: 700;
+    text-decoration: none; font-size: 14.5px; }
+  .note { font-size: 12px; color: var(--text-muted); margin-top: 24px; line-height: 1.8; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--text); color: var(--bg); font-size: 13px; padding: 10px 18px;
+    border-radius: 999px; }
   [hidden] { display: none !important; }
 </style>
 </head>
 <body>
 
-<!-- ===== 1단계: 미끼 ===== -->
 <div class="bait" id="bait">
   <div class="bait-bar" id="baitBar">오늘 자정 마감 · 남은 자리 3석</div>
   <div class="bait-in">
-    <span class="badge">수강생 후기 1위</span>
-    <h1>AI로 월 <em>700만 원</em>,<br>30일이면 충분합니다</h1>
-    <p class="sub">퇴근 후 하루 40분. 평범한 직장인이 3개월 만에 회사를 나온 방법을 전부 공개합니다.</p>
-
+    <span class="badge" data-i="b1">수강생 후기 1위</span>
+    <h1><span data-i="b2">AI로 월</span> <em data-i="b15">700만 원</em>,<br><span data-i="b3">30일이면 충분합니다</span></h1>
+    <p class="sub" data-i="b4">퇴근 후 하루 40분. 평범한 직장인이 3개월 만에 회사를 나온 방법.</p>
     <div class="stat-row">
-      <div class="stat"><b>12,847명</b><span>누적 수강생</span></div>
-      <div class="stat"><b>98.7%</b><span>만족도</span></div>
-      <div class="stat"><b>7억</b><span>최고 수익 사례</span></div>
+      <div class="stat"><b>12,847</b><span data-i="b5">누적 수강생</span></div>
+      <div class="stat"><b>98.7%</b><span data-i="b6">만족도</span></div>
+      <div class="stat"><b data-i="b16">7억</b><span data-i="b7">최고 수익</span></div>
     </div>
-
-    <div class="quote">"반신반의했는데 2주 만에 첫 수익이 났습니다. 진작 할 걸 그랬어요."
-      <span class="who">— 30대 직장인 김○○</span></div>
-    <div class="quote">"솔직히 이 가격에 이런 내용을 푸는 게 이해가 안 갑니다."
-      <span class="who">— 40대 자영업 이○○</span></div>
-
-    <div class="price"><s>890,000원</s> → <b>오늘 0원</b></div>
-    <button class="cta" id="cta">무료 전자책 지금 받기</button>
-    <p class="tiny">※ 이메일만 입력하면 즉시 발송됩니다</p>
+    <div class="quote"><em data-i="b8">"2주 만에 첫 수익이 났습니다."</em><span data-i="b9">— 30대 직장인 김○○</span></div>
+    <div class="quote"><em data-i="b10">"이 가격에 이걸 푸는 게 이해가 안 갑니다."</em><span data-i="b11">— 40대 자영업 이○○</span></div>
+    <div class="price"><s>890,000</s> → <b data-i="b12">오늘 0원</b></div>
+    <button class="cta" id="cta" data-i="b13">무료 전자책 지금 받기</button>
+    <p class="tiny" data-i="b14">※ 이메일만 입력하면 즉시 발송</p>
   </div>
 </div>
 
-<!-- ===== 2단계: 정답 ===== -->
 <div class="reveal" id="reveal" hidden>
-  <h2>이 페이지는 아무것도 팔지 않습니다.<br>방금 당신을 움직인 건 이 6가지입니다.</h2>
-  <p class="lead">돈도, 이메일도, 개인정보도 받지 않습니다. 버튼을 누른 순간 바로 이 화면으로 왔습니다.
-    <b>당신이 잘 속아서가 아닙니다.</b> 위 페이지는 사람이 반응하도록 설계해서 만든 것이고,
-    설계를 알면 다음부터는 보입니다.</p>
+  <div class="top"><select id="lang" aria-label="Language"></select></div>
 
-  <div class="item">
-    <h3><i>1</i>생존자 편향</h3>
-    <p>성공한 사람만 화면에 나옵니다. 같은 방법으로 실패한 수천 명은 광고를 만들지 않으므로, 보이지 않습니다.</p>
-    <div class="saw">방금 본 것 — "7억 최고 수익 사례"</div>
-  </div>
+  <h2 data-i="r1">아무것도 팔지 않습니다.<br>방금 당신을 움직인 건 이 6가지입니다.</h2>
+  <p class="lead" data-i="r2">당신이 잘 속아서가 아닙니다. 그렇게 설계된 것뿐입니다.</p>
 
-  <div class="item">
-    <h3><i>2</i>지나치게 구체적인 숫자</h3>
-    <p>12,847명과 98.7%. 끝자리가 어중간할수록 "실제로 센 것 같다"고 느껴집니다. 검증할 수 없다는 점은 똑같습니다.</p>
-    <div class="saw">방금 본 것 — "수강생 12,847명 · 만족도 98.7%"</div>
-  </div>
+  <div class="row"><i>1</i><div><b data-i="t1">생존자 편향</b>
+    <p data-i="d1">성공한 사람만 보입니다. 실패한 사람은 광고를 만들지 않으니까.</p>
+    <q data-i="q1">"7억 최고 수익"</q></div></div>
 
-  <div class="item">
-    <h3><i>3</i>희소성과 마감</h3>
-    <p>생각할 시간을 없애는 장치입니다. 내일 다시 와도 같은 문구가 그대로 있는 경우가 대부분입니다.</p>
-    <div class="saw">방금 본 것 — "오늘 자정 마감 · 남은 자리 3석"</div>
-  </div>
+  <div class="row"><i>2</i><div><b data-i="t2">너무 구체적인 숫자</b>
+    <p data-i="d2">끝자리가 어중간할수록 진짜처럼 느껴집니다.</p>
+    <q data-i="q2">"12,847명 · 98.7%"</q></div></div>
 
-  <div class="item">
-    <h3><i>4</i>가짜 정가</h3>
-    <p>89만 원이라는 기준점을 먼저 보여주면, 0원이 굉장히 큰 이득처럼 느껴집니다. 89만 원에 팔린 적이 없어도 효과는 같습니다.</p>
-    <div class="saw">방금 본 것 — "890,000원 → 오늘 0원"</div>
-  </div>
+  <div class="row"><i>3</i><div><b data-i="t3">희소성</b>
+    <p data-i="d3">생각할 시간을 없앱니다. 내일 와도 같은 마감입니다.</p>
+    <q data-i="q3">"오늘 자정 마감 · 남은 자리 3석"</q></div></div>
 
-  <div class="item">
-    <h3><i>5</i>만들어진 사회적 증거</h3>
-    <p>후기는 누구나 쓸 수 있습니다. 이름이 가려져 있으면 확인할 방법이 없습니다.</p>
-    <div class="saw">방금 본 것 — "김○○" "이○○"의 후기</div>
-  </div>
+  <div class="row"><i>4</i><div><b data-i="t4">가짜 정가</b>
+    <p data-i="d4">89만 원을 먼저 보여주면 0원이 커 보입니다.</p>
+    <q data-i="q4">"890,000 → 0원"</q></div></div>
 
-  <div class="item">
-    <h3><i>6</i>무료 미끼</h3>
-    <p>진짜 상품은 무료 전자책이 아니라 <b>당신의 연락처</b>입니다. 여기서부터 고가 강의로 이어지는 것이 이 구조의 본체입니다.</p>
-    <div class="saw">방금 본 것 — "이메일만 입력하면 즉시 발송됩니다"</div>
-  </div>
+  <div class="row"><i>5</i><div><b data-i="t5">만들어진 후기</b>
+    <p data-i="d5">이름이 가려지면 확인할 방법이 없습니다.</p>
+    <q data-i="q5">"김○○" "이○○"</q></div></div>
+
+  <div class="row"><i>6</i><div><b data-i="t6">무료 미끼</b>
+    <p data-i="d6">상품은 전자책이 아니라 당신의 연락처입니다.</p>
+    <q data-i="q6">"이메일만 입력하면"</q></div></div>
+
+  <button class="share" id="share" data-i="r3">친구에게도 걸어보기</button>
 
   <div class="card">
-    <h3>다음에 진짜 광고를 만났을 때, 이 4가지만 보세요</h3>
+    <b data-i="c0">다음 광고에서 볼 4가지</b>
     <ul>
-      <li><b>실패한 사람은 어디 있나.</b> 성공 사례만 있다면, 분모가 숨겨진 것입니다.</li>
-      <li><b>내일도 같은 마감인가.</b> 하루 뒤에 다시 열어보면 대부분 답이 나옵니다.</li>
-      <li><b>무엇을 가져가려 하나.</b> 돈이 아니라 연락처를 먼저 원한다면, 상품은 그 다음에 옵니다.</li>
-      <li><b>숫자를 직접 계산해 보라.</b> "월 700만 원"이 사실이라면, 그 사람은 왜 강의를 팔고 있습니까.</li>
+      <li data-i="c1">실패한 사람은 어디 있나</li>
+      <li data-i="c2">내일도 같은 마감인가</li>
+      <li data-i="c3">돈보다 연락처를 먼저 원하나</li>
+      <li data-i="c4">진짜라면 왜 강의를 파나</li>
     </ul>
+    <a href="./#/goal" data-i="c5">→ 목표 금액까지 몇 년인지 직접 계산하기</a>
+    <a href="./jeonse.html" data-i="c6">→ 전세·월세·매매를 10년 뒤 순자산으로 비교하기</a>
   </div>
 
-  <div class="card">
-    <h3>숫자는 직접 계산하는 편이 빠릅니다</h3>
-    <p style="margin:0;font-size:14.5px">"월 얼마면 몇 년 뒤에 얼마가 되는가"는 강의를 듣지 않아도 나옵니다.
-      계산식은 전부 공개되어 있고, 입력한 값은 당신 기기에만 저장됩니다. 무료이고 가입도 없습니다.</p>
-    <a class="go" href="./#/goal">→ 목표 금액까지 몇 년 걸리는지 계산하기</a><br>
-    <a class="go" href="./jeonse.html">→ 전세·월세·매매를 10년 뒤 순자산으로 비교하기</a>
-  </div>
-
-  <p class="note">
-    이 페이지의 1단계는 <b>실존하지 않는 가상의 광고</b>입니다. 실제 인물·회사·상품과는 아무 관련이 없으며,
-    어떤 정보도 수집하거나 전송하지 않습니다. 확인은 <a href="https://github.com/towananika/tool">소스 코드</a>에서 직접 하실 수 있습니다.<br>
-    만든 곳: <a href="./">間合い (Maai)</a> — 살면서 하는 판단을 숫자로 바꾸는 도구 상자
-  </p>
+  <p class="note"><span data-i="n1">1단계는 실존하지 않는 가상의 광고입니다. 실제 인물·회사와 무관하며, 어떤 정보도 수집하지 않습니다.</span>
+    <a href="https://github.com/towananika/tool" data-i="n2">소스 코드</a> ·
+    <a href="./" data-i="n3">間合い (Maai)</a></p>
 </div>
 
 <script>
-  var bait = document.getElementById("bait");
-  var reveal = document.getElementById("reveal");
+  var T = {
+    ja: {
+      b1:"受講生の声1位", b2:"AIで月", b3:"30日で十分です",
+      b4:"退勤後1日40分。普通の会社員が3か月で会社を辞めた方法。",
+      b5:"累計受講生", b6:"満足度", b7:"最高収益",
+      b8:"「2週間で最初の収益が出ました」", b9:"— 30代会社員 金○○",
+      b10:"「この値段でこれを出すのが理解できません」", b11:"— 40代自営業 李○○",
+      b15:"700万ウォン", b16:"7億ウォン", b12:"本日0円", b13:"無料の電子書籍を今すぐ受け取る", b14:"※メールアドレスだけで即座に送信",
+      r1:"何も売りません。<br>いまあなたを動かしたのは、この6つです。",
+      r2:"あなたが騙されやすいのではありません。そう設計されているだけです。",
+      t1:"生存者バイアス", d1:"成功した人だけが見えます。失敗した人は広告を作らないからです。", q1:"「7億の最高収益」",
+      t2:"具体的すぎる数字", d2:"端数が半端なほど、本物らしく感じます。", q2:"「12,847名・98.7%」",
+      t3:"希少性", d3:"考える時間を奪います。明日も同じ締切です。", q3:"「本日締切・残り3席」",
+      t4:"偽の定価", d4:"89万を先に見せると、0円が大きく見えます。", q4:"「890,000 → 0円」",
+      t5:"作られた感想", d5:"名前が伏せられていたら、確かめる方法がありません。", q5:"「金○○」「李○○」",
+      t6:"無料の餌", d6:"商品は電子書籍ではなく、あなたの連絡先です。", q6:"「メールアドレスだけで」",
+      r3:"友達にも仕掛けてみる",
+      c0:"次の広告で見る4つ", c1:"失敗した人はどこにいるか", c2:"明日も同じ締切か",
+      c3:"お金より先に連絡先を欲しがっていないか", c4:"本当なら、なぜ講座を売るのか",
+      c5:"→ 目標額まで何年かかるか自分で計算する", c6:"→ 전세・월세・매매を10年後の純資産で比べる",
+      n1:"1段階目は実在しない架空の広告です。実在の人物・会社とは無関係で、いかなる情報も収集しません。",
+      n2:"ソースコード", n3:"間合い (Maai)"
+    },
+    en: {
+      b1:"#1 rated course", b2:"Make", b3:"in 30 days with AI",
+      b4:"40 minutes a night. How an ordinary employee quit in three months.",
+      b5:"students", b6:"satisfaction", b7:"top earner",
+      b8:'"First income in two weeks."', b9:"— office worker, 30s",
+      b10:'"I cannot believe this is being shared at this price."', b11:"— self-employed, 40s",
+      b15:"₩7,000,000 a month", b16:"₩700M", b12:"free today", b13:"Get the free ebook now", b14:"* Just your email, sent instantly",
+      r1:"Nothing is for sale here.<br>Six things just moved you.",
+      r2:"You are not gullible. It was built to work on anyone.",
+      t1:"Survivorship bias", d1:"Only winners appear. Losers do not buy advertising.", q1:'"top earner"',
+      t2:"Numbers too precise", d2:"Odd digits feel counted, not invented.", q2:'"12,847 · 98.7%"',
+      t3:"Scarcity", d3:"It removes your thinking time. Tomorrow has the same deadline.", q3:'"Ends tonight · 3 seats left"',
+      t4:"Fake original price", d4:"Show a high number first and zero looks enormous.", q4:'"890,000 to 0"',
+      t5:"Manufactured proof", d5:"Hidden names cannot be checked.", q5:'"J." "L."',
+      t6:"The free bait", d6:"The product is not the ebook. It is your contact details.", q6:'"just your email"',
+      r3:"Try it on a friend",
+      c0:"Four things to look for next time", c1:"Where are the people who failed",
+      c2:"Is tomorrow the same deadline", c3:"Do they want your contact before your money",
+      c4:"If it were true, why sell the course",
+      c5:"→ Work out how many years to your own target",
+      c6:"→ Compare renting and buying over ten years",
+      n1:"Step one is a fictional advertisement. It matches no real person or company, and collects nothing.",
+      n2:"Source code", n3:"Maai"
+    },
+    zh: {
+      b1:"学员口碑第一", b2:"用AI月入", b3:"30天就够了",
+      b4:"下班后每天40分钟。普通上班族三个月辞职的方法。",
+      b5:"累计学员", b6:"满意度", b7:"最高收益",
+      b8:"“两周就有了第一笔收入。”", b9:"— 30多岁上班族 金○○",
+      b10:"“这个价格讲这些，实在想不通。”", b11:"— 40多岁个体户 李○○",
+      b15:"700万韩元", b16:"7亿韩元", b12:"今日0元", b13:"立即领取免费电子书", b14:"※ 只需邮箱，立即发送",
+      r1:"这里什么都不卖。<br>刚才打动你的，是这6样。",
+      r2:"不是你容易上当，是它本来就这样设计的。",
+      t1:"幸存者偏差", d1:"只看得见成功的人。失败的人不会做广告。", q1:"“最高收益7亿”",
+      t2:"过于具体的数字", d2:"尾数越零碎，越像真的数过。", q2:"“12,847人 · 98.7%”",
+      t3:"稀缺感", d3:"夺走你思考的时间。明天还是同样的截止。", q3:"“今晚截止 · 仅剩3席”",
+      t4:"虚假原价", d4:"先给你看89万，0元就显得很大。", q4:"“890,000 → 0元”",
+      t5:"制造出来的好评", d5:"名字被遮住，就无法核实。", q5:"“金○○”“李○○”",
+      t6:"免费的诱饵", d6:"商品不是电子书，是你的联系方式。", q6:"“只需邮箱”",
+      r3:"也让朋友试一次",
+      c0:"下次看广告要看的4点", c1:"失败的人在哪里", c2:"明天是否还是同样的截止",
+      c3:"是否先要联系方式而不是钱", c4:"如果是真的，为什么要卖课",
+      c5:"→ 自己算算多少年能达到目标金额", c6:"→ 比较租房与买房十年后的净资产",
+      n1:"第一步是虚构的广告。与任何真实人物或公司无关，也不收集任何信息。",
+      n2:"源代码", n3:"間合い (Maai)"
+    }
+  };
 
-  document.getElementById("cta").addEventListener("click", function () {
-    bait.hidden = true;
-    reveal.hidden = false;
-    window.scrollTo(0, 0);
-    if (location.hash !== "#answer") history.replaceState(null, "", "#answer");
+  var LANGS = [["ko","한국어"],["ja","日本語"],["en","English"],["zh","中文"]];
+  var bait = document.getElementById("bait"), reveal = document.getElementById("reveal");
+  var sel = document.getElementById("lang");
+  var lang = "ko";
+
+  LANGS.forEach(function (p) {
+    var o = document.createElement("option");
+    o.value = p[0]; o.textContent = p[1]; sel.appendChild(o);
   });
 
-  // 링크로 바로 정답부터 열린 경우
-  if (location.hash === "#answer") {
-    bait.hidden = true;
-    reveal.hidden = false;
+  // 元の韓国語を退避しておく（韓国語に戻せるように）
+  var nodes = document.querySelectorAll("[data-i]");
+  for (var i = 0; i < nodes.length; i++) nodes[i].setAttribute("data-ko", nodes[i].innerHTML);
+
+  function apply() {
+    document.documentElement.lang = lang;
+    var d = T[lang];
+    for (var i = 0; i < nodes.length; i++) {
+      var k = nodes[i].getAttribute("data-i");
+      nodes[i].innerHTML = (d && d[k]) || nodes[i].getAttribute("data-ko");
+    }
+    sel.value = lang;
   }
 
-  // 미끼의 "마감"은 매일 자정으로 보이게 한다.
-  // 내일 다시 와도 같은 문구가 있다는 것 자체가 3번의 설명이 된다.
+  try {
+    var n = (navigator.language || "").toLowerCase();
+    if (n.indexOf("ja") === 0) lang = "ja";
+    else if (n.indexOf("zh") === 0) lang = "zh";
+    else if (n.indexOf("ko") !== 0 && n) lang = "en";
+  } catch (e) {}
+  if (lang !== "ko") apply(); else sel.value = "ko";
+
+  sel.addEventListener("change", function () { lang = sel.value; apply(); });
+
+  document.getElementById("cta").addEventListener("click", function () {
+    bait.hidden = true; reveal.hidden = false;
+    window.scrollTo(0, 0);
+    history.replaceState(null, "", "#answer");
+  });
+  if (location.hash === "#answer") { bait.hidden = true; reveal.hidden = false; }
+
+  document.getElementById("share").addEventListener("click", function () {
+    var url = location.origin + location.pathname;
+    var title = document.title;
+    if (navigator.share) { navigator.share({ title: title, url: url }).catch(function () {}); return; }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(function () {
+        var t = document.createElement("div");
+        t.className = "toast";
+        t.textContent = { ko: "링크를 복사했습니다", ja: "リンクをコピーしました",
+                          en: "Link copied", zh: "已复制链接" }[lang];
+        document.body.appendChild(t);
+        setTimeout(function () { t.remove(); }, 2200);
+      });
+    } else { prompt("URL", url); }
+  });
+
+  // 締切は毎日0時に戻る。明日も同じ表示が出ること自体が3番の証明になる
   (function () {
     var end = new Date(); end.setHours(24, 0, 0, 0);
     var bar = document.getElementById("baitBar");
+    var word = { ko: ["마감까지", "남은 자리 3석"], ja: ["締切まで", "残り3席"],
+                 en: ["Ends in", "3 seats left"], zh: ["距截止", "仅剩3席"] };
     setInterval(function () {
       var s = Math.max(0, Math.floor((end - new Date()) / 1000));
-      var h = String(Math.floor(s / 3600)).padStart(2, "0");
-      var m = String(Math.floor(s % 3600 / 60)).padStart(2, "0");
-      var x = String(s % 60).padStart(2, "0");
-      bar.textContent = "마감까지 " + h + ":" + m + ":" + x + " · 남은 자리 3석";
+      var w = word[lang] || word.ko;
+      bar.textContent = w[0] + " " +
+        String(Math.floor(s / 3600)).padStart(2, "0") + ":" +
+        String(Math.floor(s % 3600 / 60)).padStart(2, "0") + ":" +
+        String(s % 60).padStart(2, "0") + " · " + w[1];
     }, 1000);
   })();
 </script>
