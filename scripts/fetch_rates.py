@@ -169,6 +169,59 @@ def collect_yields(prev):
     return out
 
 
+# ===== 主要株の年平均リターン =====
+# 鍵は不要。配当込み（adjclose）の月足から年平均を出す。
+# **1期間だけ出すと誤解を生む。** 直近1年だけ見れば年89%にもなるが、
+# 10年で見れば年18%。期間で激変することが見えるよう複数期間を持つ。
+
+YF = ("https://query1.finance.yahoo.com/v8/finance/chart/{sym}"
+      "?interval=1mo&range={rng}&events=div%2Csplit")
+
+TICKERS = [
+    ("069500.KS", "KOSPI200 (KODEX 200)"),
+    ("005930.KS", "삼성전자"),
+    ("360750.KS", "미국 S&P500 (TIGER)"),
+]
+SPANS = (("1y", 1), ("3y", 3), ("5y", 5), ("10y", 10))
+
+
+def yf_series(sym, rng):
+    req = urllib.request.Request(YF.format(sym=sym, rng=rng),
+                                 headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=25) as res:
+        d = json.loads(res.read().decode("utf-8"))
+    r0 = d["chart"]["result"][0]
+    ind = r0["indicators"]
+    adj = (ind.get("adjclose") or [{}])[0].get("adjclose")
+    vals = adj or ind["quote"][0]["close"]
+    return [v for v in vals if v]
+
+
+def stock_returns():
+    items = []
+    for sym, name in TICKERS:
+        cagr = {}
+        for rng, years in SPANS:
+            try:
+                v = yf_series(sym, rng)
+            except Exception:
+                continue
+            n = len(v) - 1
+            if n < 6:          # 上場が浅いものは、その期間を持たない
+                continue
+            cagr[str(years)] = round((pow(v[-1] / v[0], 12.0 / n) - 1) * 100, 2)
+        if cagr:
+            items.append({"sym": sym, "name": name, "cagr": cagr})
+    if not items:
+        return None
+    return {
+        "updated": datetime.now(KST).isoformat(timespec="seconds"),
+        "source": "Yahoo Finance (adjclose)",
+        "note": "배당 포함. 과거 실적이며 미래 수익률이 아니다. 기간에 따라 크게 달라진다.",
+        "items": items,
+    }
+
+
 def merged_history(prev, rates, day):
     """1日1件、通貨ごとの基準レートだけを積む。同じ日は最後の取得で上書きする。
 
@@ -226,6 +279,14 @@ def main():
         ylds = collect_yields(prev)
         if ylds:
             out["yields"] = ylds
+        try:
+            st = stock_returns()
+        except Exception as e:
+            st = None
+            print("stocks skip:", e, file=sys.stderr)
+        out["stocks"] = st or prev.get("stocks") or None
+        if not out["stocks"]:
+            out.pop("stocks", None)
         with open(OUT, "w", encoding="utf-8") as f:
             json.dump(out, f, ensure_ascii=False, indent=2)
             f.write("\n")

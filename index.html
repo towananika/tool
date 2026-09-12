@@ -1749,6 +1749,7 @@
     <div class="result-box" id="ivResult"></div>
     <div class="bar-chart" id="ivChart"></div>
     <div class="result-box" id="ivBreakeven"></div>
+    <div class="result-box" id="ivScale"></div>
   </div>
 
   <div id="alarmView" hidden>
@@ -4680,6 +4681,7 @@
   }
 
   function calcInvest() {
+    if (typeof renderScale === "function") renderScale();
     var s = stockNet();
     var re = realEstateNet(ivNum("ivReGrowth"));
     var rows = [{ label: "株式", value: s }, { label: "不動産", value: re }];
@@ -5617,6 +5619,121 @@
     renderCost();
   });
 
+
+
+  // ==================== 利回りのものさし ====================
+  // 不動産・国債・株を同じ軸（年%）に並べる。「商品として何%か」で見る。
+  // 株は期間で激変する（KOSPI200は1年なら年89%、10年なら年18%）ので、
+  // 1期間だけ出すと誤解を生む。必ず複数期間を並べる。
+
+  var ivScaleEl = document.getElementById("ivScale");
+  var scaleData = null, scaleFetched = false;
+
+  function scaleLine(label, value, note, strong) {
+    var d = document.createElement("div");
+    d.style.display = "flex";
+    d.style.justifyContent = "space-between";
+    d.style.gap = "10px";
+    d.style.lineHeight = "1.95";
+    if (!strong) d.style.fontSize = "13px";
+    var l = document.createElement("span");
+    l.textContent = label;
+    var r = document.createElement("b");
+    r.textContent = value;
+    if (strong) r.style.color = "var(--wood)";
+    d.appendChild(l); d.appendChild(r);
+    if (note) {
+      var n = document.createElement("div");
+      n.style.fontSize = "11.5px";
+      n.style.color = "var(--text-muted)";
+      n.style.marginTop = "-4px";
+      n.textContent = note;
+      var wrap = document.createElement("div");
+      wrap.appendChild(d); wrap.appendChild(n);
+      return wrap;
+    }
+    return d;
+  }
+
+  function scaleHead(text) {
+    var h = document.createElement("div");
+    h.textContent = text;
+    h.style.fontWeight = "700";
+    h.style.margin = "14px 0 4px";
+    h.style.fontSize = "12.5px";
+    h.style.color = "var(--text-muted)";
+    return h;
+  }
+
+  function renderScale() {
+    if (!ivScaleEl) return;
+    if (!scaleFetched) {
+      scaleFetched = true;
+      fetch("./rates.json")
+        .then(function (r) { return r.json(); })
+        .then(function (j) { scaleData = j; drawScale(); })
+        .catch(function () { drawScale(); });
+    }
+    drawScale();
+  }
+
+  function drawScale() {
+    ivScaleEl.innerHTML = "";
+    var t = document.createElement("div");
+    t.textContent = "利回りのものさし（年%）";
+    t.style.fontWeight = "700";
+    t.style.marginBottom = "2px";
+    ivScaleEl.appendChild(t);
+
+    // 1) あなたの物件を「商品」として見た場合
+    var gross = ivNum("ivYield"), vac = ivNum("ivVacancy") / 100, up = ivNum("ivUpkeep");
+    var oper = gross * (1 - vac) - up;
+    ivScaleEl.appendChild(scaleHead("あなたの物件（入力から・借入なしで見た場合）"));
+    ivScaleEl.appendChild(scaleLine("運営利回り", oper.toFixed(2) + "%",
+      "賃料 " + gross.toFixed(1) + "% ×(1−空室 " + (vac * 100).toFixed(0) + "%) − 保有 " + up.toFixed(1) + "%", true));
+
+    // 2) 満期まで持てば確定するもの
+    var y = scaleData && scaleData.yields && scaleData.yields.kr;
+    if (y && y.curve) {
+      ivScaleEl.appendChild(scaleHead("満期まで持てば確定（韓国 국고채・" + y.date + "）"));
+      ["10", "30"].forEach(function (k) {
+        if (y.curve[k]) ivScaleEl.appendChild(scaleLine(k + "年", y.curve[k].toFixed(2) + "%"));
+      });
+      var bond10 = y.curve["10"];
+      if (bond10) {
+        var gap = document.createElement("div");
+        gap.style.fontSize = "12.5px";
+        gap.style.marginTop = "10px";
+        gap.style.lineHeight = "1.85";
+        gap.innerHTML = oper < bond10
+          ? "運営利回りは国庫債10年（" + bond10.toFixed(2) + "%）を <b>" +
+            (bond10 - oper).toFixed(2) + "ポイント下回ります</b>。つまりこの物件は、家賃ではなく<b>値上がりで稼ぐ商品</b>です。"
+          : "運営利回りは国庫債10年（" + bond10.toFixed(2) + "%）を上回っています。家賃だけでも国債に勝てる水準です。";
+        ivScaleEl.appendChild(gap);
+      }
+    }
+
+    // 3) 過去の実績（株）
+    var st = scaleData && scaleData.stocks;
+    if (st && st.items && st.items.length) {
+      ivScaleEl.appendChild(scaleHead("過去の実績（株・配当込み・" + (st.updated || "").slice(0, 10) + "）"));
+      st.items.forEach(function (it) {
+        var parts = [];
+        ["1", "3", "5", "10"].forEach(function (k) {
+          if (it.cagr[k] !== undefined) parts.push(k + "年 " + it.cagr[k].toFixed(1) + "%");
+        });
+        ivScaleEl.appendChild(scaleLine(it.name, "", parts.join(" ／ ")));
+      });
+      var w = document.createElement("div");
+      w.style.fontSize = "12px";
+      w.style.color = "var(--text-muted)";
+      w.style.marginTop = "10px";
+      w.style.lineHeight = "1.8";
+      w.textContent = "同じ銘柄でも、1年で見るか10年で見るかで数字が何倍も変わります。" +
+        "これは過去の実績であって、将来の利回りではありません。国債の利回りとは種類が違う数字です。";
+      ivScaleEl.appendChild(w);
+    }
+  }
 
   // ==================== 金利の先ゆき ====================
   // 市場のイールドカーブから、将来の区間金利（フォワードレート）を導く。
