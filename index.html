@@ -3162,14 +3162,26 @@
   }
 
   // 木を1回叩く
-  function knock(ctx, at, amp, pitch) {
-    var V = voice();
+  function knockV(ctx, at, amp, pitch, V) {
     var p = pitch || 1;
     var j = 0.99 + Math.random() * 0.02;
     noiseBurst(ctx, at, 0.0025, "bandpass", V.air * p * j, V.airAmp * amp, 0.004, counterOut(ctx));
     V.modes.forEach(function (m) {
-      woodRing(ctx, at, m[0] * p * j, m[1], m[2], m[3] * amp);
+      woodRing(ctx, at, m[0] * p * j, m[1], m[2], m[3] * amp, V.attack);
     });
+  }
+  function knock(ctx, at, amp, pitch) { knockV(ctx, at, amp, pitch, voice()); }
+
+  // 歯送りの連射。実物のリセットは、爪が歯を次々に乗り越えて0に戻り、止め金に当たって終わる。
+  // 速く始まって、間隔を広げながら遅くなる。音程はわずかに上がる（車が軽くなる）
+  function ratchet(ctx, at, V, n, gap0, gap1, amp0, amp1, pitch) {
+    var t = at;
+    for (var i = 0; i < n; i++) {
+      var k = i / (n - 1 || 1);
+      knockV(ctx, t, amp0 + (amp1 - amp0) * k, (pitch || 1) * (1 + 0.06 * k), V);
+      t += gap0 + (gap1 - gap0) * k;
+    }
+    return t;
   }
 
   // 1打 — 1桁目の車が1コマ回る。
@@ -3197,56 +3209,23 @@
       var ctx = getCtx();
       var at = ctx.currentTime;
       var V = voice();
-      var MS = V.mile === "run" ? 0.40 : 0.55;
 
       if (V.mile === "run") {
-        // 桁車が0まで戻る連射。金属の数取器はこれが実物の音
-        noiseBurst(ctx, at, 0.005, "bandpass", 2600, 0.20 * MS, 0.010, counterOut(ctx));
-        knock(ctx, at, 0.8 * MS, 0.85);
-        for (var w = 0; w < 2; w++) {
-          var steps = 5 + Math.floor(Math.random() * 4);
-          var t = at + 0.014 + w * 0.005, gap = 0.009;
-          for (var i = 0; i < steps; i++) {
-            knock(ctx, t, MS * Math.max(0.12, 0.5 * (1 - i / (steps + 3))), 1 - w * 0.06);
-            t += gap;
-            gap *= 1.06;                     // 減速する
-          }
-        }
-        knock(ctx, at + 0.105, 0.9 * MS, 0.9);   // 止め金に当たって終わる
+        // 金属の数取器。つまみの摩擦 → 歯送り20回 → 止め金
+        noiseBurst(ctx, at, 0.006, "bandpass", 2800, 0.14, 0.010, counterOut(ctx));
+        var e1 = ratchet(ctx, at + 0.008, VOICES.click, 20, 0.0105, 0.026, 0.55, 0.16, 1);
+        knockV(ctx, e1 + 0.012, 0.75, 0.92, VOICES.click);
         return;
       }
 
-      // v3.4: 木魚を1打と同じに叩き、そのあと鈴（りん）を残す。
-      // v2.9〜3.3は「一段低く＋オクターブ下」だったが、スマホのスピーカーは500Hz以下をほぼ鳴らせず、
-      // 500Hz超で測ると1打より小さかった（0.83倍）。鈴は木魚と同じ仏壇の道具で、
-      // 木→金属・短い→長い の両方が変わる。500Hz超で1打の1.51倍（tools/counter_accent.html で測定）
-      knock(ctx, at, 1.0, 1);
-      knock(ctx, at + V.gap, V.second, 1);
-      rin(ctx, at + 0.02, 880, 0.30 * (IS_COARSE ? 1.0 : 0.70), 1.6);
+      // 木の車＋金属の止め金。木は鳴りが長いので、回数を減らして間隔を広げないと潰れる。
+      // 素材が2つあると終わりがはっきりする。実測（tools/counter_accent.html）:
+      // スマホ帯で1打の2.21倍、3kHz超は0.156（金属だけの案は0.861で、何百回には強すぎた）
+      var e2 = ratchet(ctx, at, VOICES.wood, 12, 0.018, 0.038, 0.50, 0.14, 1);
+      knockV(ctx, e2 + 0.016, 0.55, 1.0, VOICES.click);
     } catch (e) {}
   }
 
-  // 鈴（りん）。木の飽和・圧縮を通すと割れるので、別の道で出す。
-  // お椀型の鈴は倍音が整数倍にならない（おおよそ 1 : 2.7 : 5.2）。少しずらした2本で「うなり」を作る
-  function rin(ctx, at, f0, level, len) {
-    var out = ctx.createGain();
-    out.gain.value = level;
-    out.connect(ctx.destination);
-    [[1, 1, len], [2.71, 0.28, len * 0.55], [5.2, 0.06, len * 0.3]].forEach(function (p) {
-      [-1.2, 1.2].forEach(function (det) {
-        var o = ctx.createOscillator();
-        o.type = "sine";
-        o.frequency.value = f0 * p[0] + det;
-        var g = ctx.createGain();
-        g.gain.setValueAtTime(0, at);
-        g.gain.linearRampToValueAtTime(p[1] * 0.5, at + 0.004);
-        g.gain.exponentialRampToValueAtTime(0.0003, at + p[2]);
-        o.connect(g).connect(out);
-        o.start(at);
-        o.stop(at + p[2] + 0.02);
-      });
-    });
-  }
 
   function playTemple(toFocus) {
     var ctx = getCtx();
