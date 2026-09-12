@@ -5314,6 +5314,17 @@
   var COUNT_NS = "towananika-tool";
   var COUNT_KEY = "home";
 
+  var visitCount = 0;
+
+  // 言語を切り替えたときも描き直せるよう、表示だけ関数にしておく
+  function renderVisits() {
+    var el = document.getElementById("siteCount");
+    if (!el || !(visitCount > 0)) return;
+    var t = (typeof tr === "function" && tr("foot.visits")) || "のべ {n} 人が開きました";
+    el.textContent = t.replace("{n}", visitCount.toLocaleString());
+    el.hidden = false;
+  }
+
   (function siteCounter() {
     var el = document.getElementById("siteCount");
     if (!el) return;
@@ -5324,8 +5335,8 @@
 
     function show(v) {
       if (!(v > 0)) return;
-      el.textContent = "のべ " + v.toLocaleString() + " 人が開きました";
-      el.hidden = false;
+      visitCount = v;
+      renderVisits();
     }
 
     var url;
@@ -5667,6 +5678,7 @@
       "search.ph": "도구 찾기", "search.empty": "찾지 못했습니다",
       "btn.back": "홈으로", "btn.reset": "초기화", "btn.settings": "설정",
       "btn.clear": "지우기", "btn.lang": "언어",
+      "foot.visits": "지금까지 {n}명이 열어봤습니다",
       "group.sky": "시간", "group.sea": "돈", "group.leaf": "주거",
       "name.timer": "타이머", "desc.timer": "집중과 휴식을 번갈아",
       "name.stopwatch": "스톱워치", "desc.stopwatch": "경과 시간과 랩을 측정",
@@ -5690,6 +5702,7 @@
       "search.ph": "Find a tool", "search.empty": "Nothing found",
       "btn.back": "Back to home", "btn.reset": "Reset", "btn.settings": "Settings",
       "btn.clear": "Clear", "btn.lang": "Language",
+      "foot.visits": "Opened {n} times so far",
       "group.sky": "Time", "group.sea": "Money", "group.leaf": "Housing",
       "name.timer": "Timer", "desc.timer": "Switch between focus and rest",
       "name.stopwatch": "Stopwatch", "desc.stopwatch": "Measure elapsed time and laps",
@@ -5713,6 +5726,7 @@
       "search.ph": "查找工具", "search.empty": "未找到",
       "btn.back": "返回首页", "btn.reset": "重置", "btn.settings": "设置",
       "btn.clear": "清除", "btn.lang": "语言",
+      "foot.visits": "至今已有 {n} 人打开",
       "group.sky": "时间", "group.sea": "金钱", "group.leaf": "居住",
       "name.timer": "计时器", "desc.timer": "在专注与休息之间切换",
       "name.stopwatch": "秒表", "desc.stopwatch": "测量用时与分段",
@@ -5785,6 +5799,7 @@
       els[i].title = use;
       els[i].setAttribute("aria-label", use);
     }
+    if (typeof renderVisits === "function") renderVisits();
     if (typeof buildMenu === "function") buildMenu();
     if (typeof currentToolEl !== "undefined" && currentToolEl) {
       currentToolEl.textContent = activeTab === "menu" ? "" : tabLabel(activeTab);
