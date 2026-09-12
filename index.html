@@ -1632,6 +1632,41 @@
     <div class="result-box" id="rateRead"></div>
   </div>
 
+  <div id="buyView" hidden>
+    <p class="tool-title">家を買う</p>
+    <p class="tool-note">アパートを買うときに、<b>いくら現金が要るか</b>と<b>毎月いくら返すか</b>を出します。取得税・仲介手数料・印紙税は価格から自動で計算します。単位はウォン。</p>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">物件と資金</p>
+      <div class="field-row"><span class="field-label">売買価格</span><input class="num" type="number" id="byPrice" value="500000000" step="10000000" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">自己資金<span class="hint">（手元の現金）</span></span><input class="num" type="number" id="byCash" value="100000000" step="10000000" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">専有面積<span class="hint">（㎡）</span></span><input class="num" type="number" id="byArea" value="59" step="1" inputmode="numeric"></div>
+    </div>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">ローン</p>
+      <div class="field-row"><span class="field-label">金利<span class="hint">（年%）</span></span><input class="num" type="number" id="byRate" value="4.0" step="0.1" inputmode="decimal"></div>
+      <div class="field-row"><span class="field-label">期間<span class="hint">（年）</span></span><input class="num" type="number" id="byYears" value="30" min="1" max="50" inputmode="numeric"></div>
+      <div class="field-row">
+        <span class="field-label">返済方式</span>
+        <div class="presets" id="byMethodPick">
+          <button class="chip" data-method="equal">元利均等</button>
+          <button class="chip" data-method="principal">元金均等</button>
+        </div>
+      </div>
+      <div class="field-row"><span class="field-label">LTV上限<span class="hint">（%・地域と条件で変わる）</span></span><input class="num" type="number" id="byLtv" value="70" min="0" max="100" step="5" inputmode="numeric"></div>
+      <div class="field-row"><span class="field-label">年収<span class="hint">（税込・DSR判定用）</span></span><input class="num" type="number" id="byIncome" value="34000000" step="1000000" inputmode="numeric"></div>
+    </div>
+
+    <div class="settings-group hs-group">
+      <p class="hs-head">諸費用</p>
+      <div class="field-row"><span class="field-label">登記・債券ほか<span class="hint">（概算・手入力）</span></span><input class="num" type="number" id="byEtc" value="2000000" step="100000" inputmode="numeric"></div>
+    </div>
+
+    <div class="result-box" id="byResult"></div>
+    <div class="result-box" id="byDetail"></div>
+  </div>
+
   <div id="houseView" hidden>
     <p class="tool-title">家賃 vs 保有</p>
     <p class="tool-note">月세・전세・매매を同じ土俵で比べます。手元資金は共通で、住居費はすべてその資金から支払う前提です。</p>
@@ -2174,7 +2209,7 @@
     fuel: "給油くらべ", fx: "為替", pv: "現在価値", goal: "いつ届く",
     rate: "金利の先ゆき",
     cost: "住居の重み", jeonse: "チョンセ融資", asset: "資産",
-    house: "家賃vs保有", invest: "株vs不動産",
+    house: "家賃vs保有", invest: "株vs不動産", buy: "家を買う",
     settings: "設定", about: "計算式と前提"
   };
 
@@ -2191,6 +2226,7 @@
     rate:      { view: "rateView" },
     asset:     { view: "assetView" },
     house:     { view: "houseView" },
+    buy:       { view: "buyView" },
     invest:    { view: "investView" },
     cost:      { view: "costView" },
     jeonse:    { view: "jeonseView" },
@@ -2235,6 +2271,7 @@
       if (typeof trySendOutbox === "function") trySendOutbox();
     }
     if (tab === "goal") calcGoal();
+    if (tab === "buy") calcBuy();
     if (tab === "cost") renderCost();
     if (tab === "jeonse") calcJeonse();
     if (tab === "menu") { menuSearchEl.value = ""; buildMenu(); }
@@ -5465,6 +5502,143 @@
   });
   calcGoal();
 
+
+  // ==================== 家を買う ====================
+  // 「いくらの家が買えるか」ではなく「いくら現金が要って、毎月いくら返すか」を出す。
+  // 買えない理由はたいてい価格ではなく、諸費用と月の返済のほうにある
+  var byEls = {};
+  ["byPrice", "byCash", "byArea", "byRate", "byYears", "byLtv", "byIncome", "byEtc"].forEach(function (id) {
+    byEls[id] = document.getElementById(id);
+  });
+  var byState = loadJSON("pace-buy", { method: "equal" });
+
+  // 取得税（住宅・1주택 전제、2026-09時点の税率）
+  //   6억以下 1%／6~9억は (価格億×2/3 − 3)%／9억超 3%
+  //   ＋地方教育税 = 取得税率の1/10、＋農特税 0.2%（専有85㎡超のみ）
+  function acquisitionTax(price, areaM2) {
+    var eok = price / 100000000, rate;
+    if (eok <= 6) rate = 1;
+    else if (eok <= 9) rate = Math.round((eok * 2 / 3 - 3) * 100) / 100;
+    else rate = 3;
+    var edu = rate / 10;
+    var farm = areaM2 > 85 ? 0.2 : 0;
+    return { total: price * (rate + edu + farm) / 100, rate: rate + edu + farm };
+  }
+
+  // 仲介手数料の上限料率（売買）。実際は協議だが、上限で見ておくほうが安全
+  function brokerFee(price) {
+    var eok = price / 100000000, rate, cap = 0;
+    if (eok < 0.5) { rate = 0.6; cap = 250000; }
+    else if (eok < 2) { rate = 0.5; cap = 800000; }
+    else if (eok < 9) rate = 0.4;
+    else if (eok < 12) rate = 0.5;
+    else if (eok < 15) rate = 0.6;
+    else rate = 0.7;
+    var fee = price * rate / 100;
+    if (cap) fee = Math.min(fee, cap);
+    return { fee: fee, rate: rate };
+  }
+
+  // 印紙税（不動産・売買）
+  function stampTax(price) {
+    if (price <= 100000000) return 0;
+    if (price <= 1000000000) return 150000;
+    return 350000;
+  }
+
+  // 元利均等の毎月返済
+  function annuityPayment(principal, ratePct, years) {
+    var i = ratePct / 100 / 12, n = years * 12;
+    if (n <= 0) return 0;
+    if (i <= 0) return principal / n;
+    return principal * i / (1 - Math.pow(1 + i, -n));
+  }
+
+  function calcBuy() {
+    var price = Number(byEls.byPrice.value) || 0;
+    var cash = Number(byEls.byCash.value) || 0;
+    var area = Number(byEls.byArea.value) || 0;
+    var rate = Number(byEls.byRate.value) || 0;
+    var years = Math.max(1, Number(byEls.byYears.value) || 1);
+    var income = Number(byEls.byIncome.value) || 0;
+    var etc = Number(byEls.byEtc.value) || 0;
+
+    var tax = acquisitionTax(price, area);
+    var bro = brokerFee(price);
+    var stamp = stampTax(price);
+    var costs = tax.total + bro.fee + stamp + etc;
+
+    // 諸費用はローンで賄えない。現金から先に引く
+    var cashForHouse = cash - costs;
+    var needLoan = Math.max(0, price - cashForHouse);
+    var ltvCap = Math.max(0, Math.min(100, Number(byEls.byLtv.value) || 0));
+    var maxLoan = price * ltvCap / 100;
+    var short = Math.max(0, needLoan - maxLoan);       // LTVで借りきれないぶん＝追加で要る現金
+    var loan = Math.min(needLoan, maxLoan);
+    var ltv = price > 0 ? loan / price * 100 : 0;
+
+    var pay, first, total;
+    if (byState.method === "principal") {
+      // 元金均等。初回がいちばん重いので、その額で判断する
+      var n = years * 12, i = rate / 100 / 12;
+      first = loan / n + loan * i;
+      pay = first;
+      total = loan * i * (n + 1) / 2;
+    } else {
+      pay = annuityPayment(loan, rate, years);
+      first = pay;
+      total = pay * years * 12 - loan;
+    }
+    var dsr = income > 0 ? (pay * 12) / income * 100 : 0;
+
+    var out = document.getElementById("byResult");
+    var det = document.getElementById("byDetail");
+
+    if (cashForHouse < 0) {
+      out.innerHTML = "<b>諸費用だけで自己資金が足りません。</b><br>" +
+        "諸費用 " + fmt(costs) + " に対して自己資金 " + fmt(cash) + "。" +
+        "<b>" + fmt(-cashForHouse) + " 足りない</b>ので、この価格は検討の対象になりません。";
+    } else {
+      out.innerHTML =
+        (short > 0 ? "<b style=\"color:var(--warn, #b4714f)\">現金が " + fmt(short) + " 足りません。</b>" +
+          "LTV上限 " + fmt(ltvCap, 0) + "% では " + fmt(maxLoan) + " までしか借りられず、必要な借入は " + fmt(needLoan) + " です。<br>" +
+          "<span style=\"color:var(--text-muted)\">↓ 足りたとした場合の返済</span><br>" : "") +
+        "毎月の返済 <b>" + fmt(pay) + "</b>" + (byState.method === "principal" ? "（初回。以後減る）" : "") + "<br>" +
+        "借入 <b>" + fmt(loan) + "</b>（LTV " + fmt(ltv, 1) + "%）／ 総利子 " + fmt(total) + "<br>" +
+        "<span style=\"color:" + (dsr > 40 ? "var(--warn, #b4714f)" : "var(--sage, #6f8f6a)") + ";font-weight:700\">DSR " + fmt(dsr, 1) + "%</span>" +
+        (dsr > 40 ? " — 40%を超えています。<b>この年収では借りられない可能性が高い</b>" : " — 40%以内");
+    }
+
+    det.innerHTML =
+      "<b>買うのに要る現金</b><br>" +
+      "取得税 " + fmt(tax.total) + "（" + fmt(tax.rate, 2) + "%" + (area > 85 ? "・85㎡超" : "") + "）<br>" +
+      "仲介手数料 " + fmt(bro.fee) + "（上限 " + fmt(bro.rate, 1) + "%)<br>" +
+      "印紙税 " + fmt(stamp) + " ／ 登記・債券ほか " + fmt(etc) + "<br>" +
+      "<b>諸費用 合計 " + fmt(costs) + "</b>（価格の " + fmt(price > 0 ? costs / price * 100 : 0, 2) + "%）<br>" +
+      "<span style=\"color:var(--text-muted)\">税率は2026-09時点。1주택を前提にしていて、多住宅・調整地域は別。仲介手数料は上限で計算しています</span>";
+  }
+
+  var byMethodPick = document.getElementById("byMethodPick");
+  function renderByMethod() {
+    byMethodPick.querySelectorAll("button[data-method]").forEach(function (b) {
+      b.setAttribute("data-active", b.getAttribute("data-method") === byState.method ? "true" : "false");
+    });
+  }
+  byMethodPick.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-method]");
+    if (!b) return;
+    e.stopPropagation();
+    byState.method = b.getAttribute("data-method");
+    saveJSON("pace-buy", byState);
+    renderByMethod();
+    calcBuy();
+  });
+  Object.keys(byEls).forEach(function (k) {
+    byEls[k].addEventListener("input", calcBuy);
+  });
+  renderByMethod();
+  calcBuy();
+
   function renderCost() {
     costListEl.innerHTML = "";
     costState.items.forEach(function (it, i) {
@@ -5853,7 +6027,7 @@
   var MENU_GROUPS = [
     { head: "時間", tone: "sky", keys: ["timer", "stopwatch", "counter", "alarm"] },
     { head: "お金", tone: "sea", keys: ["fuel", "fx", "rate", "pv", "goal", "asset"] },
-    { head: "住まい", tone: "leaf", keys: ["cost", "house", "jeonse", "invest"] }
+    { head: "住まい", tone: "leaf", keys: ["cost", "house", "jeonse", "buy", "invest"] }
   ];
 
   // ホームのタイルには出さないが、検索では拾えるページ。
@@ -5883,6 +6057,7 @@
     asset:     "しさん 資産 純資産 現金 投資 棚卸し asset net worth 자산 순자산",
     house:     "やちん 家賃 保有 持ち家 賃貸 월세 전세 매매 rent buy 주거",
     jeonse:    "ちょんせ チョンセ 전세 청년 融資 ローン 保証金 loan 전세대출 청년전세",
+    buy:       "かう 買う 購入 マンション アパート ローン 住宅ローン 頭金 諸費用 取得税 仲介手数料 返済 DSR buy mortgage 매매 대출 취득세 중개보수 원리금",
     invest:    "かぶ 株 不動産 投資 レバレッジ stock real estate 주식 부동산",
     settings:  "せってい 設定 バックアップ 書き出し 読み込み 保存 settings backup 설정 백업",
     about:     "けいさんしき 計算式 しき 式 前提 限界 説明 つかいかた 使い方 根拠 出典 引用 再利用 ライセンス このサイト について about formula help license 계산식 설명 출처 인용"
@@ -5902,6 +6077,7 @@
     asset:     "純資産と現金比率の棚卸し",
     house:     "월세・전세・매매を比べる",
     jeonse:    "청년 전세대출の得を計る",
+    buy:       "買うのに要る現金と毎月の返済",
     invest:    "株と不動産、どちらが有利か",
     settings:  "バックアップと保存データ",
     about:     "各道具の計算式と前提"
