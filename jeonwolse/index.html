@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>전월세 전환율 계산기 — 보증금과 월세를 맞바꿀 때 손해인지 이득인지</title>
+<meta name="description" content="보증금을 월세로, 월세를 보증금으로 바꿀 때의 전환율을 계산합니다. 법정 상한(기준금리+2%p와 10% 중 낮은 값)과 비교하고, 두 매물 사이의 실제 전환율도 역산합니다. 무료, 가입 없음, 계산식 공개.">
+<link rel="canonical" href="https://towananika.github.io/tool/jeonwolse/">
+<link rel="alternate" hreflang="ko" href="https://towananika.github.io/tool/jeonwolse/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="間合い / Maai">
+<meta property="og:title" content="전월세 전환율 계산기 — 맞바꿀 때 손해인지 이득인지">
+<meta property="og:description" content="법정 상한과 비교하고, 두 매물 사이의 실제 전환율을 역산합니다. 계산식 전부 공개.">
+<meta property="og:url" content="https://towananika.github.io/tool/jeonwolse/">
+<meta property="og:locale" content="ko_KR">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg: #f5f1e9; --surface: #fbf9f4; --surface-border: #e2dac8;
+    --text: #2b2924; --text-muted: #8a8271; --wood: #93704b; --sea: #5b7d8a;
+    --win: #6f8f6a; --warn: #b4714f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1a16; --surface: #242119; --surface-border: #38332a;
+      --text: #ede8dd; --text-muted: #a89e8a; --wood: #c99f74; --sea: #8fb0bd;
+      --win: #9dbd97; --warn: #d59a75;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    line-height: 1.75; padding: 28px 18px 60px;
+  }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; letter-spacing: -.01em; margin-bottom: 10px; }
+  h2 { font-size: 16px; margin: 32px 0 10px; color: var(--wood); }
+  p { margin-bottom: 12px; font-size: 14.5px; }
+  .lead { color: var(--text-muted); font-size: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 16px; padding: 16px; margin: 18px 0; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
+  .row:first-child { margin-top: 0; }
+  .row label { font-size: 13px; color: var(--text-muted); }
+  .row input { width: 120px; font: inherit; font-size: 15px; text-align: right; padding: 6px 9px;
+    border: 1px solid var(--surface-border); border-radius: 9px; background: var(--bg); color: var(--text);
+    font-variant-numeric: tabular-nums; }
+  .out { margin-top: 14px; border-top: 1px solid var(--surface-border); padding-top: 12px; }
+  .big { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sub { font-size: 12.5px; color: var(--text-muted); margin-top: 4px; }
+  .judge { margin-top: 10px; font-size: 14px; }
+  .ok { color: var(--win); font-weight: 700; }
+  .no { color: var(--warn); font-weight: 700; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .tab { font: inherit; font-size: 13px; cursor: pointer; background: transparent; color: var(--text);
+    border: 1px solid var(--surface-border); border-radius: 999px; padding: 6px 14px; }
+  .tab[data-on="true"] { border-color: var(--wood); color: var(--wood); background: var(--bg); }
+  pre.formula { background: var(--bg); border: 1px solid var(--surface-border); border-radius: 10px;
+    padding: 10px 12px; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 10px 0; white-space: pre-wrap; }
+  details { border-top: 1px solid var(--surface-border); padding-top: 12px; margin-top: 14px; }
+  summary { cursor: pointer; font-size: 13.5px; color: var(--wood); }
+  ul { margin: 0 0 12px 18px; font-size: 14px; }
+  li { margin-bottom: 6px; }
+  a { color: var(--sea); }
+  .foot { margin-top: 40px; text-align: center; font-size: 12.5px; color: var(--text-muted); }
+  .foot a { color: var(--text-muted); text-decoration: none; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>보증금과 월세를 맞바꿀 때, 손해인가 이득인가</h1>
+<p class="lead">
+  「보증금 1천만 원을 빼는 대신 월세 5만 원」. 이 제안이 유리한지는 <strong>전환율</strong> 하나로 판단합니다.
+  전환율은 보증금을 월세로 바꿀 때 적용하는 연이율입니다. 위 예시는 연 6%입니다.
+  <strong>내 대출금리보다 높으면 보증금을 늘리는 쪽이, 낮으면 월세로 돌리는 쪽이 유리합니다.</strong>
+</p>
+
+<div class="card">
+  <div class="tabs">
+    <button class="tab" data-mode="toMonthly" data-on="true">보증금 → 월세</button>
+    <button class="tab" data-mode="toDeposit">월세 → 보증금</button>
+    <button class="tab" data-mode="reverse">두 매물의 전환율 역산</button>
+  </div>
+
+  <div id="form"></div>
+
+  <div class="out">
+    <div class="big" id="result">—</div>
+    <div class="sub" id="detail"></div>
+    <div class="judge" id="judge"></div>
+  </div>
+
+  <details>
+    <summary>계산식과 법정 상한</summary>
+    <pre class="formula">보증금 → 월세 :  월세 = 바꿀 보증금 × 전환율 ÷ 12
+월세 → 보증금 :  보증금 = 월세 × 12 ÷ 전환율
+두 매물 역산 :  전환율 = (월세 차이 × 12) ÷ (보증금 차이)
+
+법정 상한 = min( 기준금리 + 2%p , 10% )
+            주택임대차보호법 시행령 제9조</pre>
+    <p style="font-size:13px">
+      법정 상한은 <strong>이미 살고 있는 집에서 보증금을 월세로 바꿀 때</strong> 적용됩니다.
+      새로 계약하는 집에는 강제되지 않으므로, 시장에서는 상한보다 높은 전환율이 흔합니다.
+      기준금리는 바뀌므로 <strong>직접 넣는 방식</strong>으로 두었습니다.
+    </p>
+  </details>
+</div>
+
+<h2>왜 전환율 하나로 판단할 수 있나</h2>
+<p>
+  보증금은 돌려받는 돈이고, 월세는 사라지는 돈입니다. 그래서 둘은 원래 비교할 수 없습니다.
+  비교가 되는 지점은 <strong>그 보증금을 만드는 데 드는 값</strong>입니다.
+  빌려서 채운다면 대출금리가, 내 돈으로 채운다면 그 돈이 다른 곳에서 벌 수 있었던 수익률이 값입니다.
+  <strong>전환율이 그 값보다 높으면, 보증금으로 두는 편이 싸게 먹힙니다.</strong>
+</p>
+
+<h2>금리가 오르면 답이 바뀐다</h2>
+<p>
+  대출금리가 2%일 때는 전환율 5%짜리 제안이 명백히 불리하지만, 대출금리가 6%가 되면 같은 제안이 유리해집니다.
+  <strong>전세와 월세 중 무엇이 유리한지는 고정된 답이 아니라, 금리에 따라 뒤집히는 계산입니다.</strong>
+  전세가 사라지고 월세가 늘어나는 흐름도 같은 이유로 설명됩니다.
+</p>
+
+<h2>전제와 한계</h2>
+<ul>
+  <li>보증금을 돌려받지 못하는 위험은 계산하지 않습니다. <strong>전세사기·역전세는 이 계산을 통째로 무의미하게 만듭니다.</strong> 보증보험을 먼저 확인하세요.</li>
+  <li>월세 세액공제는 넣지 않았습니다. 해당된다면 월세 쪽이 조금 더 유리해집니다.</li>
+  <li>법정 상한은 기존 계약의 전환에 적용됩니다. 신규 계약은 협의로 정해집니다.</li>
+  <li>입력값은 <strong>이 브라우저에만 저장</strong>되며 서버로 보내지 않습니다. 무료이고 가입도 없습니다.</li>
+</ul>
+
+<p class="foot" id="visits" hidden></p>
+<p class="foot">
+  <a href="../jip/">집 비교 — 보증금이 다른 집을 같은 기준으로</a><br>
+  <a href="../jeonse.html">전세 vs 월세 vs 매매 — 10년 뒤 순자산으로</a><br>
+  <a href="../">間合い (Maai) — 판단을 숫자로 바꾸는 도구상자</a>
+</p>
+
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var KEY = "jeonwolse-v1";
+  var S = { mode: "toMonthly", amount: 1000, rate: 6, monthly: 5,
+            base: 2.5, myRate: 4,
+            aDep: 10000, aRent: 10, bDep: 2000, bRent: 50 };
+  try { var saved = JSON.parse(localStorage.getItem(KEY)); if (saved) for (var k in saved) if (k in S) S[k] = saved[k]; } catch (e) {}
+
+  var form = document.getElementById("form");
+  var resultEl = document.getElementById("result");
+  var detailEl = document.getElementById("detail");
+  var judgeEl = document.getElementById("judge");
+
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function n(v) { var x = parseFloat(v); return isFinite(x) ? x : 0; }
+  function won(x, d) { return (Math.round(x * 100) / 100).toLocaleString("ko-KR", { maximumFractionDigits: d === undefined ? 1 : d }); }
+
+  function row(label, key, step) {
+    var r = document.createElement("div");
+    r.className = "row";
+    var l = document.createElement("label");
+    l.textContent = label;
+    var i = document.createElement("input");
+    i.type = "number"; i.value = S[key]; i.step = step || 1; i.min = 0;
+    i.inputMode = step && step < 1 ? "decimal" : "numeric";
+    i.addEventListener("input", function () { S[key] = n(i.value); save(); calc(); });
+    r.appendChild(l); r.appendChild(i);
+    return r;
+  }
+
+  // 법정 상한. 기준금리는 바뀌므로 입력값으로 둔다
+  function legalCap() { return Math.min(n(S.base) + 2, 10); }
+
+  function build() {
+    form.innerHTML = "";
+    if (S.mode === "toMonthly") {
+      form.appendChild(row("월세로 바꿀 보증금 (만원)", "amount", 100));
+      form.appendChild(row("전환율 (%)", "rate", 0.1));
+    } else if (S.mode === "toDeposit") {
+      form.appendChild(row("보증금으로 바꿀 월세 (만원)", "monthly", 1));
+      form.appendChild(row("전환율 (%)", "rate", 0.1));
+    } else {
+      form.appendChild(row("A 보증금 (만원)", "aDep", 100));
+      form.appendChild(row("A 월세 (만원)", "aRent", 1));
+      form.appendChild(row("B 보증금 (만원)", "bDep", 100));
+      form.appendChild(row("B 월세 (만원)", "bRent", 1));
+    }
+    form.appendChild(row("한국은행 기준금리 (%)", "base", 0.25));
+    form.appendChild(row("내 대출금리 또는 기대수익률 (%)", "myRate", 0.1));
+    calc();
+  }
+
+  function calc() {
+    var cap = legalCap(), rate, line, sub;
+
+    if (S.mode === "toMonthly") {
+      rate = n(S.rate);
+      var m = n(S.amount) * rate / 100 / 12;
+      resultEl.textContent = "월 " + won(m) + "만원";
+      sub = "보증금 " + won(n(S.amount), 0) + "만원을 전환율 " + won(rate) + "%로 월세로 바꿀 때";
+    } else if (S.mode === "toDeposit") {
+      rate = n(S.rate);
+      if (rate <= 0) { resultEl.textContent = "—"; detailEl.textContent = "전환율을 넣어 주세요."; judgeEl.textContent = ""; return; }
+      var d = n(S.monthly) * 12 / (rate / 100);
+      resultEl.textContent = "보증금 " + won(d, 0) + "만원";
+      sub = "월세 " + won(n(S.monthly)) + "만원을 전환율 " + won(rate) + "%로 보증금으로 바꿀 때";
+    } else {
+      var dDep = n(S.aDep) - n(S.bDep), dRent = n(S.bRent) - n(S.aRent);
+      if (dDep === 0) { resultEl.textContent = "—"; detailEl.textContent = "보증금이 같으면 전환율을 구할 수 없습니다."; judgeEl.textContent = ""; return; }
+      rate = (dRent * 12) / dDep * 100;
+      resultEl.textContent = "전환율 " + won(rate, 2) + "%";
+      sub = "보증금 차이 " + won(Math.abs(dDep), 0) + "만원 ↔ 월세 차이 " + won(Math.abs(dRent)) + "만원";
+    }
+    detailEl.textContent = sub;
+
+    // 판정. 두 가지를 본다: 법정 상한과, 내 돈의 값
+    var my = n(S.myRate);
+    var html = "법정 상한은 <strong>" + won(cap, 2) + "%</strong>입니다 (기준금리 " + won(n(S.base), 2) + "% + 2%p, 10% 초과 불가). ";
+    if (rate > cap + 1e-9) {
+      html += "<span class='no'>이 전환율은 상한을 넘습니다.</span> 기존 계약의 전환이라면 다툼의 여지가 있고, 신규 계약이라면 강제되지 않습니다.<br>";
+    } else {
+      html += "<span class='ok'>상한 안에 있습니다.</span><br>";
+    }
+    if (rate > my + 1e-9) {
+      html += "내 돈의 값(" + won(my, 2) + "%)보다 전환율이 <strong>높습니다</strong> → <span class='ok'>보증금을 늘리고 월세를 줄이는 쪽이 유리합니다.</span>";
+    } else if (rate < my - 1e-9) {
+      html += "내 돈의 값(" + won(my, 2) + "%)보다 전환율이 <strong>낮습니다</strong> → <span class='ok'>월세로 돌리고 보증금을 빼는 쪽이 유리합니다.</span>";
+    } else {
+      html += "내 돈의 값과 <strong>같습니다</strong>. 어느 쪽이든 금액 차이는 없습니다.";
+    }
+    judgeEl.innerHTML = html;
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) {
+    t.addEventListener("click", function () {
+      S.mode = t.getAttribute("data-mode");
+      save();
+      Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (x) {
+        x.setAttribute("data-on", x === t ? "true" : "false");
+      });
+      build();
+    });
+    if (t.getAttribute("data-mode") === S.mode) {
+      Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (x) { x.setAttribute("data-on", "false"); });
+      t.setAttribute("data-on", "true");
+    }
+  });
+
+  build();
+})();
+
+// 방문자 수. 가입도 키도 없는 외부 카운터에, 그날 처음 열었을 때만 1을 더한다
+(function visits() {
+  var el = document.getElementById("visits");
+  var BASE = "https://abacus.jasoncameron.dev", NS = "towananika-tool", KEY = "jeonwolse";
+  var today = new Date().toISOString().slice(0, 10), mark = "jeonwolse-visit", seen = null;
+  try { seen = localStorage.getItem(mark); } catch (e) {}
+  var url;
+  if (seen === today) url = BASE + "/get/" + NS + "/" + KEY;
+  else {
+    url = BASE + "/hit/" + NS + "/" + KEY;
+    try { localStorage.setItem(mark, today); } catch (e) {}
+    fetch(BASE + "/hit/" + NS + "/" + KEY + "-" + today).catch(function () {});
+  }
+  fetch(url).then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) {
+      if (!j || !(j.value > 0)) return;
+      el.textContent = "지금까지 " + j.value.toLocaleString("ko-KR") + "명이 열어봤습니다";
+      el.hidden = false;
+    }).catch(function () {});
+})();
+</script>
+</body>
+</html>
