@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>집 비교 — 보증금이 다른 집, 진짜 월 부담으로 비교하기</title>
+<meta name="description" content="보증금과 월세가 다른 집을 나란히 놓고, 대출이자와 보증금의 기회비용까지 넣은 '진짜 월 부담'으로 비교합니다. 전세·반전세·월세·청년안심주택 모두 같은 기준. 무료, 가입 없음, 계산식 공개.">
+<link rel="canonical" href="https://towananika.github.io/tool/jip/">
+<link rel="alternate" hreflang="ko" href="https://towananika.github.io/tool/jip/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="間合い / Maai">
+<meta property="og:title" content="집 비교 — 보증금이 다른 집을 같은 기준으로">
+<meta property="og:description" content="대출이자와 보증금의 기회비용까지 넣은 '진짜 월 부담'으로 비교합니다. 계산식 전부 공개.">
+<meta property="og:url" content="https://towananika.github.io/tool/jip/">
+<meta property="og:locale" content="ko_KR">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg: #f5f1e9; --surface: #fbf9f4; --surface-border: #e2dac8;
+    --text: #2b2924; --text-muted: #8a8271; --wood: #93704b; --sea: #5b7d8a; --win: #6f8f6a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1a16; --surface: #242119; --surface-border: #38332a;
+      --text: #ede8dd; --text-muted: #a89e8a; --wood: #c99f74; --sea: #8fb0bd; --win: #9dbd97;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+    line-height: 1.75; padding: 28px 18px 60px;
+  }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 22px; letter-spacing: -.01em; margin-bottom: 10px; }
+  h2 { font-size: 16px; margin: 32px 0 10px; color: var(--wood); }
+  h3 { font-size: 14px; margin: 18px 0 6px; }
+  p { margin-bottom: 12px; font-size: 14.5px; }
+  .lead { color: var(--text-muted); font-size: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 16px; padding: 16px; margin: 18px 0; }
+
+  .homes { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+  .home { flex: 1 1 0; min-width: 172px; border: 1px solid var(--surface-border); border-radius: 14px; padding: 12px; background: var(--bg); }
+  .home[data-win="true"] { border-color: var(--win); }
+  .home h3 { margin: 0 0 8px; }
+  .home input[type=text] { width: 100%; font: inherit; font-size: 14px; font-weight: 600; background: transparent; color: var(--text);
+    border: none; border-bottom: 1px dashed var(--surface-border); padding: 2px 0 4px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+  .row label { font-size: 12.5px; color: var(--text-muted); white-space: nowrap; }
+  .row input[type=number] { width: 84px; min-width: 0; font: inherit; font-size: 14px; text-align: right; padding: 5px 7px;
+    border: 1px solid var(--surface-border); border-radius: 8px; background: var(--bg); color: var(--text); }
+  .out { margin-top: 12px; border-top: 1px solid var(--surface-border); padding-top: 10px; }
+  .out .big { font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .home[data-win="true"] .out .big { color: var(--win); }
+  .out .sub { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .badge { display: inline-block; font-size: 11px; color: var(--win); border: 1px solid var(--win); border-radius: 999px; padding: 1px 8px; margin-left: 6px; }
+
+  .common { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 6px; }
+  .common .row { margin-top: 0; }
+  details { border-top: 1px solid var(--surface-border); padding-top: 12px; margin-top: 14px; }
+  summary { cursor: pointer; font-size: 13.5px; color: var(--wood); }
+  pre.formula { background: var(--bg); border: 1px solid var(--surface-border); border-radius: 10px;
+    padding: 10px 12px; font-size: 12.5px; line-height: 1.7; overflow-x: auto; margin: 10px 0; white-space: pre-wrap; }
+  ul { margin: 0 0 12px 18px; font-size: 14px; }
+  li { margin-bottom: 6px; }
+  a { color: var(--sea); }
+  .foot { margin-top: 40px; text-align: center; font-size: 12.5px; color: var(--text-muted); }
+  .foot a { color: var(--text-muted); text-decoration: none; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>보증금이 다른 집을, 같은 기준으로 비교하기</h1>
+<p class="lead">
+  보증금 1억에 월세 15만 원인 집과, 보증금 2천에 월세 60만 원인 집. 어느 쪽이 쌀까요?
+  월세만 보면 앞이 싸 보이지만, <strong>보증금에 묶인 돈도 값이 있습니다</strong>.
+  빌린 돈에는 이자가 붙고, 내 돈은 다른 곳에서 벌 수 있었던 만큼을 포기합니다.
+  그 둘을 월로 환산해서 더한 것이 <strong>진짜 월 부담</strong>입니다.
+</p>
+
+<div class="card">
+  <p style="font-size:12.5px;color:var(--text-muted);margin:0 0 8px">금액은 <strong>만원</strong> 단위. 이름과 숫자를 실제 매물로 바꿔 쓰세요.</p>
+  <div class="homes" id="homes"></div>
+
+  <div class="common">
+    <div class="row">
+      <label for="loanRate">대출금리 %</label>
+      <input type="number" id="loanRate" value="1.9" min="0" max="20" step="0.1" inputmode="decimal">
+    </div>
+    <div class="row">
+      <label for="oppRate">기대수익률 %</label>
+      <input type="number" id="oppRate" value="4" min="0" max="30" step="0.1" inputmode="decimal">
+    </div>
+    <div class="row">
+      <label for="months">기간 (개월)</label>
+      <input type="number" id="months" value="24" min="1" max="240" step="1" inputmode="numeric">
+    </div>
+  </div>
+
+  <details>
+    <summary>계산식 보기</summary>
+    <pre class="formula">진짜 월 부담 = 월세 + 관리비
+            + 보증금 × 대출비율 × 대출금리 ÷ 12      ← 실제로 나가는 이자
+            + 보증금 × (1 − 대출비율) × 기대수익률 ÷ 12  ← 내 돈의 기회비용
+
+기간 총액 = 진짜 월 부담 × 개월 수
+          ( 보증금은 나갈 때 돌려받으므로 총액에 넣지 않습니다 )</pre>
+    <p style="font-size:13px">
+      <strong>기대수익률을 0으로 두면</strong>, 내 돈의 기회비용을 계산에서 뺀 「실제로 통장에서 나가는 돈」만 비교합니다.
+      <strong>기대수익률을 높일수록</strong> 보증금이 큰 집이 불리해집니다. 이 숫자 하나가 전세와 월세의 유불리를 뒤집습니다.
+    </p>
+  </details>
+</div>
+
+<div class="card" id="verdict"></div>
+
+<h2>왜 월세만 보면 안 되나</h2>
+<p>
+  보증금은 사라지는 돈이 아닙니다. 나갈 때 돌려받습니다. 그래서 「총액」에는 넣지 않습니다.
+  하지만 <strong>묶여 있는 동안은 쓸 수 없습니다</strong>. 대출로 채웠다면 이자가 나가고, 내 돈으로 채웠다면 그 돈이 다른 곳에서 벌 수 있었던 만큼을 포기한 것입니다.
+  이 둘을 넣지 않으면, 보증금이 큰 집이 실제보다 싸 보입니다.
+</p>
+
+<h2>전환율 — 보증금과 월세를 맞바꿀 때</h2>
+<p>
+  집주인이 「보증금 1천만 원을 빼는 대신 월세 5만 원」을 제안했다면, 연으로 환산하면 6%입니다.
+  <strong>내 대출금리보다 높으면, 보증금을 늘리고 월세를 줄이는 쪽이 유리합니다.</strong>
+  반대로 기대수익률이 그보다 높다면 보증금을 줄이는 쪽이 유리합니다. 위 계산기에서 두 경우를 나란히 넣어보면 그대로 보입니다.
+</p>
+
+<h2>전제와 한계</h2>
+<ul>
+  <li><strong>보증금을 못 돌려받는 위험은 금액으로 계산하지 않습니다.</strong> 전세사기·역전세는 이 계산을 통째로 무의미하게 만듭니다. 보증보험 가입 여부를 먼저 확인하세요.</li>
+  <li>이사비·중개수수료·장기수선충당금은 넣지 않았습니다. 짧게 살수록 이 비용의 비중이 커집니다.</li>
+  <li>대출 한도와 금리는 제도와 소득에 따라 다릅니다. <strong>직접 입력하는 방식</strong>인 이유입니다.</li>
+  <li>월세 세액공제는 넣지 않았습니다. 조건에 해당한다면 월세 쪽이 조금 더 유리해집니다.</li>
+  <li>입력값은 <strong>이 브라우저에만 저장</strong>되며 서버로 보내지 않습니다. 무료이고 가입도 없습니다.</li>
+</ul>
+
+<p class="foot">
+  <a href="../">間合い (Maai) — 판단을 숫자로 바꾸는 도구상자</a><br>
+  <a href="../jeonse.html">전세 vs 월세 vs 매매 — 10년 뒤 순자산으로 비교</a>
+</p>
+
+</main>
+
+<script>
+(function () {
+  "use strict";
+  // 초기값은 예시. 실제 매물 조건으로 바꿔서 쓰는 것을 전제로 한다
+  var DEFAULTS = [
+    { name: "청년안심주택", deposit: 11400, rent: 15, mgmt: 11, loan: 80 },
+    { name: "전세",         deposit: 18000, rent: 0,  mgmt: 7,  loan: 80 },
+    { name: "월세",         deposit: 2000,  rent: 60, mgmt: 7,  loan: 0 }
+  ];
+  var KEY = "jip-homes-v1";
+
+  var homes;
+  try { homes = JSON.parse(localStorage.getItem(KEY)) || null; } catch (e) { homes = null; }
+  if (!homes || !homes.length) homes = DEFAULTS.slice();
+
+  var host = document.getElementById("homes");
+  var verdict = document.getElementById("verdict");
+  var loanRateEl = document.getElementById("loanRate");
+  var oppRateEl = document.getElementById("oppRate");
+  var monthsEl = document.getElementById("months");
+
+  function n(v) { var x = parseFloat(v); return isFinite(x) ? x : 0; }
+  function won(x) { return Math.round(x).toLocaleString("ko-KR"); }
+
+  // 받침이 있으면 「이」, 없으면 「가」. 이름을 그대로 쓰므로 조사를 맞춰 준다
+  function ga(word) {
+    var t = (word || "").trim();
+    if (!t) return "이(가)";
+    var c = t.charCodeAt(t.length - 1);
+    if (!(c >= 0xAC00 && c <= 0xD7A3)) return "이(가)";   // 한글이 아니면 판단하지 않는다
+    return (c - 0xAC00) % 28 === 0 ? "가" : "이";
+  }
+
+  // 만원 단위. 보증금만 만원이고 월세·관리비도 만원이므로 단위가 섞이지 않는다
+  function monthly(h) {
+    var loanRate = n(loanRateEl.value) / 100, oppRate = n(oppRateEl.value) / 100;
+    var share = Math.min(100, Math.max(0, n(h.loan))) / 100;
+    var interest = n(h.deposit) * share * loanRate / 12;
+    var opportunity = n(h.deposit) * (1 - share) * oppRate / 12;
+    return { rent: n(h.rent), mgmt: n(h.mgmt), interest: interest, opportunity: opportunity,
+             total: n(h.rent) + n(h.mgmt) + interest + opportunity };
+  }
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(homes)); } catch (e) {}
+  }
+
+  function field(labelText, value, min, max, step, onInput) {
+    var row = document.createElement("div");
+    row.className = "row";
+    var lab = document.createElement("label");
+    lab.textContent = labelText;
+    var inp = document.createElement("input");
+    inp.type = "number"; inp.value = value; inp.min = min; inp.max = max; inp.step = step;
+    inp.inputMode = step === 1 ? "numeric" : "decimal";
+    inp.addEventListener("input", function () { onInput(inp.value); });
+    row.appendChild(lab); row.appendChild(inp);
+    return row;
+  }
+
+  function render() {
+    var results = homes.map(monthly);
+    var best = 0;
+    results.forEach(function (r, i) { if (r.total < results[best].total) best = i; });
+
+    host.innerHTML = "";
+    homes.forEach(function (h, i) {
+      var r = results[i];
+      var card = document.createElement("div");
+      card.className = "home";
+      card.setAttribute("data-win", i === best ? "true" : "false");
+
+      var nameEl = document.createElement("input");
+      nameEl.type = "text"; nameEl.value = h.name; nameEl.setAttribute("aria-label", "집 이름");
+      nameEl.addEventListener("input", function () { h.name = nameEl.value; save(); });
+      card.appendChild(nameEl);
+
+      card.appendChild(field("보증금", h.deposit, 0, 200000, 100, function (v) { h.deposit = n(v); save(); render(); }));
+      card.appendChild(field("월세", h.rent, 0, 1000, 1, function (v) { h.rent = n(v); save(); render(); }));
+      card.appendChild(field("관리비", h.mgmt, 0, 200, 1, function (v) { h.mgmt = n(v); save(); render(); }));
+      card.appendChild(field("대출 %", h.loan, 0, 100, 5, function (v) { h.loan = n(v); save(); render(); }));
+
+      var out = document.createElement("div");
+      out.className = "out";
+      var big = document.createElement("div");
+      big.className = "big";
+      big.textContent = won(r.total) + "만원 / 월";
+      if (i === best) {
+        var b = document.createElement("span");
+        b.className = "badge"; b.textContent = "가장 쌈";
+        big.appendChild(b);
+      }
+      var sub = document.createElement("div");
+      sub.className = "sub";
+      sub.innerHTML = "월세 " + won(r.rent) + " + 관리비 " + won(r.mgmt) +
+        " + 이자 " + r.interest.toFixed(1) + " + 기회비용 " + r.opportunity.toFixed(1);
+      out.appendChild(big); out.appendChild(sub);
+      card.appendChild(out);
+
+      host.appendChild(card);
+    });
+
+    // 판정. 차이가 작으면 그렇게 말한다. 억지로 순위를 세우지 않는다
+    var months = Math.max(1, n(monthsEl.value));
+    var sorted = results.map(function (r, i) { return { i: i, t: r.total }; })
+                        .sort(function (a, b) { return a.t - b.t; });
+    var gap = sorted.length > 1 ? sorted[1].t - sorted[0].t : 0;
+    var bestName = homes[sorted[0].i].name || "1번";
+    var secondName = sorted.length > 1 ? (homes[sorted[1].i].name || "2번") : "";
+
+    var html = "<p style='margin:0'><strong>" + bestName + "</strong>" + ga(bestName) + " 월 <strong>" + won(sorted[0].t) +
+      "만원</strong>으로 가장 쌉니다.";
+    if (sorted.length > 1) {
+      html += " " + secondName + "보다 월 " + gap.toFixed(1) + "만원, " +
+        months + "개월이면 <strong>" + won(gap * months) + "만원</strong> 차이입니다.";
+      if (gap < 3) {
+        html += "<br><span style='color:var(--text-muted);font-size:13px'>" +
+          "다만 차이가 월 3만원 미만입니다. 이 정도면 <strong>숫자로 정할 일이 아닙니다</strong>. " +
+          "출퇴근 시간, 햇빛, 소음, 집주인처럼 계산에 안 들어간 것으로 정하세요.</span>";
+      }
+    }
+    html += "</p>";
+    verdict.innerHTML = html;
+  }
+
+  [loanRateEl, oppRateEl, monthsEl].forEach(function (el) {
+    el.addEventListener("input", render);
+  });
+  render();
+})();
+</script>
+</body>
+</html>
