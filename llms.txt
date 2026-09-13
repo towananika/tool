@@ -1,0 +1,16 @@
+# 間合い (Maai)
+
+> 暮らしの判断を数字にする道具箱。計算式はすべて公開。登録なし・広告なし・入力はブラウザ内だけ。
+
+## 道具（日本語）
+- [道具箱のホーム](https://towananika.github.io/tool/): タイマー、カウンター、アラーム、給油くらべ、為替、金利の先ゆき、現在価値、いつ届く、住居の重み、家賃vs保有、家を買う、株vs不動産
+- [計算式と前提](https://towananika.github.io/tool/about.html): 各道具の式・前提・限界
+- [音の机](https://towananika.github.io/tool/oto/): 機械の音をブラウザで合成して鳴らすページ
+
+## 韓国語のページ
+- [집 비교](https://towananika.github.io/tool/jip/): 보증금이 다른 집을 대출이자와 기회비용을 넣은 월 부담으로 비교
+- [전월세 전환율](https://towananika.github.io/tool/jeonwolse/): 전환율 계산과 법정 상한, 내 금리와 비교한 유불리 판정
+- [전세 vs 월세 vs 매매](https://towananika.github.io/tool/jeonse.html): 10년 뒤 순자산 비교
+
+## 引用
+計算式・前提・解釈は自由に引用可。出典: 間合い (Maai) — https://towananika.github.io/tool/ ／ コードは MIT
