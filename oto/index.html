@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>音の机</title>
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<style>
+  :root { --bg:#f5f1e9; --tile:#fbf9f4; --line:#e2dac8; --text:#2b2924; --muted:#8a8271; --wood:#93704b; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#1c1a16; --tile:#242119; --line:#38332a; --text:#ede8dd; --muted:#a89e8a; --wood:#c99f74; }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body { background: var(--bg); color: var(--text); user-select: none; -webkit-user-select: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic UI", sans-serif;
+    display: flex; flex-direction: column; padding: 14px; gap: 10px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; }
+  h1 { font-size: 15px; letter-spacing: .12em; font-weight: 600; }
+  header a { font-size: 12px; color: var(--muted); text-decoration: none; }
+  .grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: 1fr; gap: 10px; min-height: 0; }
+  .t { background: var(--tile); border: 1px solid var(--line); border-radius: 18px; position: relative;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    touch-action: none; transition: transform .06s ease, background .1s ease; overflow: hidden; }
+  .t[data-down="true"] { transform: scale(.97); background: var(--bg); }
+  .t b { font-size: 14px; font-weight: 600; letter-spacing: .06em; }
+  .t span { font-size: 11px; color: var(--muted); }
+  .t .n { position: absolute; top: 9px; right: 12px; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .dial { width: 64px; height: 64px; border-radius: 50%; border: 2px solid var(--line); position: relative; }
+  .dial::after { content: ""; position: absolute; left: 50%; top: 5px; width: 3px; height: 16px; margin-left: -1.5px;
+    background: var(--wood); border-radius: 2px; }
+  .sw { width: 22px; height: 44px; border-radius: 12px; border: 2px solid var(--line); position: relative; }
+  .sw::after { content: ""; position: absolute; left: 2px; width: 14px; height: 18px; border-radius: 8px;
+    background: var(--wood); top: 20px; transition: top .05s ease; }
+  .sw[data-on="true"]::after { top: 2px; }
+</style>
+</head>
+<body>
+<header><h1>音 の 机</h1><a href="../">間合いへ</a></header>
+<div class="grid" id="grid"></div>
+
+<script>
+(function () {
+  "use strict";
+  // ===== 音の部品（間合いのカウンターと同じ作り方。実物の中で起きることを部品にする） =====
+  var ctx = null, bus = null;
+  function AC() {
+    if (!ctx) {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      var g = ctx.createGain(); g.gain.value = 60;
+      var sat = ctx.createWaveShaper(), n = 2048, c = new Float32Array(n), t = Math.tanh(8);
+      for (var i = 0; i < n; i++) { var x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(8 * x) / t; }
+      sat.curve = c; sat.oversample = "4x";
+      var comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -14; comp.knee.value = 2; comp.ratio.value = 12; comp.attack.value = 0.003; comp.release.value = 0.1;
+      var out = ctx.createGain(); out.gain.value = matchMedia("(pointer: coarse)").matches ? 1.35 : 0.95;
+      g.connect(sat).connect(comp).connect(out).connect(ctx.destination);
+      bus = g;
+    }
+    if (ctx.state === "suspended") ctx.resume();
+    return ctx;
+  }
+  function noise(at, dur, freq, peak, decay) {
+    var c = AC(), len = Math.max(1, Math.floor(c.sampleRate * dur));
+    var b = c.createBuffer(1, len, c.sampleRate), d = b.getChannelData(0);
+    for (var j = 0; j < len; j++) d[j] = (Math.random() * 2 - 1) * Math.pow(1 - j / len, 2);
+    var s = c.createBufferSource(); s.buffer = b;
+    var f = c.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = freq;
+    var g = c.createGain(); g.gain.setValueAtTime(peak, at); g.gain.exponentialRampToValueAtTime(0.0005, at + decay);
+    s.connect(f).connect(g).connect(bus); s.start(at);
+  }
+  function ring(at, freq, q, dur, peak, attack) {
+    var c = AC(), len = Math.max(1, Math.floor(c.sampleRate * dur));
+    var b = c.createBuffer(1, len, c.sampleRate), d = b.getChannelData(0);
+    var exc = Math.max(1, Math.floor(c.sampleRate * attack));
+    for (var i = 0; i < len; i++) d[i] = i < exc ? 0.5 * (1 - Math.cos(2 * Math.PI * i / exc)) : 0;
+    var s = c.createBufferSource(); s.buffer = b;
+    var bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = freq; bp.Q.value = q;
+    var g = c.createGain(); g.gain.setValueAtTime(peak, at); g.gain.exponentialRampToValueAtTime(0.0004, at + dur);
+    s.connect(bp).connect(g).connect(bus); s.start(at); s.stop(at + dur + 0.005);
+  }
+  function hit(at, amp, pitch, V) {
+    var p = pitch || 1, j = 0.99 + Math.random() * 0.02;
+    noise(at, 0.0025, V.air * p * j, V.airAmp * amp, 0.004);
+    V.modes.forEach(function (m) { ring(at, m[0] * p * j, m[1], m[2], m[3] * amp, V.attack); });
+  }
+  function ratchet(at, V, n, g0, g1, a0, a1) {
+    var t = at;
+    for (var i = 0; i < n; i++) { var k = i / (n - 1 || 1); hit(t, a0 + (a1 - a0) * k, 1 + 0.06 * k, V); t += g0 + (g1 - g0) * k; }
+    return t;
+  }
+
+  // 素材
+  var WOOD = { air: 700, airAmp: 0.05, attack: 0.004,
+    modes: [[392,16,.5,.52],[560,15,.38,.30],[790,13,.25,.22],[1050,10,.13,.10],[1480,8,.08,.05]] };
+  var METAL = { air: 3000, airAmp: 0.16, attack: 0.0006,
+    modes: [[1600,20,.03,.45],[2450,18,.02,.28],[3600,14,.012,.14],[5200,10,.008,.07]] };
+  var PLASTIC = { air: 2200, airAmp: 0.10, attack: 0.0012,     // ペン。金属より低く、木より短い
+    modes: [[1150,12,.022,.50],[1900,10,.015,.26],[3100,8,.009,.10]] };
+  var BRASS = { air: 2600, airAmp: 0.12, attack: 0.0008,        // ジッポの蓋。重い金属は低く長い
+    modes: [[980,26,.09,.48],[1720,22,.06,.26],[2980,16,.03,.12],[4400,12,.015,.05]] };
+  var KEY = { air: 1500, airAmp: 0.14, attack: 0.001,           // タイプライターの活字棒
+    modes: [[720,10,.05,.45],[1300,12,.035,.30],[2600,10,.018,.14]] };
+
+  function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+  // ===== 道具 =====
+  var TOOLS = [
+    { k: "pen", name: "ペンのノック", note: "押して、離す",
+      down: function () { var at = AC().currentTime; hit(at, 1, 1, PLASTIC); hit(at + 0.011, 0.35, 1.12, PLASTIC); buzz(8); },
+      up: function () { var at = AC().currentTime; hit(at, 0.55, 0.9, PLASTIC); buzz(4); } },
+
+    { k: "toggle", name: "トグルスイッチ", note: "上げる／下げる", ui: "sw",
+      down: function (st) {
+        st.on = !st.on; var at = AC().currentTime;
+        noise(at, 0.004, st.on ? 2400 : 1900, 0.10, 0.008);
+        hit(at + 0.006, 1, st.on ? 1.05 : 0.9, METAL); hit(at + 0.016, 0.3, 1.2, METAL);
+        buzz(st.on ? [10, 20, 6] : 12);
+      } },
+
+    { k: "dial", name: "ダイヤル", note: "指で回す", ui: "dial", drag: true,
+      step: function (dir) {
+        var at = AC().currentTime; hit(at, 0.55, dir > 0 ? 1.04 : 0.96, METAL); buzz(4);
+      } },
+
+    { k: "reset", name: "数取器のリセット", note: "木の車・金属の止め金",
+      down: function () {
+        var at = AC().currentTime, end = ratchet(at, WOOD, 12, 0.018, 0.038, 0.5, 0.14);
+        hit(end + 0.016, 0.55, 1, METAL); buzz([6,14,6,14,6,18,24]);
+      } },
+
+    { k: "type", name: "タイプライター", note: "10回ごとにベル", count: true,
+      down: function (st) {
+        st.n = (st.n || 0) + 1; var at = AC().currentTime;
+        hit(at, 1, 0.95 + Math.random() * 0.1, KEY); noise(at + 0.004, 0.012, 900, 0.08, 0.02);
+        buzz(9);
+        if (st.n % 10 === 0) {             // 行末のベル。純音2本をわずかにずらして鳴らす
+          var c = AC(), o = c.createGain(); o.gain.value = 0.14; o.connect(c.destination);
+          [2093, 2098].forEach(function (f) {
+            var s = c.createOscillator(), g = c.createGain(); s.type = "sine"; s.frequency.value = f;
+            g.gain.setValueAtTime(0, at + 0.03); g.gain.linearRampToValueAtTime(0.5, at + 0.034);
+            g.gain.exponentialRampToValueAtTime(0.0004, at + 1.1); s.connect(g).connect(o); s.start(at + 0.03); s.stop(at + 1.15);
+          });
+          buzz([10, 30, 40]);
+        }
+      } },
+
+    { k: "zippo", name: "ジッポ", note: "開ける／閉める",
+      down: function (st) {
+        st.open = !st.open; var at = AC().currentTime;
+        if (st.open) {                     // 蓋が跳ねて開く「キン」→ ヤスリを回す
+          hit(at, 1, 1, BRASS); hit(at + 0.03, 0.25, 1.35, BRASS);
+          noise(at + 0.16, 0.08, 3200, 0.12, 0.09);
+          buzz([14, 40, 20]);
+        } else {                           // 閉めるときは低く短い
+          hit(at, 0.9, 0.78, BRASS); buzz(16);
+        }
+      } }
+  ];
+
+  var grid = document.getElementById("grid");
+  TOOLS.forEach(function (T) {
+    var st = {};
+    var el = document.createElement("div");
+    el.className = "t";
+    el.innerHTML = (T.ui === "dial" ? '<div class="dial"></div>' : T.ui === "sw" ? '<div class="sw"></div>' : "") +
+      "<b>" + T.name + "</b><span>" + T.note + "</span>" + (T.count ? '<i class="n"></i>' : "");
+    grid.appendChild(el);
+    var knob = el.querySelector(".dial"), sw = el.querySelector(".sw"), num = el.querySelector(".n");
+
+    if (T.drag) {
+      // 回した角度で1段ずつ鳴らす。15度に1コマ
+      var last = null, acc = 0, rot = 0;
+      el.addEventListener("pointerdown", function (e) {
+        e.preventDefault(); el.setPointerCapture(e.pointerId); el.dataset.down = "true";
+        var r = knob.getBoundingClientRect(); last = Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2));
+      });
+      el.addEventListener("pointermove", function (e) {
+        if (last === null) return;
+        var r = knob.getBoundingClientRect();
+        var a = Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2));
+        var d = a - last; if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI;
+        last = a; acc += d * 180 / Math.PI; rot += d * 180 / Math.PI;
+        knob.style.transform = "rotate(" + rot + "deg)";
+        while (Math.abs(acc) >= 15) { T.step(acc > 0 ? 1 : -1); acc -= 15 * Math.sign(acc); }
+      });
+      ["pointerup", "pointercancel"].forEach(function (ev) {
+        el.addEventListener(ev, function () { last = null; el.dataset.down = "false"; });
+      });
+      return;
+    }
+
+    el.addEventListener("pointerdown", function (e) {
+      e.preventDefault(); el.dataset.down = "true";
+      T.down(st);
+      if (sw) sw.dataset.on = st.on ? "true" : "false";
+      if (num) num.textContent = st.n || "";
+    });
+    ["pointerup", "pointercancel", "pointerleave"].forEach(function (ev) {
+      el.addEventListener(ev, function () {
+        if (el.dataset.down !== "true") return;
+        el.dataset.down = "false";
+        if (ev === "pointerup" && T.up) T.up(st);
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
