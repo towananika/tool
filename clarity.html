@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>米国の暗号資産ルール — CLARITY Act と関連法</title>
+<meta name="description" content="米国の暗号資産の市場構造法案（CLARITY Act）と、成立済みのステーブルコイン法（GENIUS Act）、SEC・CFTCの共同解釈を、何が決まって何が決まっていないかで整理したページ。">
+<meta name="robots" content="noindex">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg: #f5f1e9; --surface: #fbf9f4; --surface-border: #e2dac8;
+    --text: #2b2924; --text-muted: #6f6758; --wood: #93704b; --sea: #5b7d8a;
+    --law: #5f7a52; --bill: #b07a2a; --interp: #5b7d8a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c1a16; --surface: #242119; --surface-border: #38332a;
+      --text: #e8e2d6; --text-muted: #a89e8a; --wood: #c19a70; --sea: #8fb0bd;
+      --law: #9ab58a; --bill: #d9a95a; --interp: #8fb0bd;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.75;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif; }
+  .page { max-width: 640px; margin: 0 auto; padding: 28px 20px 72px; }
+  .crumb { font-size: 12.5px; }
+  .crumb a { color: var(--sea); text-decoration: none; }
+  h1 { font-size: 26px; line-height: 1.4; margin: 14px 0 6px; letter-spacing: -.3px; }
+  .asof { font-size: 12.5px; color: var(--text-muted); margin: 0 0 22px; }
+  h2 { font-size: 18px; margin: 38px 0 10px; padding-top: 18px; border-top: 1px solid var(--surface-border); }
+  h3 { font-size: 15.5px; margin: 20px 0 6px; }
+  p { margin: 8px 0; font-size: 15px; }
+  .muted { color: var(--text-muted); font-size: 13.5px; }
+  .tldr { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 14px; padding: 16px 18px; }
+  .tldr ol { margin: 4px 0 0; padding-left: 20px; }
+  .tldr li { margin: 7px 0; font-size: 15px; }
+
+  /* 3つの枠組み：法律・法案・解釈を色で見分ける */
+  .kinds { display: grid; gap: 10px; }
+  .kind { background: var(--surface); border: 1px solid var(--surface-border); border-left: 4px solid var(--c);
+    border-radius: 12px; padding: 12px 14px; }
+  .kind b { font-size: 15.5px; }
+  .tag { display: inline-block; font-size: 11.5px; font-weight: 700; color: var(--c); border: 1px solid var(--c);
+    border-radius: 999px; padding: 0 8px; margin-left: 6px; vertical-align: 2px; }
+  .kind p { margin: 4px 0 0; font-size: 14px; }
+
+  .tbl { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; vertical-align: top; padding: 9px 8px; border-bottom: 1px solid var(--surface-border); }
+  th { font-size: 12.5px; color: var(--text-muted); font-weight: 600; }
+
+  .tl { list-style: none; margin: 0; padding: 0; }
+  .tl li { display: grid; grid-template-columns: 96px 1fr; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--surface-border); font-size: 14.5px; }
+  .tl time { color: var(--text-muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .tl .u { font-size: 12px; color: var(--bill); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .chips span { font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--surface-border); }
+
+  .open li { margin: 8px 0; font-size: 15px; }
+  .src { font-size: 13px; }
+  .src li { margin: 6px 0; overflow-wrap: anywhere; }
+  .src a { color: var(--sea); }
+  .note { font-size: 12.5px; color: var(--text-muted); margin-top: 30px; line-height: 1.8; }
+</style>
+</head>
+<body>
+<main class="page">
+  <p class="crumb"><a href="./">← 間合い</a></p>
+  <h1>米国の暗号資産ルール<br>CLARITY Act と関連法</h1>
+  <p class="asof">2026年9月14日時点でまとめました。法案は動いている最中なので、読む日には変わっている可能性があります。</p>
+
+  <div class="tldr">
+    <b>3行でいうと</b>
+    <ol>
+      <li><b>ステーブルコインのルールは、もう法律です</b>（GENIUS Act, 2025年7月成立）。いまは細かい規則づくりの段階。</li>
+      <li><b>それ以外の暗号資産を「誰が見るか」を決める法案が、CLARITY Act</b>。上院で審議中で、まだ法律ではありません。</li>
+      <li>法律ができるまでのつなぎとして、<b>SEC と CFTC が共同で「解釈」を出した</b>（2026年3月）。ビットコインなど16銘柄を「商品」に分類。</li>
+    </ol>
+  </div>
+
+  <h2>まず、3つは強さが違う</h2>
+  <div class="kinds">
+    <div class="kind" style="--c:var(--law)"><b>GENIUS Act</b><span class="tag">法律</span>
+      <p>ステーブルコインの発行ルール。守らないと罰がある。</p></div>
+    <div class="kind" style="--c:var(--bill)"><b>CLARITY Act</b><span class="tag">法案</span>
+      <p>暗号資産の市場全体のルール。上院を通り、大統領が署名するまで効力はない。</p></div>
+    <div class="kind" style="--c:var(--interp)"><b>SEC・CFTC 共同解釈</b><span class="tag">解釈</span>
+      <p>当局が「今はこう扱う」と示したもの。法律ではないので、政権や委員が変われば変わりうる。</p></div>
+  </div>
+
+  <h2>CLARITY Act ── 何を決めようとしているか</h2>
+  <p>正式名は Digital Asset Market Clarity Act（下院の法案番号 H.R. 3633）。中心は<b>「この暗号資産は証券か、商品か」の線引き</b>です。</p>
+  <div class="tbl"><table>
+    <tr><th>場面</th><th>見る当局</th><th>考え方</th></tr>
+    <tr><td>中央の運営者がいる段階での<b>最初の販売</b></td><td>SEC（証券）</td><td>運営者の努力に価値が左右されるので、投資家保護が要る</td></tr>
+    <tr><td>十分に分散した資産と、<b>取引所での売買</b></td><td>CFTC（商品）</td><td>特定の運営者に頼らない「商品」として扱う</td></tr>
+  </table></div>
+  <p class="muted">出どころ: 上院銀行委員会の資料・Paul Hastings のまとめ。分散していると認める具体的な基準や、発行額の上限などの細部は、2026年7月の統合版で変わっている可能性があり、このページでは確認できていません。</p>
+
+  <h3>2026年7月の統合版で加わったもの</h3>
+  <p>上院の<b>銀行委員会と農業委員会の案を1本にまとめた616ページの版</b>が、7月22日に公表されました。ホワイトハウスと作った<b>「政府倫理」の章</b>が加わっています。</p>
+  <ul class="open">
+    <li>連邦の対象公職者とその配偶者は、在任中に対価を得て暗号資産を発行・後援してはいけない</li>
+    <li>それに違反した資産を、取引所などが上場してはいけない</li>
+    <li>この章は2029年に失効する。取り締まれるのは司法長官だけ（州の司法長官や個人は訴えられない）</li>
+  </ul>
+
+  <h2>いま、どこまで進んだか</h2>
+  <ul class="tl">
+    <li><time>2025年7月</time><span>下院で可決<br><span class="u">※日付と賛否の数は、公式サイトに自動でアクセスできず未確認</span></span></li>
+    <li><time>2026年5月</time><span>上院銀行委員会で可決（賛成15・反対9、超党派）</span></li>
+    <li><time>2026年7月22日</time><span>銀行・農業両委員会の案を統合した616ページの版を公表</span></li>
+    <li><time>2026年7月23日</time><span>上院多数党院内総務が、8月の休会前に通すのは難しいとの見方を示す</span></li>
+    <li><time>2026年9月</time><span>上院で審議・調整が続いている（本会議での採決はまだ確認できていない）</span></li>
+  </ul>
+  <p class="muted">法律になるには、上院の本会議で可決し、大統領が署名する必要があります。上院の版が下院の版と違う場合は、両院で同じ文面にそろえる手続きも要ります。</p>
+
+  <h2>関連1: GENIUS Act ── ステーブルコイン法（成立済み）</h2>
+  <ul class="tl">
+    <li><time>2025年6月17日</time><span>上院で可決（68対30）</span></li>
+    <li><time>2025年7月17日</time><span>下院で可決（308対122）</span></li>
+    <li><time>2025年7月18日</time><span>大統領が署名し成立（Public Law 119-27）</span></li>
+  </ul>
+  <h3>主なルール</h3>
+  <ul class="open">
+    <li><b>発行できるのは許可を得た者だけ</b>：銀行の子会社、連邦の認可を受けた発行者、州の認可を受けた発行者</li>
+    <li><b>1対1の裏付け</b>：現金、銀行預金、残り93日以内の米国債、米国債を担保にした翌日物レポなどに限る</li>
+    <li><b>利息・利回りを払ってはいけない</b>：持っている・使っているだけの人に、現金でもトークンでも払えない</li>
+    <li><b>証券ではない</b>：この法律に沿ったステーブルコインは、SEC の証券規制からもCFTCの商品規制からも外れる</li>
+  </ul>
+  <h3>いつから効くか</h3>
+  <p>次のどちらか早いほう：<b>成立から18か月後（2027年1月18日）</b>、または<b>当局が最終規則を出してから120日後</b>。2026年は、通貨監督庁（OCC）や財務省などが規則案を順に出している段階です（例: 財務省系の規則案が2026年8月18日に官報掲載）。</p>
+
+  <h2>関連2: SEC・CFTC の共同解釈（2026年3月）</h2>
+  <p>2026年3月17日に公表、3月23日付で官報に載りました。暗号資産を<b>5つの種類</b>に分けています。</p>
+  <div class="tbl"><table>
+    <tr><th>種類</th><th>中身</th></tr>
+    <tr><td>デジタル商品</td><td>価値が、動いているネットワークと市場で決まるもの（開発者の努力ではなく）</td></tr>
+    <tr><td>デジタル収集品</td><td>集めること自体に価値があるもの。配当のような権利はない</td></tr>
+    <tr><td>デジタル道具</td><td>会員証・チケットのように使うもの。譲れないことが多い</td></tr>
+    <tr><td>ステーブルコイン</td><td>ドルなどに価値を連動させるもの</td></tr>
+    <tr><td>デジタル証券</td><td>株や債券など、もともとの金融商品をブロックチェーンに載せたもの</td></tr>
+  </table></div>
+  <h3>「デジタル商品」と名指しされた16銘柄</h3>
+  <div class="chips"><span>BTC</span><span>ETH</span><span>XRP</span><span>SOL</span><span>ADA</span><span>DOGE</span><span>AVAX</span><span>LINK</span><span>DOT</span><span>LTC</span><span>BCH</span><span>XLM</span><span>HBAR</span><span>SHIB</span><span>APT</span><span>XTZ</span></div>
+  <p class="muted">16銘柄以外が「証券」と決まったわけではありません。名前が出ていないだけです。</p>
+
+  <h2>まだ決まっていないこと</h2>
+  <ul class="open">
+    <li>CLARITY Act が<b>いつ、どの文面で</b>成立するか。成立しない可能性もある</li>
+    <li>ステーブルコインを取引所に預けたときの<b>「報酬」</b>が、GENIUS Act の利息禁止に当たるか。業界と銀行で意見が分かれている論点<span class="muted">（報道ベース。統合版での扱いは未確認）</span></li>
+    <li>共同解釈は法律ではないので、<b>次の政権や委員の交代で変わりうる</b></li>
+    <li>GENIUS Act の<b>細かい規則</b>（最終版）がいつ出そろうか</li>
+  </ul>
+
+  <h2>出どころ</h2>
+  <ol class="src">
+    <li><a href="https://www.paulhastings.com/insights/crypto-policy-tracker/senate-releases-updated-clarity-act-text-sec-commissioner-addresses-crypto-vaults-and-sec-and-cftc-advance-24-hour-trading">Paul Hastings「Senate Releases Updated Clarity Act Text…」</a>（2026年7月27日）</li>
+    <li><a href="https://www.banking.senate.gov/newsroom/majority/icymi-chairman-scott-calls-for-senate-action-on-clarity-act-highlights-momentum-for-digital-asset-market-structure-on-fox-business-mornings-with-maria">上院銀行委員会「Chairman Scott Calls for Senate Action on Clarity Act」</a></li>
+    <li><a href="https://www.lummis.senate.gov/press-releases/lummis-releases-updated-clarity-act-text/">ラミス上院議員「Lummis Releases Updated Clarity Act Text」</a></li>
+    <li><a href="https://www.nortonrosefulbright.com/en/knowledge/publications/a88b661b/sec-and-cftc-release-joint-interpretation-on-crypto-asset-regulation">Norton Rose Fulbright「SEC and CFTC release joint interpretation…」</a>（2026年4月）</li>
+    <li><a href="https://www.cftc.gov/LawRegulation/FederalRegister/finalrules/2026-05635.html">CFTC 官報掲載ページ 2026-05635</a>（2026年3月23日）</li>
+    <li><a href="https://en.wikipedia.org/wiki/GENIUS_Act">Wikipedia「GENIUS Act」</a>（2026年9月14日に閲覧）</li>
+    <li><a href="https://www.federalregister.gov/documents/2026/08/18/2026-16796/genius-act-regulations-on-payment-stablecoin-issuance-offer-and-sale">Federal Register「GENIUS Act Regulations on Payment Stablecoin Issuance, Offer, and Sale」</a>（2026年8月18日。本文は未確認）</li>
+  </ol>
+
+  <p class="note">このページは制度の整理で、投資の助言ではありません。法案の中身は審議で変わります。判断に使う前に、上の出どころで最新の状態を確かめてください。</p>
+</main>
+</body>
+</html>
