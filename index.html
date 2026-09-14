@@ -391,10 +391,31 @@
   }
 
   .counter-minus {
-    width: 44px;
-    height: 44px;
-    font-size: 22px;
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
   }
+
+  /* v3.7 シンプル化。
+     押す面は大きいほど速く正確に押せる（Fittsの法則）。円 236px → 画面幅いっぱいの角丸の面。
+     操作は親指の届く下に1列、押す的は56px（WCAG 2.2 の最小24px・推奨44pxより大きく）。
+     選択肢は少ないほど迷わない（Hickの法則）ので、常に見えるのは「−・全画面・0に戻す」の3つだけ */
+  /* PCでは幅を抑える。広げすぎると「−」と「0に戻す」が720pxも離れ、マウスの移動が長くなる */
+  #counterView .counter-stage, .counter-controls { width: 100%; max-width: 520px; }
+  #counterView .counter-circle {
+    width: 100%;
+    height: min(52vh, 420px);
+    border-radius: 28px;
+    box-shadow: none;
+  }
+  #counterView .counter-value { font-size: clamp(72px, 24vmin, 150px); line-height: 1; }
+  .counter-controls { width: 100%; justify-content: space-between; gap: 10px; }
+  .counter-ctl { min-height: 48px; padding: 0 18px; font-size: 15px; }
+  #counterView .counter-remain { margin: -8px 0 0; font-size: 14px; }
+  #counterSettings .stepper button { min-width: 44px; min-height: 44px; font-size: 20px; }
+  #counterSettings .stepper input { min-height: 44px; font-size: 16px; }
+  #counterName { min-height: 44px; font-size: 16px; }
+  .counter-full-bar .chip { min-height: 48px; padding: 0 16px; font-size: 15px; }
 
   /* 全体モード — 画面ぜんぶを数える面にする。
      押す場所を狙わなくていいので、手元を見ずに数え続けられる */
@@ -1435,19 +1456,20 @@
       <div class="sparkle-layer" id="sparkleLayer" aria-hidden="true"></div>
     </div>
 
+    <p class="counter-remain" id="counterRemain" hidden></p>
     <div class="counter-controls">
       <button class="icon-btn counter-minus" id="counterMinus" aria-label="1減らす" title="1減らす">−</button>
-      <button class="chip" id="counterFullBtn">全体モード</button>
+      <button class="chip counter-ctl" id="counterFullBtn">全画面</button>
+      <button class="chip counter-ctl" id="counterResetInline">0に戻す</button>
     </div>
-    <p class="counter-remain" id="counterRemain" hidden></p>
 
     <div class="settings" id="counterSettings" data-open="false">
       <div class="field-row">
-        <span class="field-label">増減幅</span>
+        <span class="field-label">目標</span>
         <div class="stepper">
-          <button data-step="-1" data-target="counterStep" aria-label="増減幅を減らす">−</button>
-          <input type="number" id="counterStep" value="1" min="1" max="1000" inputmode="numeric">
-          <button data-step="1" data-target="counterStep" aria-label="増減幅を増やす">＋</button>
+          <button data-goal="-10" aria-label="目標を減らす">−</button>
+          <input type="number" id="counterGoal" value="0" min="0" max="100000" inputmode="numeric" placeholder="0">
+          <button data-goal="10" aria-label="目標を増やす">＋</button>
         </div>
       </div>
       <div class="field-row">
@@ -1455,11 +1477,11 @@
         <input type="text" id="counterName" maxlength="12" placeholder="なにを数えるか">
       </div>
       <div class="field-row">
-        <span class="field-label">目標</span>
+        <span class="field-label">増減幅</span>
         <div class="stepper">
-          <button data-goal="-10" aria-label="目標を減らす">−</button>
-          <input type="number" id="counterGoal" value="0" min="0" max="100000" inputmode="numeric" placeholder="0">
-          <button data-goal="10" aria-label="目標を増やす">＋</button>
+          <button data-step="-1" data-target="counterStep" aria-label="増減幅を減らす">−</button>
+          <input type="number" id="counterStep" value="1" min="1" max="1000" inputmode="numeric">
+          <button data-step="1" data-target="counterStep" aria-label="増減幅を増やす">＋</button>
         </div>
       </div>
       <div class="field-row">
@@ -1911,7 +1933,7 @@
   <div class="counter-full-bar">
     <button class="icon-btn" id="counterFullMinus" aria-label="1減らす" title="減らす">−</button>
     <button class="chip" id="counterFullLock">ロック</button>
-    <button class="chip" id="counterFullReset">リセット</button>
+    <button class="chip" id="counterFullReset">0に戻す</button>
     <button class="chip" id="counterFullClose">閉じる</button>
   </div>
 </div>
@@ -2257,7 +2279,8 @@
     var basic = (tab === "timer" || tab === "counter");
     modeDot.hidden = tab !== "timer";
     settingsBtn.style.visibility = basic ? "visible" : "hidden";
-    resetBtn.style.visibility = basic ? "visible" : "hidden";
+    // カウンターでは上の「リセット」を出さない。「戻る」の隣で押し間違えやすく、下の「0に戻す」と重複する
+    resetBtn.style.visibility = tab === "timer" ? "visible" : "hidden";
     backBtn.style.visibility = tab === "menu" ? "hidden" : "visible";
     shareBtn.style.visibility = (typeof SHARE !== "undefined" && SHARE[tab]) ? "visible" : "hidden";
     currentToolEl.textContent = tab === "menu" ? "" : tabLabel(tab);
@@ -2313,6 +2336,8 @@
     if (counterFullReset) {
       counterFullReset.setAttribute("data-idle", counterState.count === 0 ? "true" : "false");
     }
+    var ri = document.getElementById("counterResetInline");
+    if (ri) ri.setAttribute("data-idle", counterState.count === 0 ? "true" : "false");
   }
 
   // ---- 目標 ----
@@ -2560,6 +2585,11 @@
     syncScrollLock();
     counterReleaseAwake();
   }
+
+  document.getElementById("counterResetInline").addEventListener("click", function (e) {
+    e.stopPropagation();
+    resetCounter();
+  });
 
   counterFullBtn.addEventListener("click", function (e) {
     e.stopPropagation();
