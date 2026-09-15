@@ -3230,30 +3230,17 @@
     } catch (e) {}
   }
 
-  // 10単位とリセット — 一つ下の、長く残る音。
-  // v2.7までは桁車が0まで戻る連射（打撃を30発ほど）にしていた。機構としては正しいが、
-  // 何百回も聞く道具では「ゲームの効果音」に聞こえる。同じ木を一段低く叩いて、
-  // 長く鳴らすほうが、区切りとして分かりやすく、聞いていて疲れない
+  // 10単位とリセット — 高く二打「ポクポク」。
+  // メトロノームが拍の頭を示すのと同じやり方で、音色はそのまま4度上げて二度叩く。
+  // 連射や一段低い音は、スマホのスピーカーでは1打との差が分かりにくかった。
+  // 高さとリズムの両方で分ける（聴き比べ: Triathlon/tools/counter_accent.html の案C、2026-09-15 Hibiki決定）
   function playMilestone() {
     if (counterState.sound === "off") return;
     try {
       var ctx = getCtx();
       var at = ctx.currentTime;
-      var V = voice();
-
-      if (V.mile === "run") {
-        // 金属の数取器。つまみの摩擦 → 歯送り20回 → 止め金
-        noiseBurst(ctx, at, 0.006, "bandpass", 2800, 0.14, 0.010, counterOut(ctx));
-        var e1 = ratchet(ctx, at + 0.008, VOICES.click, 20, 0.0105, 0.026, 0.55, 0.16, 1);
-        knockV(ctx, e1 + 0.012, 0.75, 0.92, VOICES.click);
-        return;
-      }
-
-      // 木の車＋金属の止め金。木は鳴りが長いので、回数を減らして間隔を広げないと潰れる。
-      // 素材が2つあると終わりがはっきりする。実測（tools/counter_accent.html）:
-      // スマホ帯で1打の2.21倍、3kHz超は0.156（金属だけの案は0.861で、何百回には強すぎた）
-      var e2 = ratchet(ctx, at, VOICES.wood, 12, 0.018, 0.038, 0.50, 0.14, 1);
-      knockV(ctx, e2 + 0.016, 0.55, 1.0, VOICES.click);
+      knock(ctx, at, 0.85, 1.33);
+      knock(ctx, at + 0.13, 0.85, 1.33);
     } catch (e) {}
   }
 
