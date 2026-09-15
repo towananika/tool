@@ -3225,8 +3225,9 @@
     try {
       var ctx = getCtx();
       var at = ctx.currentTime;
-      knock(ctx, at, 0.85, 1.33);
-      knock(ctx, at + 0.13, 0.85, 1.33);
+      // 2026-09-15「聞きづらい」→ 強さを1打と同じ1.0に、間を0.13→0.17秒に広げて2打をはっきり分ける
+      knock(ctx, at, 1.0, 1.33);
+      knock(ctx, at + 0.17, 1.0, 1.33);
     } catch (e) {}
   }
 
