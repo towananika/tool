@@ -3226,14 +3226,21 @@
   // （amp1.6→1打比0.86倍＝むしろ小さい。amp4.0まで上げても1.11倍止まり）。
   // 代わりに、1打目に低いピッチの音を重ねて厚みを作ると、圧縮を経ても実効値で1.28倍まで上がった。
   // 1打目＝高い音＋低い音を同時に、2打目＝高い音だけ、というアクセント（コン↓＋ポク↑、ポク↑）
+  //
+  // 2026-09-17「1打との聞き分けが弱い」への対応: 音量では十分に差があるのに聞き分けにくいのは、
+  // 素材（音色）が1打と同じ木のままだったため。木の車＋金属の止め金（reset_mixの考え方と同じ）で、
+  // 2打目にだけ金属（click素材）の小さな煌めきを重ねる。3kHz超の帯で1打の1.78倍まで増え、
+  // 「終わりに違う素材が鳴る」とはっきり分かるようにした
   function playMilestone() {
     if (counterState.sound === "off") return;
     try {
       var ctx = getCtx();
       var at = ctx.currentTime;
+      var V = voice(), accent = (V === VOICES.click) ? VOICES.wood : VOICES.click;   // 素材を逆にして重ねる
       knock(ctx, at, 2.2, 1.33);
       knock(ctx, at, 1.6, 1.0);
       knock(ctx, at + 0.17, 2.2, 1.33);
+      knockV(ctx, at + 0.17, 0.9, 1.6, accent);
     } catch (e) {}
   }
 
