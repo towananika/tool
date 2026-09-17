@@ -2834,16 +2834,27 @@
     return clampInt(Math.round(fraction * MAX_FOCUS_MIN), 1, MAX_FOCUS_MIN);
   }
 
+  // 2026-09-17「再生ボタンの判定が狭くて、分の調節が操作される」への対応:
+  // 今までは指が1pxでも動けば「ドラッグで分を変えた」扱いになり、タップしたつもりでも
+  // 中心付近では角度がわずかな動きで大きく変わるため、狙わない分に飛んでいた。
+  // 実際に動かしたと言えるだけの距離（8px）を超えるまでは、タップの途中として扱う
+  var DRAG_THRESH = 8;
+  var dragStartX = 0, dragStartY = 0;
   ringWrap.addEventListener("pointerdown", function (e) {
     if (e.pointerType === "mouse" && e.button !== 0) return;
     draggedThisGesture = false;
     dragging = !state.started;
+    dragStartX = e.clientX; dragStartY = e.clientY;
     ringWrap.setPointerCapture(e.pointerId);
   });
 
   ringWrap.addEventListener("pointermove", function (e) {
     if (!dragging) return;
-    draggedThisGesture = true;
+    if (!draggedThisGesture) {
+      var moved = Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY);
+      if (moved < DRAG_THRESH) return;   // タップの範囲。まだ分は変えない
+      draggedThisGesture = true;
+    }
     var minutes = angleToMinutes(e.clientX, e.clientY);
     if (state.mode === "focus") {
       state.focusMin = minutes;
