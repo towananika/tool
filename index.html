@@ -2755,8 +2755,8 @@
     counterState.count = 0;
     saveCounter();
     renderCounter();
-    playMilestone();          // 実機と同じく、リセットでも機構の音が鳴る
-    vibrate([8, 12, 8, 12, 8, 14, 26]);
+    playReset();              // 実機と同じく、リセットでも機構の音が鳴る。10単位とは別の音（2026-09-22）
+    vibrate([6, 10, 6, 10, 6, 14, 6, 20, 40]);   // 音と同じく、細かく震えて最後に一度しっかり
 
     undoText.textContent = undoValue.toLocaleString() + " を 0 に戻しました";
     undoBar.setAttribute("data-in-full", counterFull.hidden ? "false" : "true");
@@ -3255,6 +3255,32 @@
     } catch (e) {}
   }
 
+  // リセット — 数取器のつまみを回すと、車がカラカラと0まで戻り、最後にカタンと座る。
+  // 2026-09-22「リセット音がタップ音と被って聞き分けが雑」への対応。
+  // 前は10単位と同じ音（2打）で、1打とは打つ回数と間しか違わなかった。
+  // リズムで分ける: 1打＝一瞬、10単位＝2打、リセット＝速い連打が下がっていき、低い1打で止まる。
+  // 鋭い音は使わない（鈴・金属は避ける。2026-09-17 Hibiki）。連打は小さく、止まりの1打だけしっかり鳴らす
+  function playReset() {
+    if (counterState.sound === "off") return;
+    try {
+      var ctx = getCtx();
+      var at = ctx.currentTime;
+      var V = voice();
+      // 連打は胴の鳴りを短く切る。木はそのままだと0.5秒鳴って、連打がにじんで「ドロロ」になる
+      // （オフラインで測って、7打のうち4打しか区別できなかった）
+      var tick = { air: V.air, airAmp: V.airAmp, attack: V.attack,
+                   modes: V.modes.map(function (m) { return [m[0], m[1], Math.min(m[2], 0.045), m[3]]; }) };
+      var n = 7, tt = 0, gap = 0.030;
+      for (var i = 0; i < n; i++) {
+        // 下がりながら、少しずつ間が開く（回っていた車が遅くなる）
+        knockV(ctx, at + tt, 0.55 - i * 0.04, 1.30 - i * 0.05, tick);
+        tt += gap; gap *= 1.16;
+      }
+      // 止まり: 低く、しっかり。胴の鳴りを残す
+      knock(ctx, at + tt + 0.05, 1.9, 0.86);
+      knock(ctx, at + tt + 0.05, 1.2, 0.72);
+    } catch (e) {}
+  }
 
   function playTemple(toFocus) {
     var ctx = getCtx();
