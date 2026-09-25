@@ -1,29 +1,29 @@
 {
-  "updated": "2026-09-24T22:55:02+09:00",
+  "updated": "2026-09-25T11:38:53+09:00",
   "source": "open.er-api.com",
   "hasCash": false,
   "note": "KRW建て。unit 単位あたりの韓国ウォン。この取得元では基準レートのみ。現金の売買レートは入らない。",
   "rates": {
     "USD": {
       "unit": 1,
-      "base": 1364.26,
+      "base": 1367.99,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "미국 달러",
-      "date": "24 Sep 2026",
+      "date": "25 Sep 2026",
       "time": ""
     },
     "JPY": {
       "unit": 100,
-      "base": 863.66,
+      "base": 862.89,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "일본 옌",
-      "date": "24 Sep 2026",
+      "date": "25 Sep 2026",
       "time": ""
     },
     "EUR": {
@@ -34,18 +34,18 @@
       "ttBuy": null,
       "ttSell": null,
       "name": "유로",
-      "date": "24 Sep 2026",
+      "date": "25 Sep 2026",
       "time": ""
     },
     "CNY": {
       "unit": 1,
-      "base": 201.57,
+      "base": 203.09,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "중국 위안",
-      "date": "24 Sep 2026",
+      "date": "25 Sep 2026",
       "time": ""
     },
     "GBP": {
@@ -56,18 +56,18 @@
       "ttBuy": null,
       "ttSell": null,
       "name": "영국 파운드",
-      "date": "24 Sep 2026",
+      "date": "25 Sep 2026",
       "time": ""
     },
     "AUD": {
       "unit": 1,
-      "base": 962.46,
+      "base": 960.61,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "호주 달러",
-      "date": "24 Sep 2026",
+      "date": "25 Sep 2026",
       "time": ""
     }
   },
@@ -225,6 +225,17 @@
         "GBP": 1811.59,
         "AUD": 962.46
       }
+    },
+    {
+      "date": "2026-09-25",
+      "base": {
+        "USD": 1367.99,
+        "JPY": 862.89,
+        "EUR": 1557.63,
+        "CNY": 203.09,
+        "GBP": 1811.59,
+        "AUD": 960.61
+      }
     }
   ],
   "yields": {
@@ -242,23 +253,23 @@
       }
     },
     "us": {
-      "date": "09/23/2026",
+      "date": "09/24/2026",
       "source": "US Treasury daily yield curve",
       "curve": {
-        "1": 4.49,
-        "2": 4.85,
-        "3": 4.97,
-        "5": 4.99,
-        "7": 5.05,
-        "10": 5.11,
-        "20": 5.45,
-        "30": 5.4
+        "1": 4.51,
+        "2": 4.87,
+        "3": 4.99,
+        "5": 5.03,
+        "7": 5.1,
+        "10": 5.18,
+        "20": 5.53,
+        "30": 5.47
       }
     },
-    "updated": "2026-09-24T22:55:05+09:00"
+    "updated": "2026-09-25T11:38:56+09:00"
   },
   "stocks": {
-    "updated": "2026-09-24T22:55:07+09:00",
+    "updated": "2026-09-25T11:38:57+09:00",
     "source": "Yahoo Finance (adjclose)",
     "note": "배당 포함. 과거 실적이며 미래 수익률이 아니다. 기간에 따라 크게 달라진다.",
     "items": [
