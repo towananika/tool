@@ -1487,6 +1487,7 @@
       <div class="field-row">
         <span class="field-label">音</span>
         <div class="presets" id="counterSoundPick">
+          <button class="chip" data-sound="beads">数珠</button>
           <button class="chip" data-sound="wood">木</button>
           <button class="chip" data-sound="click">カチカチ</button>
           <button class="chip" data-sound="off">切</button>
@@ -2030,7 +2031,7 @@
 
   var activeTab = "timer";
 
-  var counterState = { count: 0, step: 1, name: "", sound: "wood", vol: "high" };
+  var counterState = { count: 0, step: 1, name: "", sound: "beads", vol: "high" };
 
   function loadCounter() {
     try {
@@ -2039,7 +2040,11 @@
       if (saved && typeof saved.step === "number") counterState.step = saved.step;
       if (saved && typeof saved.name === "string") counterState.name = saved.name.slice(0, 12);
       if (saved && typeof saved.goal === "number") counterState.goal = clampInt(saved.goal, 0, 100000);
-      if (saved && (VOICES[saved.sound] || saved.sound === "off")) counterState.sound = saved.sound;
+      if (saved && (VOICES[saved.sound] || saved.sound === "off" || saved.sound === "beads")) counterState.sound = saved.sound;
+      // 2026-09-29: 既定の音を「木」から「数珠」に変えた。前の既定のまま（木）の人は、1回だけ数珠に移す。
+      // 自分で「カチカチ」「切」を選んだ人は、そのまま
+      if (saved && saved.sound === "wood" && !saved.snd2) counterState.sound = "beads";
+      counterState.snd2 = 1;
       if (saved && COUNTER_VOL[saved.vol]) counterState.vol = saved.vol;
     } catch (e) {}
   }
@@ -2411,7 +2416,7 @@
     var goal = counterState.goal;
     if (goal > 0 && before < goal && counterState.count >= goal) {
       // 到達は10単位より強く、はっきり違う合図にする
-      playMilestone();
+      playGoal();
       vibrate([16, 40, 16, 40, 30]);
       return;
     }
@@ -3117,6 +3122,7 @@
   function counterVol() { return COUNTER_VOL[counterState.vol] || 1.0; }
   function applyCounterVol() {
     if (counterBus && counterBus.out) counterBus.out.gain.value = counterBus.base * counterVol();
+    if (beadBus && beadBus.out) beadBus.out.gain.value = beadBus.base * counterVol();
   }
 
   function counterOut(ctx) {
@@ -3212,10 +3218,60 @@
   }
   function knock(ctx, at, amp, pitch) { knockV(ctx, at, amp, pitch, voice()); }
 
+  // ==================== 数珠（2026-09-29 Hibiki決定） ====================
+  // 「使いやすく、聞いて気持ちいいカウンター」に。数珠は、もともと回数を数える道具。
+  // 1回＝珠を1つ繰る、10回＝区切りの大きい珠（親玉・おやだま）、と音と動作の意味を合わせる。
+  // 聴き比べ: Triathlon/tools/counter_tap.html の E。木の音より、耳に刺さる帯（1.5kHz超）が少ない（7%→5%）
+  //
+  // 出口は木の音と分ける。木は小さなスピーカーで聞こえるよう強く潰している（飽和＋強い圧縮）が、
+  // それが硬さと疲れの元になっていた。数珠は潰しを弱くする。
+  // 実測（オフライン、500Hz以上）: 木の1打 0.16〜0.19 に対し、数珠の1打 0.13〜0.14（約-3dB）。
+  // 珠は短く尖った音なので、大きさを上げても最後の天井（lim）に当たるだけで平均は上がらない（1.0〜1.6で変わらず）。
+  // ただ珠の音は1.4〜2kHzにあり、耳の感度が木（400〜800Hz）より高い帯なので、聞こえ方はほぼ同じと見ている
+  var beadBus = null;
+  var BEAD_LEVEL = 1.0;
+  function beadOut(ctx) {
+    if (beadBus && beadBus.ctx === ctx) return beadBus.node;
+    var g = ctx.createGain(); g.gain.value = 20;
+    var sat = ctx.createWaveShaper(); sat.curve = tanhCurve(1.6); sat.oversample = "4x";
+    var comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -20; comp.knee.value = 10; comp.ratio.value = 3; comp.attack.value = 0.006; comp.release.value = 0.15;
+    var out = ctx.createGain();
+    var base = BEAD_LEVEL * (IS_COARSE ? 1.0 : 0.70);   // PCは机の上なので少し下げる（木と同じ考え方）
+    out.gain.value = base * counterVol();
+    // 最後に、振り切れる瞬間だけ止める。大きさを上げても割れないように（ふだんは効かない）
+    var lim = ctx.createDynamicsCompressor();
+    lim.threshold.value = -1; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.05;
+    g.connect(sat).connect(comp).connect(out).connect(lim).connect(ctx.destination);
+    beadBus = { ctx: ctx, node: g, out: out, base: base };
+    return g;
+  }
+  // 珠が1つ当たる。p＝高さ（1が普通の珠）、len＝鳴りの長さの倍率（大きい珠ほど長い）
+  function bead(ctx, at, amp, p, len) {
+    var out = beadOut(ctx), j = 0.985 + Math.random() * 0.03, L = len || 1;   // 珠ごとに少しずつ違う
+    woodRing(ctx, at, 1400 * p * j, 22, 0.05 * L, 0.35 * amp, 0.0015, out);
+    woodRing(ctx, at, 2100 * p * j, 22, 0.03 * L, 0.12 * amp, 0.0015, out);
+    woodRing(ctx, at, 620 * p * j, 10, 0.08 * L, 0.30 * amp, 0.003, out);   // 珠の胴。短すぎると小さく聞こえる
+  }
+  // 親玉（区切りの大きい珠）。普通の珠より低く、胴の鳴りが長い
+  function oyadama(ctx, at, amp, p) {
+    var out = beadOut(ctx), q = p || 1;
+    bead(ctx, at, 0.9 * amp, 0.62 * q, 2.0);
+    woodRing(ctx, at, 300 * q, 8, 0.20, 0.40 * amp, 0.004, out);
+  }
+  // 1回：珠を1つ繰る。当たって、すぐ隣の珠に小さく触れる
+  function beadTap(ctx, at) { bead(ctx, at, 1, 1); bead(ctx, at + 0.013, 0.5, 1); }
+  // 1回戻す：珠を手前に戻す。少し低く、触れる順を逆にする（小さく触れてから当たる）
+  function beadBack(ctx, at) { bead(ctx, at, 0.35, 0.84); bead(ctx, at + 0.016, 0.9, 0.84); }
+
   // 1打 — 1桁目の車が1コマ回る。
   // 「カチカチ」と二つ聞こえるのは、爪が歯を乗り越える音と、そのあと座る音の二段があるため
   function playClick(up) {
     if (counterState.sound === "off") return;   // 切のときは鳴らさない。振動は残す
+    if (counterState.sound === "beads") {
+      try { var bc = getCtx(); if (up) beadTap(bc, bc.currentTime); else beadBack(bc, bc.currentTime); } catch (e) {}
+      return;
+    }
     try {
       var ctx = getCtx();
       var at = ctx.currentTime;
@@ -3244,6 +3300,11 @@
   // 「終わりに違う素材が鳴る」とはっきり分かるようにした
   function playMilestone() {
     if (counterState.sound === "off") return;
+    if (counterState.sound === "beads") {
+      // 珠を繰って、区切りの親玉に届く。1回とは「2つ目が低く長い」ではっきり分かれる
+      try { var mc = getCtx(), mt = mc.currentTime; beadTap(mc, mt); oyadama(mc, mt + 0.09, 1.25); } catch (e) {}
+      return;
+    }
     try {
       var ctx = getCtx();
       var at = ctx.currentTime;
@@ -3255,6 +3316,13 @@
     } catch (e) {}
   }
 
+  // 目標に届いた — 親玉を2つ。低い「コトン」のあと、少し高い「コロン」で終わる。
+  // 10単位（珠→親玉）とも、リセット（連打→親玉）とも違う形にする（2026-09-29 追加）
+  function playGoal() {
+    if (counterState.sound !== "beads") { playMilestone(); return; }
+    try { var gc = getCtx(), gt = gc.currentTime; oyadama(gc, gt, 1.2, 0.9); oyadama(gc, gt + 0.24, 1.0, 1.15); } catch (e) {}
+  }
+
   // リセット — 数取器のつまみを回すと、車がカラカラと0まで戻り、最後にカタンと座る。
   // 2026-09-22「リセット音がタップ音と被って聞き分けが雑」への対応。
   // 前は10単位と同じ音（2打）で、1打とは打つ回数と間しか違わなかった。
@@ -3262,6 +3330,19 @@
   // 鋭い音は使わない（鈴・金属は避ける。2026-09-17 Hibiki）。連打は小さく、止まりの1打だけしっかり鳴らす
   function playReset() {
     if (counterState.sound === "off") return;
+    if (counterState.sound === "beads") {
+      // 数珠を手の中でまとめる：珠が次々に触れ合って、最後に親玉で止まる。
+      // 間を揺らして、機械の連打ではなく手の動きに聞こえるようにする
+      try {
+        var rc = getCtx(), rt = rc.currentTime, tt = 0;
+        for (var i = 0; i < 9; i++) {
+          bead(rc, rt + tt, 0.45 + Math.random() * 0.2, 0.95 + Math.random() * 0.12);
+          tt += 0.022 + Math.random() * 0.018 + i * 0.004;
+        }
+        oyadama(rc, rt + tt + 0.06, 1.1, 0.95);
+      } catch (e) {}
+      return;
+    }
     try {
       var ctx = getCtx();
       var at = ctx.currentTime;
