@@ -1,29 +1,29 @@
 {
-  "updated": "2026-09-28T18:09:47+09:00",
+  "updated": "2026-09-29T12:25:50+09:00",
   "source": "open.er-api.com",
   "hasCash": false,
   "note": "KRW建て。unit 単位あたりの韓国ウォン。この取得元では基準レートのみ。現金の売買レートは入らない。",
   "rates": {
     "USD": {
       "unit": 1,
-      "base": 1355.01,
+      "base": 1358.7,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "미국 달러",
-      "date": "28 Sep 2026",
+      "date": "29 Sep 2026",
       "time": ""
     },
     "JPY": {
       "unit": 100,
-      "base": 861.42,
+      "base": 864.18,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "일본 옌",
-      "date": "28 Sep 2026",
+      "date": "29 Sep 2026",
       "time": ""
     },
     "EUR": {
@@ -34,40 +34,40 @@
       "ttBuy": null,
       "ttSell": null,
       "name": "유로",
-      "date": "28 Sep 2026",
+      "date": "29 Sep 2026",
       "time": ""
     },
     "CNY": {
       "unit": 1,
-      "base": 203.09,
+      "base": 201.82,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "중국 위안",
-      "date": "28 Sep 2026",
+      "date": "29 Sep 2026",
       "time": ""
     },
     "GBP": {
       "unit": 1,
-      "base": 1795.33,
+      "base": 1801.8,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "영국 파운드",
-      "date": "28 Sep 2026",
+      "date": "29 Sep 2026",
       "time": ""
     },
     "AUD": {
       "unit": 1,
-      "base": 951.47,
+      "base": 954.2,
       "cashBuy": null,
       "cashSell": null,
       "ttBuy": null,
       "ttSell": null,
       "name": "호주 달러",
-      "date": "28 Sep 2026",
+      "date": "29 Sep 2026",
       "time": ""
     }
   },
@@ -247,6 +247,17 @@
         "GBP": 1795.33,
         "AUD": 951.47
       }
+    },
+    {
+      "date": "2026-09-29",
+      "base": {
+        "USD": 1358.7,
+        "JPY": 864.18,
+        "EUR": 1545.6,
+        "CNY": 201.82,
+        "GBP": 1801.8,
+        "AUD": 954.2
+      }
     }
   ],
   "yields": {
@@ -264,23 +275,23 @@
       }
     },
     "us": {
-      "date": "09/25/2026",
+      "date": "09/28/2026",
       "source": "US Treasury daily yield curve",
       "curve": {
-        "1": 4.5,
-        "2": 4.81,
-        "3": 4.94,
-        "5": 4.98,
-        "7": 5.06,
-        "10": 5.17,
-        "20": 5.54,
-        "30": 5.49
+        "1": 4.59,
+        "2": 4.92,
+        "3": 5.01,
+        "5": 5.06,
+        "7": 5.15,
+        "10": 5.24,
+        "20": 5.6,
+        "30": 5.56
       }
     },
-    "updated": "2026-09-28T18:09:48+09:00"
+    "updated": "2026-09-29T12:25:53+09:00"
   },
   "stocks": {
-    "updated": "2026-09-28T18:09:49+09:00",
+    "updated": "2026-09-29T12:25:55+09:00",
     "source": "Yahoo Finance (adjclose)",
     "note": "배당 포함. 과거 실적이며 미래 수익률이 아니다. 기간에 따라 크게 달라진다.",
     "items": [
@@ -288,7 +299,7 @@
         "sym": "069500.KS",
         "name": "KOSPI200 (KODEX 200)",
         "cagr": {
-          "1": 89.75,
+          "1": 89.77,
           "3": 55.54,
           "5": 25.37,
           "10": 17.97
@@ -298,20 +309,20 @@
         "sym": "005930.KS",
         "name": "삼성전자",
         "cagr": {
-          "1": 153.19,
-          "3": 61.92,
-          "5": 33.59,
-          "10": 26.58
+          "1": 155.06,
+          "3": 62.32,
+          "5": 33.79,
+          "10": 26.67
         }
       },
       {
         "sym": "360750.KS",
         "name": "미국 S&P500 (TIGER)",
         "cagr": {
-          "1": 8.32,
-          "3": 24.41,
-          "5": 15.39,
-          "10": 18.46
+          "1": 7.35,
+          "3": 24.04,
+          "5": 15.18,
+          "10": 18.28
         }
       }
     ]
